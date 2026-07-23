@@ -1,19 +1,14 @@
 {
-  "versao": "V2026.27.01.25",
+  "versao": "V2026.27.01.26",
   "data": "2026-07-23",
   "novidades": [
-    "Verificação de atualização migrada para o GitHub (funciona na rede da Vale)",
-    "Novo card \"Motores\" na tela Exportar (OMs com MOTOR no OBS/Material)",
-    "Novo card \"Energia Zero\" - Matriz de Ordem de Bloqueio (PARADO/PARADA)",
-    "Novo card \"Ciclos Duplicados\" (sistemáticas YPM/YCA com mesmo plano)",
-    "Materiais agora identificados pela coluna Status sistema (MOME/MatC/ERRD)",
-    "Novo filtro \"Todos os centros\" na tela Confirmar Efetivo",
-    "Centro de trabalho agora aceita valor parcial (ex: 128ELA casa com 128ELAEL)",
-    "Botão de atualização abre janela Salvar Como (substitui o arquivo antigo direto)",
+    "Ícone diferente para \"Sessão anterior\" (pasta com relógio), separando do \"Carregar sessão salva\"",
+    "Verificação de atualização via GitHub (funciona na rede da Vale)",
+    "Cards Motores, Energia Zero e Ciclos Duplicados na tela Exportar",
+    "Materiais identificados pela coluna Status sistema (MOME/MatC/ERRD)",
+    "Filtro \"Todos os centros\" e centro de trabalho parcial (128ELA casa com 128ELAEL)",
+    "Botão de atualização abre janela Salvar Como",
     "Recarregamento automático de cache ao reabrir (sem Ctrl+Shift+R)",
-    "Correção da ordenação por data e por número em todas as telas",
-    "Botão Limpar filtros agora limpa também a ordenação e a criticidade",
-    "Correção do botão Reorganizar executantes",
-    "Correção de ícones em várias janelas (Adequar HH, impressões)"
+    "Correções de ordenação, Limpar filtros, Reorganizar executantes e ícones em janelas"
   ]
 }
