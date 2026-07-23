@@ -1,14 +1,14 @@
 {
-  "versao": "V2026.27.01.26",
+  "versao": "V2026.27.01.27",
   "data": "2026-07-23",
   "novidades": [
-    "Ícone diferente para \"Sessão anterior\" (pasta com relógio), separando do \"Carregar sessão salva\"",
+    "Correção: Exportar Materiais (tela 10) voltou a filtrar as OMs com badge MATERIAL",
+    "Exportar Materiais não repete mais a mesma ordem quando ela tem várias operações",
+    "Ícone diferente para \"Sessão anterior\" (pasta com relógio)",
     "Verificação de atualização via GitHub (funciona na rede da Vale)",
     "Cards Motores, Energia Zero e Ciclos Duplicados na tela Exportar",
     "Materiais identificados pela coluna Status sistema (MOME/MatC/ERRD)",
-    "Filtro \"Todos os centros\" e centro de trabalho parcial (128ELA casa com 128ELAEL)",
-    "Botão de atualização abre janela Salvar Como",
-    "Recarregamento automático de cache ao reabrir (sem Ctrl+Shift+R)",
-    "Correções de ordenação, Limpar filtros, Reorganizar executantes e ícones em janelas"
+    "Filtro \"Todos os centros\" e centro de trabalho parcial",
+    "Recarregamento automático de cache ao reabrir (sem Ctrl+Shift+R)"
   ]
 }
