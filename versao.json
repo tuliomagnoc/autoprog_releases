@@ -1,14 +1,13 @@
 {
-  "versao": "V2026.27.01.27",
-  "data": "2026-07-23",
+  "versao": "V2026.27.01.28",
+  "data": "2026-07-24",
   "novidades": [
-    "Correção: Exportar Materiais (tela 10) voltou a filtrar as OMs com badge MATERIAL",
-    "Exportar Materiais não repete mais a mesma ordem quando ela tem várias operações",
+    "Visualização/PDF: novas caixas Oportunidades Aderentes (verde) e Vencidas (vermelho) - sistemáticas a vencer/vencidas em 30 dias não programadas na semana",
+    "Adequar HH agora redistribui corretamente a cada clique (mesmo após reorganizar)",
+    "Correção: Exportar Materiais voltou a filtrar as OMs com badge MATERIAL",
+    "Observações de Efetivo agora são salvas junto com a sessão (arquivo json)",
+    "Sessão salva agora inclui todos os campos (pendências, ordenação, checklist)",
     "Ícone diferente para \"Sessão anterior\" (pasta com relógio)",
-    "Verificação de atualização via GitHub (funciona na rede da Vale)",
-    "Cards Motores, Energia Zero e Ciclos Duplicados na tela Exportar",
-    "Materiais identificados pela coluna Status sistema (MOME/MatC/ERRD)",
-    "Filtro \"Todos os centros\" e centro de trabalho parcial",
-    "Recarregamento automático de cache ao reabrir (sem Ctrl+Shift+R)"
+    "Verificação de atualização via GitHub (funciona na rede da Vale)"
   ]
 }
