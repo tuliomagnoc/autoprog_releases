@@ -3,6 +3,7 @@
   "data": "2026-07-27",
   "novidades": [
     "Planilha Excel da programação (colorida) agora exporta com a Predecessora, o sequenciamento e os horários conforme aplicado no Adequar HH da visualização",
+    "Planilha Excel: abaixo do cabeçalho de cada dia agora mostra o nome da Supervisão (antes vinha \"FILTRAGEM\" fixo)",
     "Cabeçalho das colunas nas Oportunidades: verde nas Aderentes e vermelho nas Vencidas (fonte branca)",
     "Botão de novidades no aviso de atualização agora vibra/pulsa para chamar atenção",
     "Texto do aviso de atualização simplificado",
