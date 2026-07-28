@@ -1,12 +1,10 @@
 {
-  "versao": "V2026.27.01.31",
-  "data": "2026-07-27",
+  "versao": "V2026.27.01.32",
+  "data": "2026-07-28",
   "novidades": [
-    "Planilha Excel da programação (colorida) agora exporta com a Predecessora, o sequenciamento e os horários conforme aplicado no Adequar HH da visualização",
-    "Planilha Excel: abaixo do cabeçalho de cada dia agora mostra o nome da Supervisão (antes vinha \"FILTRAGEM\" fixo)",
-    "Cabeçalho das colunas nas Oportunidades: verde nas Aderentes e vermelho nas Vencidas (fonte branca)",
-    "Botão de novidades no aviso de atualização agora vibra/pulsa para chamar atenção",
-    "Texto do aviso de atualização simplificado",
-    "Removida a frase \"Atualiza automaticamente ao abrir\" do Dashboard"
+    "Oportunidades (visualização/PDF) agora respeitam o filtro de Centro de Trabalho da tela",
+    "Operação manual da mesma Ordem+Operação não é mais perdida ao reimportar base do SAP - preserva programação e observações",
+    "Status TUT (Tutoria) agora reconhecido ao importar a planilha de efetivo",
+    "Correção: ícone de check aparecia como texto ao carregar o backlog"
   ]
 }
