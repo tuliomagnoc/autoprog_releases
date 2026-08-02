@@ -2,12 +2,13 @@
   "versao": "V2026.27.01.34",
   "data": "2026-08-02",
   "novidades": [
-    "Distribuição automática de executantes agora respeita prioridade: ordens inseridas por Revisão, depois Criticidade A>B>C, depois status ATCR/SAUD/URG/MAMB/SEG",
-    "Mão de obra faltante (MO) agora conta 5h por pessoa e distribui de MO1 até MO necessário, mostrando quantos executantes faltam",
+    "Distribuição automática de executantes com prioridade: ordens por Revisão, depois Criticidade A>B>C, depois status ATCR/SAUD/URG/MAMB/SEG",
+    "Mão de obra faltante (MO) conta 5h por pessoa e distribui de MO1 em diante, mostrando quantos executantes faltam",
     "Cores das linhas padronizadas na paleta oficial Vale (RPL, visualização, PDF, Excel, Dashboard)",
     "Campo Status usuário (múltipla escolha) nos modais de criar e editar operação",
-    "Navegação entre semanas na tela RPL com setas, para ver ordens programadas em outras semanas",
-    "Novo card 'Ordens sem VPTS' na tela Exportar - lista ordens programadas sem o flag VPTS de segurança",
-    "Programação com horizonte estendido (até 3 meses) pelo modal de Programar"
+    "Navegação entre semanas na tela RPL com setas",
+    "Novo card 'Ordens sem VPTS' na tela Exportar",
+    "Operações já apropriadas (com trabalho real) voltam a aparecer na RPL em cinza, apenas para visualização e edição, sem opção de programar",
+    "Programação com horizonte estendido de até 3 meses"
   ]
 }
