@@ -1,10 +1,13 @@
 {
-  "versao": "V2026.27.01.32",
-  "data": "2026-07-28",
+  "versao": "V2026.27.01.34",
+  "data": "2026-08-02",
   "novidades": [
-    "Oportunidades (visualização/PDF) agora respeitam o filtro de Centro de Trabalho da tela",
-    "Operação manual da mesma Ordem+Operação não é mais perdida ao reimportar base do SAP - preserva programação e observações",
-    "Status TUT (Tutoria) agora reconhecido ao importar a planilha de efetivo",
-    "Correção: ícone de check aparecia como texto ao carregar o backlog"
+    "Distribuição automática de executantes agora respeita prioridade: ordens inseridas por Revisão, depois Criticidade A>B>C, depois status ATCR/SAUD/URG/MAMB/SEG",
+    "Mão de obra faltante (MO) agora conta 5h por pessoa e distribui de MO1 até MO necessário, mostrando quantos executantes faltam",
+    "Cores das linhas padronizadas na paleta oficial Vale (RPL, visualização, PDF, Excel, Dashboard)",
+    "Campo Status usuário (múltipla escolha) nos modais de criar e editar operação",
+    "Navegação entre semanas na tela RPL com setas, para ver ordens programadas em outras semanas",
+    "Novo card 'Ordens sem VPTS' na tela Exportar - lista ordens programadas sem o flag VPTS de segurança",
+    "Programação com horizonte estendido (até 3 meses) pelo modal de Programar"
   ]
 }
