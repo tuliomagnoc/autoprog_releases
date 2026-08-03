@@ -1,12 +1,14 @@
 {
   "versao": "V2026.27.01.35",
-  "data": "2026-08-02",
+  "data": "2026-08-03",
   "novidades": [
     "NOVO: Dashboard abre em janela separada, para consultar e comparar em paralelo enquanto usa o sistema (com botão Atualizar)",
     "NOVO: Histórico de ordens encerradas (12 meses) e Aderência histórica - registrados ao atualizar o backlog, exibidos no Dashboard",
     "NOVO: Botão Backlog agora abre janela para subir os 3 arquivos (Backlog + datas AMC + datas AMS) e comparar de uma vez",
     "NOVO: Operações já apropriadas (com trabalho real) aparecem na RPL em cinza, só para visualização e edição, sem opção de programar",
     "NOVO: Card 'Ordens sem VPTS' na tela Exportar",
+    "MELHORIA: Adequar HH agora estica as operações para preencher a jornada quando sobra tempo (antes só comprimia) - sem tempo ocioso no fim do dia",
+    "MELHORIA: Busca das telas RPL e Backlog agora procura em TODAS as colunas, incluindo executante, observação e material",
     "Distribuição automática de executantes com prioridade: ordens por Revisão, depois Criticidade A>B>C, depois status ATCR/SAUD/URG/MAMB/SEG",
     "Mão de obra faltante (MO) conta 5h por pessoa e distribui de MO1 em diante, mostrando quantos executantes faltam",
     "Cores das linhas padronizadas na paleta oficial Vale (RPL, visualização, PDF, Excel, Dashboard)",
