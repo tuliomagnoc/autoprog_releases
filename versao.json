@@ -1,9 +1,14 @@
 {
-  "versao": "V2026.27.01.39",
+  "versao": "V2026.27.01.42",
   "data": "2026-08-11",
   "novidades": [
-    "CORREÇÃO CRÍTICA: adicionada trava contra exportações simultâneas - clicar em vários botões de export rapidamente não trava/fecha mais o navegador (proteção em todos os 18 exports da tela Exportar)",
-    "MELHORIA: revisão completa de código - corrigidos bugs (título de modal, campo de semana não restaurava, inconsistências de status) e removidas ~800 linhas de código morto de telas legadas, sem afetar nenhum recurso em uso",
+    "NOVO: observação 'AUSENTE' agora é gerada e programada automaticamente para os dias marcados com status Ausente (A) no Efetivo, igual já acontecia com Férias",
+    "Ordens YCM (sem Status usuário ATCR): data máxima considerada em todo o sistema passa a ser a data original + 7 dias de tolerância. YCM com ATCR, YIM e YCO sempre usam a data original, sem acréscimo",
+    "Ordens encerradas no SAP (sumiram do backlog importado) não somem mais - ficam preservadas com a data programada e observações, para consulta/auditoria",
+    "Botão 'Encerradas' na RPL mostra/esconde essas ordens; aparece só quando existe alguma, para não tumultuar a tela",
+    "Removido o botão 'NOVA PROG.' (não estava sendo utilizado)",
+    "CORREÇÃO CRÍTICA: adicionada trava contra exportações simultâneas - clicar em vários botões de export rapidamente não trava/fecha mais o navegador",
+    "MELHORIA: revisão completa de código - corrigidos bugs e removidas ~800 linhas de código morto de telas legadas, sem afetar nenhum recurso em uso",
     "Botão REORGANIZAR agora respeita a prioridade de distribuição (Revisão > Criticidade > Status), igual ao preenchimento automático",
     "Duplicar uma operação já apropriada agora gera uma linha normal, editável e programável",
     "Sugestão de nomes no campo executante agora é progressiva: a cada vírgula, sugere o próximo nome disponível do Centro de Trabalho",
@@ -16,11 +21,6 @@
     "Dashboard abre em janela separada para consultar em paralelo",
     "Histórico de ordens encerradas (12 meses) e Aderência histórica no Dashboard",
     "Botão Backlog abre janela para subir os 3 arquivos de uma vez",
-    "Operações já apropriadas aparecem na RPL em cinza, só para visualização",
-    "Adequar HH estica as operações para preencher a jornada quando sobra tempo",
-    "Busca das telas RPL e Backlog procura em todas as colunas",
-    "Distribuição automática de executantes com prioridade (Revisão, Criticidade, Status)",
-    "Cores das linhas padronizadas na paleta oficial Vale",
-    "Programação com horizonte estendido de até 3 meses"
+    "Adequar HH estica as operações para preencher a jornada quando sobra tempo"
   ]
 }
