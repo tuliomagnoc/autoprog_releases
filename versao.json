@@ -1,6 +1,6 @@
 {
   "versao": "V2026.27.01.42",
-  "data": "2026-08-11",
+  "data": "2026-08-12",
   "novidades": [
     "NOVO: observação 'AUSENTE' agora é gerada e programada automaticamente para os dias marcados com status Ausente (A) no Efetivo, igual já acontecia com Férias",
     "Ordens YCM (sem Status usuário ATCR): data máxima considerada em todo o sistema passa a ser a data original + 7 dias de tolerância. YCM com ATCR, YIM e YCO sempre usam a data original, sem acréscimo",
