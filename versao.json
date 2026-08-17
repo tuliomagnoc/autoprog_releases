@@ -1,21 +1,23 @@
 {
-  "versao": "V2026.27.01.45",
-  "data": "2026-08-16",
+  "versao": "V2026.27.01.47",
+  "data": "2026-08-17",
   "novidades": [
-    "CORREÇÃO: horário final do 'Adequar HH' agora bate corretamente com a jornada (ex: 16:00 em dia normal) - corrigido arredondamento que fazia a soma das operações ficar aquém da meta",
-    "CORREÇÃO: botão 'Semana' (filtro de aderência) agora volta ao normal corretamente ao clicar em 'Limpar filtros'",
-    "CORREÇÃO: distribuição automática de mão de obra (MO1, MO2, MO3...) agora funciona corretamente ao programar manualmente, mesmo sem ninguém disponível no efetivo",
-    "CORREÇÃO: duas vagas da mesma ordem não recebem mais o mesmo MO duplicado (ex: 'MO2, MO2') - cada vaga recebe uma identidade diferente",
-    "CORREÇÃO: sugestão automática de executante ao abrir o modal 'Programar' manualmente (antes ficava em branco quando não havia efetivo disponível)",
+    "CORREÇÃO: relatório 'sem VPTS' não traz mais ordens que já têm VPTS em uma das operações - antes checava VPTS por operação isolada, agora considera todas as operações da mesma ordem",
+    "CORREÇÃO: formatação de data no export Energia Zero (datas apareciam como número bruto em vez de formatadas)",
+    "Auditoria completa: todas as 18 exportações da tela 10 testadas e validadas estruturalmente",
+    "CORREÇÃO: horário final do 'Adequar HH' agora bate corretamente com a jornada (ex: 16:00 em dia normal)",
+    "CORREÇÃO: botão 'Semana' (filtro de aderência) volta ao normal corretamente ao clicar em 'Limpar filtros'",
+    "CORREÇÃO: distribuição automática de mão de obra (MO1, MO2, MO3...) funciona corretamente ao programar manualmente, mesmo sem efetivo disponível",
+    "CORREÇÃO: duas vagas da mesma ordem não recebem mais o mesmo MO duplicado",
+    "CORREÇÃO: sugestão automática de executante ao abrir o modal 'Programar' manualmente",
     "Ícones removidos dos botões de exportação (mantidos apenas nos cards)",
     "Tela RPL renomeada para 'Programação' em todo texto visível",
-    "Sugestão de nomes no campo executante agora mostra corretamente os nomes restantes ao digitar vírgula",
+    "Sugestão de nomes no campo executante corrigida ao digitar vírgula",
     "Auto-save ao navegar para Projeção, ao ficar ocioso (10s), e ao tentar fechar a janela com trabalho pendente",
-    "Badges NOVA/ALTERADA agora aparecem apenas em reimportações de backlog (não na importação inicial)",
-    "Performance: exportações da tela 10 e distribuição automática otimizadas para bases grandes de ordens",
-    "Template de Efetivo com formatação condicional nativa (cores automáticas por status) e colunas simplificadas",
+    "Badges NOVA/ALTERADA aparecem apenas em reimportações de backlog",
+    "Performance otimizada para exportações e distribuição automática em bases grandes",
+    "Template de Efetivo com formatação condicional nativa e colunas simplificadas",
     "Status FER/SAB/DOM no Efetivo com padrão automático de fim de semana",
-    "Ordens encerradas no SAP preservadas com histórico para consulta/auditoria",
-    "Diversas correções de performance na navegação entre telas com bases grandes de dados"
+    "Ordens encerradas no SAP preservadas com histórico para consulta"
   ]
 }
