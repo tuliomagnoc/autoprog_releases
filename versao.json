@@ -1,24 +1,22 @@
 {
-  "versao": "V2026.27.01.48",
-  "data": "2026-08-17",
+  "versao": "V2026.27.01.49",
+  "data": "2026-08-22",
   "novidades": [
-    "Nova logomarca do AUTOPROG em todo o sistema (login, boas-vindas, favicon)",
-    "Logomarca AUTOPROG adicionada ao cabeçalho de documentos exportados: Visualização/Impressão, PDF da Projeção, PDF Selecionável e Visualização Excel",
-    "Ajustado texto e tamanho da logo na tela de boas-vindas",
+    "NOVO: painel de Controle - compila a projeção de vários programadores a partir dos arquivos de sessão .json de cada um (botão na tela 2 e na tela Projeção)",
+    "Painel de Controle: campo de justificativa editável nas perdas (pré-preenchido com o motivo importado)",
+    "Painel de Controle: seções IMOS, YCO e Ordens com MOTOR, cada uma identificada por supervisão",
+    "Painel de Controle: aviso quando um arquivo enviado é de semana diferente dos demais",
+    "Painel de Controle: indicador de carregamento durante compilações grandes (várias supervisões/milhares de ordens)",
+    "Nova logomarca do AUTOPROG em todo o sistema, incluindo cabeçalho de documentos exportados",
+    "CORREÇÃO DE SEGURANÇA: texto livre vindo do SAP (Texto breve, Observações, etc.) agora é corretamente protegido contra conteúdo malicioso em toda a interface",
     "CORREÇÃO: relatório 'sem VPTS' não traz mais ordens que já têm VPTS em uma das operações",
+    "CORREÇÃO: colunas DATA MÁX e JUSTIFICATIVA na tela Projeção sem cor de fundo, iguais às demais",
     "CORREÇÃO: formatação de data no export Energia Zero",
     "CORREÇÃO: horário final do 'Adequar HH' agora bate corretamente com a jornada",
     "CORREÇÃO: botão 'Semana' (filtro de aderência) volta ao normal ao clicar em 'Limpar filtros'",
     "CORREÇÃO: distribuição automática de mão de obra (MO1, MO2, MO3...) funciona corretamente ao programar manualmente, mesmo sem efetivo disponível",
     "CORREÇÃO: duas vagas da mesma ordem não recebem mais o mesmo MO duplicado",
-    "CORREÇÃO: sugestão automática de executante ao abrir o modal 'Programar' manualmente",
-    "Auditoria completa: todas as 18 exportações da tela 10 testadas e validadas estruturalmente",
-    "Ícones removidos dos botões de exportação (mantidos apenas nos cards)",
-    "Tela RPL renomeada para 'Programação' em todo texto visível",
-    "Sugestão de nomes no campo executante corrigida ao digitar vírgula",
-    "Auto-save ao navegar para Projeção, ao ficar ocioso, e ao tentar fechar a janela com trabalho pendente",
-    "Badges NOVA/ALTERADA aparecem apenas em reimportações de backlog",
-    "Performance otimizada para exportações e distribuição automática em bases grandes",
-    "Template de Efetivo com formatação condicional nativa e colunas simplificadas"
+    "Performance: otimizações em cálculos que rodam para múltiplos arquivos/supervisões",
+    "Auditoria completa: todas as 18 exportações da tela 10 testadas e validadas estruturalmente"
   ]
 }
