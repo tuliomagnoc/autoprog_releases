@@ -1,9 +1,9 @@
 {
-  "versao": "V2026.27.01.51",
+  "versao": "V2026.27.01.52",
   "data": "2026-08-31",
   "novidades": [
-    "CORREÇÃO IMPORTANTE: normaliza o número da Operação (remove zeros à esquerda) na identidade interna das ordens - evita que a mesma ordem apareça duplicada ao reimportar o backlog quando o SAP exporta o número de operação com formatação diferente entre exportações (ex: '0010' vs '10')",
-    "CORREÇÃO: essa duplicidade podia fazer ordens programadas e aderentes aparecerem incorretamente como perdas na tela Projeção",
+    "CORREÇÃO IMPORTANTE: ordens já programadas e executadas adiantadas (em semana anterior, dentro do prazo) não aparecem mais incorretamente como perdas na tela Projeção - o que importa agora é se a ordem foi atendida dentro da janela de aderência (data mínima até data máxima), não em qual semana específica isso aconteceu",
+    "CORREÇÃO: normaliza o número da Operação (remove zeros à esquerda) na identidade interna das ordens - evita que a mesma ordem apareça duplicada ao reimportar o backlog quando o SAP exporta o número de operação com formatação diferente entre exportações",
     "CORREÇÃO: ordens que chegam encerradas no novo backlog (ou somem dele) e estavam programadas para hoje/futuro agora têm a programação desfeita automaticamente - exceto programações de semanas passadas, que continuam preservadas",
     "CORREÇÃO: ordens inseridas manualmente que passam a existir de verdade no SAP (mesma Ordem+Operação) não perdem mais a programação já feita ao reimportar o backlog",
     "NOVO: verificação de duplicidade ao inserir Operação manualmente - se a ordem já existir no backlog (ex: com status EXEC), o sistema oferece liberar a ordem existente para programação em vez de criar uma duplicata",
