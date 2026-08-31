@@ -1,18 +1,16 @@
 {
-  "versao": "V2026.27.01.50",
-  "data": "2026-08-25",
+  "versao": "V2026.27.01.51",
+  "data": "2026-08-31",
   "novidades": [
+    "CORREÇÃO IMPORTANTE: normaliza o número da Operação (remove zeros à esquerda) na identidade interna das ordens - evita que a mesma ordem apareça duplicada ao reimportar o backlog quando o SAP exporta o número de operação com formatação diferente entre exportações (ex: '0010' vs '10')",
+    "CORREÇÃO: essa duplicidade podia fazer ordens programadas e aderentes aparecerem incorretamente como perdas na tela Projeção",
+    "CORREÇÃO: ordens que chegam encerradas no novo backlog (ou somem dele) e estavam programadas para hoje/futuro agora têm a programação desfeita automaticamente - exceto programações de semanas passadas, que continuam preservadas",
+    "CORREÇÃO: ordens inseridas manualmente que passam a existir de verdade no SAP (mesma Ordem+Operação) não perdem mais a programação já feita ao reimportar o backlog",
     "NOVO: verificação de duplicidade ao inserir Operação manualmente - se a ordem já existir no backlog (ex: com status EXEC), o sistema oferece liberar a ordem existente para programação em vez de criar uma duplicata",
-    "Painel de Controle: gráfico comparativo por coordenação (Total Geral Programado, Total Programado Semana, Adiantado/Antecipado Mês, Perdas)",
-    "Painel de Controle: tabela 'Resumo por Coordenação' reformulada, com Vencendo na Semana, Adiantadas/Aderentes Mês e Perdas, cada uma separada em Sistemática e Condicional",
-    "Painel de Controle: cabeçalho simplificado e conteúdo centralizado",
+    "Painel de Controle: gráfico comparativo por coordenação, tabela 'Resumo por Coordenação' reformulada, campo de justificativa editável nas perdas",
     "Painel de Controle - compila a projeção de vários programadores a partir dos arquivos de sessão .json de cada um (botão na tela 2 e na tela Projeção)",
-    "Painel de Controle: campo de justificativa editável nas perdas, seções IMOS/YCO/MOTOR por supervisão, aviso de semana divergente, indicador de carregamento",
     "Nova logomarca do AUTOPROG em todo o sistema, incluindo cabeçalho de documentos exportados",
     "CORREÇÃO DE SEGURANÇA: texto livre vindo do SAP protegido contra conteúdo malicioso em toda a interface",
-    "CORREÇÃO: relatório 'sem VPTS' não traz mais ordens que já têm VPTS em uma das operações",
-    "CORREÇÃO: colunas DATA MÁX e JUSTIFICATIVA na tela Projeção sem cor de fundo, iguais às demais",
-    "CORREÇÃO: horário final do 'Adequar HH', botão 'Semana' ao limpar filtros, distribuição automática de mão de obra (MO1/MO2/MO3...) e MO duplicado na mesma ordem",
-    "Auditoria completa: todas as 18 exportações da tela 10 testadas e validadas estruturalmente"
+    "Manual do usuário atualizado com todas as novidades"
   ]
 }
