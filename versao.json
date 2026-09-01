@@ -1,16 +1,16 @@
 {
-  "versao": "V2026.27.01.52",
-  "data": "2026-08-31",
+  "versao": "V2026.27.01.53",
+  "data": "2026-09-01",
   "novidades": [
-    "CORREÇÃO IMPORTANTE: ordens já programadas e executadas adiantadas (em semana anterior, dentro do prazo) não aparecem mais incorretamente como perdas na tela Projeção - o que importa agora é se a ordem foi atendida dentro da janela de aderência (data mínima até data máxima), não em qual semana específica isso aconteceu",
-    "CORREÇÃO: normaliza o número da Operação (remove zeros à esquerda) na identidade interna das ordens - evita que a mesma ordem apareça duplicada ao reimportar o backlog quando o SAP exporta o número de operação com formatação diferente entre exportações",
-    "CORREÇÃO: ordens que chegam encerradas no novo backlog (ou somem dele) e estavam programadas para hoje/futuro agora têm a programação desfeita automaticamente - exceto programações de semanas passadas, que continuam preservadas",
-    "CORREÇÃO: ordens inseridas manualmente que passam a existir de verdade no SAP (mesma Ordem+Operação) não perdem mais a programação já feita ao reimportar o backlog",
-    "NOVO: verificação de duplicidade ao inserir Operação manualmente - se a ordem já existir no backlog (ex: com status EXEC), o sistema oferece liberar a ordem existente para programação em vez de criar uma duplicata",
-    "Painel de Controle: gráfico comparativo por coordenação, tabela 'Resumo por Coordenação' reformulada, campo de justificativa editável nas perdas",
-    "Painel de Controle - compila a projeção de vários programadores a partir dos arquivos de sessão .json de cada um (botão na tela 2 e na tela Projeção)",
-    "Nova logomarca do AUTOPROG em todo o sistema, incluindo cabeçalho de documentos exportados",
-    "CORREÇÃO DE SEGURANÇA: texto livre vindo do SAP protegido contra conteúdo malicioso em toda a interface",
+    "NOVO: colaborador com status T (Treinamento) na tela de Efetivo agora gera automaticamente uma observação programada, igual já acontecia com A (Ausente) e F (Férias) - o HH do Treinamento usa o valor preenchido na caixinha 'Horas fora da programação' daquele dia, em vez do dia inteiro fixo",
+    "CORREÇÃO IMPORTANTE: ordens já programadas e executadas adiantadas (em semana anterior, dentro do prazo) não aparecem mais incorretamente como perdas na tela Projeção",
+    "CORREÇÃO: normaliza o número da Operação (remove zeros à esquerda) na identidade interna das ordens - evita que a mesma ordem apareça duplicada ao reimportar o backlog",
+    "CORREÇÃO: ordens que chegam encerradas no novo backlog (ou somem dele) e estavam programadas para hoje/futuro agora têm a programação desfeita automaticamente - exceto semanas passadas",
+    "CORREÇÃO: ordens inseridas manualmente que passam a existir de verdade no SAP não perdem mais a programação já feita ao reimportar o backlog",
+    "NOVO: verificação de duplicidade ao inserir Operação manualmente, com opção de liberar a ordem existente em vez de duplicar",
+    "Painel de Controle: gráfico comparativo por coordenação, tabela 'Resumo por Coordenação', justificativa editável nas perdas, compila a projeção de vários programadores",
+    "Nova logomarca do AUTOPROG em todo o sistema",
+    "CORREÇÃO DE SEGURANÇA: texto livre vindo do SAP protegido contra conteúdo malicioso",
     "Manual do usuário atualizado com todas as novidades"
   ]
 }
