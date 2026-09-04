@@ -1,11 +1,12 @@
 {
-  "versao": "V2026.27.01.79",
-  "data": "2026-09-03",
+  "versao": "V2026.27.01.80",
+  "data": "2026-09-04",
   "novidades": [
-    "CORREÇÃO CRÍTICA: operação inserida manualmente com o número da Operação digitado com zero à esquerda (ex: 0010) não perde mais a programação ao salvar e reabrir a sessão - a linha continuava aparecendo, mas ficava sem o dia programado",
+    "CORREÇÃO: 'Total aderentes vencendo no mês' na tela Projeção calculava errado quando a semana corrente atravessa a virada do mês - o 'fim do mês' ficava travado no mês de início da semana, excluindo ordens com prazo bem no começo do mês seguinte",
+    "CORREÇÃO CRÍTICA: operação inserida manualmente com o número da Operação digitado com zero à esquerda não perde mais a programação ao salvar e reabrir a sessão",
     "CORREÇÃO CRÍTICA (causa raiz real do \"programação sumida\"): ordens que o usuário já tinha programado e depois viraram status EXEC no SAP estavam sendo escondidas da tela Programação e da Visualização - agora aparecem normalmente, em cinza, com o rótulo \"Em execução\"",
     "CORREÇÃO CRÍTICA: reimportar o backlog agora normaliza também o _uid das ordens em dados/rawBacklog bem antes de comparar",
-    "CORREÇÃO CRÍTICA: ao carregar uma sessão salva, o _uid das ordens em dados também é normalizado (não só a chave de programação)",
+    "CORREÇÃO CRÍTICA: ao carregar uma sessão salva, o _uid das ordens em dados também é normalizado",
     "CORREÇÃO CRÍTICA: migra automaticamente chaves de programação salvas no formato antigo (com zero à esquerda na Operação)",
     "CORREÇÃO CRÍTICA: reimportar o backlog não desfaz mais a programação de ordens que continuam existindo no backlog só porque vieram com status administrativo",
     "CORREÇÃO: ordens já programadas e executadas adiantadas não aparecem mais incorretamente como perdas na tela Projeção",
