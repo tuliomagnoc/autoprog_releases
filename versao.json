@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.86",
+  "versao": "V2026.27.01.87",
   "data": "2026-09-12",
   "novidades": [
+    "CORREÇÃO VISUAL: rodapé da janela Consultar Entregas permanece no final da tela quando há pouco conteúdo",
     "MELHORIA: filtro de Supervisão da janela Consultar Entregas inicia automaticamente com a supervisão informada na tela 2",
     "AJUSTE: janela Consultar Entregas agora usa a mesma assinatura e versão do rodapé principal do AutoProg",
     "NOVO: botão 'Consultar Entregas' no card Materiais Brucutu, com consulta em nova janela, status atualizado e filtros por semana enviada, supervisão e número da OM",

@@ -349,7 +349,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
       onfocus="this.style.borderColor='#007E7A'" onblur="this.style.borderColor='#e0e0e0'">
     <div id="login-error" style="color:#C0305E;font-size:12px;min-height:18px;margin-bottom:8px;"></div>
     <button onclick="_loginCheck()" style="width:100%;padding:12px;background:#007E7A;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Entrar</button>
-    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.86</span></div>
+    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.87</span></div>
   </div>
 </div>
 <script>
@@ -1092,7 +1092,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
   </div>
 </div>
 <footer style="background:#555555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:0.04em;flex-shrink:0;">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.86</span>
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.87</span>
 </footer>
 </div><!-- app -->
 
@@ -1208,13 +1208,14 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
 // ============================================================
 // _APP_VERSION deve ser atualizado junto com o rodapé a cada entrega
 // (mesmo valor de "V2026.27.01.X" mostrado nas telas de login/rodapé).
-const _APP_VERSION = 'V2026.27.01.86';
+const _APP_VERSION = 'V2026.27.01.87';
 // Lista de novidades DA PRÓPRIA versão instalada (não confundir com a lista
 // de novidades da versão NOVA, buscada do GitHub em _checkForUpdate - essa
 // aqui é sempre sobre a versão que o usuário já está usando agora). Usada
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "CORREÇÃO VISUAL: rodapé da janela Consultar Entregas permanece no final da tela quando há pouco conteúdo",
   "MELHORIA: filtro de Supervisão da janela Consultar Entregas inicia automaticamente com a supervisão informada na tela 2",
   "AJUSTE: janela Consultar Entregas agora usa a mesma assinatura e versão do rodapé principal do AutoProg",
   "NOVO: botão 'Consultar Entregas' no card Materiais Brucutu, com consulta em nova janela, status atualizado e filtros por semana enviada, supervisão e número da OM",
@@ -7113,8 +7114,8 @@ function abrirConsultaEntregas() {
   <style>
     :root{--teal:#007e7a;--teal-dark:#005f5b;--teal-soft:#e5f4f3;--bg:#f4f6f8;--surface:#fff;--text:#20272b;--muted:#68737b;--border:#dce2e6;--shadow:0 8px 30px rgba(25,42,50,.08);--orange:#ee6f16;}
     *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:var(--bg)}
-    body{display:flex;flex-direction:column}
+    html{height:100%}html,body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:var(--bg)}
+    body{display:flex;flex-direction:column;min-height:100vh}
     header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;position:sticky;top:0;z-index:5}
     .brand{display:flex;align-items:center;gap:16px;min-width:0}.brand img{width:174px;max-width:34vw;height:auto;display:block}.brand-copy{border-left:1px solid var(--border);padding-left:16px}.brand-copy h1{font-size:18px;margin:0 0 3px}.brand-copy p{font-size:11px;color:var(--muted);margin:0}
     .btn{border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;white-space:nowrap}.btn:hover{border-color:var(--teal);color:var(--teal)}.btn:disabled{opacity:.55;cursor:wait}
