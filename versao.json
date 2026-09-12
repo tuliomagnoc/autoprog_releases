@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.81",
-  "data": "2026-09-04",
+  "versao": "V2026.27.01.84",
+  "data": "2026-09-12",
   "novidades": [
+    "NOVO: botão 'Consultar Entregas' no card Materiais Brucutu, com consulta em nova janela, status atualizado e filtros por semana enviada, supervisão e número da OM",
     "CORREÇÃO: 'Adiantadas e aderentes (meses seguintes)' na tela Projeção contava ordens com prazo ainda dentro do mês corrente junto com ordens de meses genuinamente futuros - inflando o número. Corrigido tanto em Sistemáticas quanto em Condicionais",
     "CORREÇÃO: 'Total aderentes vencendo no mês' calculava errado quando a semana corrente atravessa a virada do mês",
     "CORREÇÃO CRÍTICA: operação inserida manualmente com o número da Operação digitado com zero à esquerda não perde mais a programação ao salvar e reabrir a sessão",
