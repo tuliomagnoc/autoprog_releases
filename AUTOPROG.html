@@ -349,7 +349,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
       onfocus="this.style.borderColor='#007E7A'" onblur="this.style.borderColor='#e0e0e0'">
     <div id="login-error" style="color:#C0305E;font-size:12px;min-height:18px;margin-bottom:8px;"></div>
     <button onclick="_loginCheck()" style="width:100%;padding:12px;background:#007E7A;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Entrar</button>
-    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.84</span></div>
+    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.85</span></div>
   </div>
 </div>
 <script>
@@ -1092,7 +1092,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
   </div>
 </div>
 <footer style="background:#555555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:0.04em;flex-shrink:0;">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.84</span>
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.85</span>
 </footer>
 </div><!-- app -->
 
@@ -1208,13 +1208,14 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
 // ============================================================
 // _APP_VERSION deve ser atualizado junto com o rodapé a cada entrega
 // (mesmo valor de "V2026.27.01.X" mostrado nas telas de login/rodapé).
-const _APP_VERSION = 'V2026.27.01.84';
+const _APP_VERSION = 'V2026.27.01.85';
 // Lista de novidades DA PRÓPRIA versão instalada (não confundir com a lista
 // de novidades da versão NOVA, buscada do GitHub em _checkForUpdate - essa
 // aqui é sempre sobre a versão que o usuário já está usando agora). Usada
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "AJUSTE: janela Consultar Entregas agora usa a mesma assinatura e versão do rodapé principal do AutoProg",
   "NOVO: botão 'Consultar Entregas' no card Materiais Brucutu, com consulta em nova janela, status atualizado e filtros por semana enviada, supervisão e número da OM",
   "NOVO (BETA): card 'Materiais Brucutu' na tela Exportar, com o botão 'Solicitar Material' - envia as ordens com badge MATERIAL da semana para uma base de dados compartilhada entre programadores, que futuramente vai alimentar um módulo separado de visualização de materiais solicitados",
   "CORREÇÃO: 'Adiantadas e aderentes (meses seguintes)' na tela Projeção contava ordens com prazo ainda dentro do mês corrente (só depois desta semana específica) junto com ordens de meses genuinamente futuros - inflando o número. Agora só conta prazo em mês realmente seguinte; as demais aparecem corretamente em 'Total aderentes vencendo no mês'. Corrigido tanto em Sistemáticas quanto em Condicionais",
@@ -7125,7 +7126,7 @@ function abrirConsultaEntregas() {
     .results-head{background:var(--teal);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;font-weight:700}.results-head small{font-size:10px;opacity:.85;font-weight:400}
     .table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:900px}th{background:#eef2f3;color:#5f696f;font-size:9.5px;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:9px 12px;border-bottom:1px solid var(--border)}td{font-size:11px;padding:11px 12px;border-bottom:1px solid #edf0f2;vertical-align:middle}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#f9fbfb}.ordem{font-weight:800;font-size:12px}.descricao{font-weight:600}.sub{display:block;color:var(--muted);font-size:9.5px;margin-top:3px;line-height:1.35}.status{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:800;white-space:nowrap}.status-solicitado{background:#fff0e5;color:#c9570a}.status-em-preparacao{background:#e2f5f3;color:#006d69}.status-despachado{background:#eeeafd;color:#5748b5}.status-entregue{background:#e6f6ec;color:#13733d}
     .empty,.loading,.error{padding:56px 20px;text-align:center;color:var(--muted);font-size:12px}.loading:before{content:'';display:block;width:28px;height:28px;margin:0 auto 12px;border:3px solid #d7e7e6;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}.error{color:#ba334c}.error strong{display:block;font-size:14px;margin-bottom:5px}@keyframes spin{to{transform:rotate(360deg)}}
-    footer{font-size:9px;color:#8b9499;text-align:center;padding:11px 16px;border-top:1px solid var(--border);background:#fff}
+    footer{background:#555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:.04em;flex-shrink:0}footer a{color:#aaa;text-decoration:none}footer span{color:#999}
     @media(max-width:760px){header{padding:12px 14px}.brand img{width:130px}.brand-copy{padding-left:10px}.brand-copy h1{font-size:14px}.brand-copy p{display:none}main{padding:14px}.intro{align-items:start;flex-direction:column}.filters{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}.stat.total{grid-column:1/-1}.results{overflow:visible;background:transparent;border:0;box-shadow:none}.results-head{border-radius:10px;margin-bottom:10px}.table-wrap{overflow:visible}table{display:block;min-width:0}thead{display:none}tbody{display:grid;gap:10px}tr{display:grid;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:0 4px 16px rgba(25,42,50,.06)}td{display:block;border:0;padding:4px 0}td:before{content:attr(data-label);display:block;color:var(--muted);font-size:8.5px;text-transform:uppercase;font-weight:700;margin-bottom:2px}.brand-copy h1{white-space:nowrap}}
   </style>
 </head>
@@ -7147,7 +7148,7 @@ function abrirConsultaEntregas() {
       <div id="consulta-conteudo" class="loading">Carregando materiais...</div>
     </section>
   </main>
-  <footer>AutoProg · Consulta integrada à base de dados · ${_APP_VERSION}</footer>
+  <footer><a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span>-&nbsp; ${_APP_VERSION}</span></footer>
 </body>
 </html>`);
   doc.close();

@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.84",
+  "versao": "V2026.27.01.85",
   "data": "2026-09-12",
   "novidades": [
+    "AJUSTE: janela Consultar Entregas agora usa a mesma assinatura e versão do rodapé principal do AutoProg",
     "NOVO: botão 'Consultar Entregas' no card Materiais Brucutu, com consulta em nova janela, status atualizado e filtros por semana enviada, supervisão e número da OM",
     "CORREÇÃO: 'Adiantadas e aderentes (meses seguintes)' na tela Projeção contava ordens com prazo ainda dentro do mês corrente junto com ordens de meses genuinamente futuros - inflando o número. Corrigido tanto em Sistemáticas quanto em Condicionais",
     "CORREÇÃO: 'Total aderentes vencendo no mês' calculava errado quando a semana corrente atravessa a virada do mês",
