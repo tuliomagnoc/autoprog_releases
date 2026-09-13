@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.88",
-  "data": "2026-09-12",
+  "versao": "V2026.27.01.89",
+  "data": "2026-09-13",
   "novidades": [
+    "NOVO: confirmação inteligente antes de solicitar materiais, com quantidade de ordens, identificação das OMs já entregues e exclusão automática dessas ordens do novo envio",
     "NOVO: coluna Evidência na consulta de materiais, com download destacado quando houver foto registrada pelo AutoMat Mobile e ícone esmaecido quando não houver",
     "CORREÇÃO VISUAL: rodapé da janela Consultar Entregas permanece no final da tela quando há pouco conteúdo",
     "MELHORIA: filtro de Supervisão da janela Consultar Entregas inicia automaticamente com a supervisão informada na tela 2",

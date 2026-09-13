@@ -222,6 +222,31 @@ tbody tr.turno-row:hover td { opacity: 0.90; }
 .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 6px 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 12px; background: var(--surface); color: var(--text); }
 .form-group textarea { resize: vertical; min-height: 60px; }
 .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.materiais-confirmacao-modal { width: min(760px, calc(100vw - 32px)); max-height: min(88vh, 760px); overflow: hidden; display: flex; flex-direction: column; }
+.materiais-confirmacao-modal .modal-body { overflow-y: auto; }
+.materiais-confirmacao-intro { margin: 0 0 14px; color: var(--text2); font-size: 12px; line-height: 1.55; }
+.materiais-confirmacao-resumo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.materiais-confirmacao-card { padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); }
+.materiais-confirmacao-card strong { display: block; margin-bottom: 3px; font-size: 22px; line-height: 1; }
+.materiais-confirmacao-card span { color: var(--text2); font-size: 10px; font-weight: 600; }
+.materiais-confirmacao-card.solicitar strong { color: var(--green); }
+.materiais-confirmacao-card.entregues strong { color: var(--amber); }
+.materiais-confirmacao-alerta { margin-top: 14px; padding: 11px 13px; border: 1px solid #efd59a; border-radius: var(--radius-sm); color: #704600; background: var(--amber-bg); font-size: 11px; line-height: 1.5; }
+.materiais-confirmacao-ok { margin-top: 14px; padding: 11px 13px; border: 1px solid #b9ded9; border-radius: var(--radius-sm); color: #006762; background: var(--green-bg); font-size: 11px; font-weight: 600; }
+.materiais-entregues-lista { display: grid; gap: 8px; margin-top: 10px; }
+.materiais-entregue-item { padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; }
+.materiais-entregue-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.materiais-entregue-topo strong { font-size: 12px; }
+.materiais-entregue-topo span { padding: 3px 7px; border-radius: 999px; color: #176b43; background: #e6f6ec; font-size: 9px; font-weight: 800; }
+.materiais-entregue-dados { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 12px; }
+.materiais-entregue-dados small { display: block; margin-bottom: 2px; color: var(--text3); font-size: 9px; text-transform: uppercase; }
+.materiais-entregue-dados b { display: block; font-size: 11px; font-weight: 600; overflow-wrap: anywhere; }
+.materiais-confirmacao-erro { min-height: 18px; margin-top: 10px; color: var(--red); font-size: 11px; font-weight: 600; }
+@media (max-width: 620px) {
+  .materiais-confirmacao-resumo { grid-template-columns: 1fr; }
+  .materiais-entregue-dados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .materiais-confirmacao-modal .modal-footer { flex-wrap: wrap; }
+}
 .info-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 .info-item { flex: 1; min-width: 100px; background: var(--surface2); border-radius: var(--radius-sm); padding: 6px 10px; }
 .info-item .lbl { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
@@ -349,7 +374,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
       onfocus="this.style.borderColor='#007E7A'" onblur="this.style.borderColor='#e0e0e0'">
     <div id="login-error" style="color:#C0305E;font-size:12px;min-height:18px;margin-bottom:8px;"></div>
     <button onclick="_loginCheck()" style="width:100%;padding:12px;background:#007E7A;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Entrar</button>
-    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.88</span></div>
+    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.89</span></div>
   </div>
 </div>
 <script>
@@ -1092,7 +1117,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
   </div>
 </div>
 <footer style="background:#555555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:0.04em;flex-shrink:0;">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.88</span>
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.89</span>
 </footer>
 </div><!-- app -->
 
@@ -1135,6 +1160,25 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
     <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:14px;">
       <button class="btn" onclick="fecharModalBacklog()">Cancelar</button>
       <button class="btn primary" id="btn-atualizar-backlog" onclick="confirmarAtualizarBacklog()"><i class=icon-refresh-cw></i> Atualizar Backlog</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="materiais-confirmacao-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="materiais-confirmacao-titulo" onclick="_fecharConfirmacaoMateriais()">
+  <div class="modal materiais-confirmacao-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="materiais-confirmacao-titulo"><i class=icon-package></i> Confirmar solicitação de materiais</h3>
+      <button class="modal-close" id="materiais-confirmacao-fechar" type="button" onclick="_fecharConfirmacaoMateriais()" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="materiais-confirmacao-intro" id="materiais-confirmacao-intro"></p>
+      <div class="materiais-confirmacao-resumo" id="materiais-confirmacao-resumo"></div>
+      <div id="materiais-confirmacao-entregues"></div>
+      <div class="materiais-confirmacao-erro" id="materiais-confirmacao-erro" role="alert"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="materiais-confirmacao-cancelar" type="button" onclick="_fecharConfirmacaoMateriais()">Cancelar</button>
+      <button class="btn primary" id="materiais-confirmacao-confirmar" type="button" onclick="_confirmarSolicitacaoMaterialBrucutu()"><i class=icon-check></i> Confirmar e solicitar</button>
     </div>
   </div>
 </div>
@@ -1208,13 +1252,14 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
 // ============================================================
 // _APP_VERSION deve ser atualizado junto com o rodapé a cada entrega
 // (mesmo valor de "V2026.27.01.X" mostrado nas telas de login/rodapé).
-const _APP_VERSION = 'V2026.27.01.88';
+const _APP_VERSION = 'V2026.27.01.89';
 // Lista de novidades DA PRÓPRIA versão instalada (não confundir com a lista
 // de novidades da versão NOVA, buscada do GitHub em _checkForUpdate - essa
 // aqui é sempre sobre a versão que o usuário já está usando agora). Usada
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "NOVO: confirmação inteligente antes de solicitar materiais, com quantidade de ordens, identificação das OMs já entregues e exclusão automática dessas ordens do novo envio",
   "CORREÇÃO VISUAL: rodapé da janela Consultar Entregas permanece no final da tela quando há pouco conteúdo",
   "MELHORIA: filtro de Supervisão da janela Consultar Entregas inicia automaticamente com a supervisão informada na tela 2",
   "AJUSTE: janela Consultar Entregas agora usa a mesma assinatura e versão do rodapé principal do AutoProg",
@@ -7004,6 +7049,184 @@ function exportarParadaEquipamentos() {
 // exibir agrupada por semana, pra quem cuida de compras/materiais ver
 // tudo num lugar só, sem depender de cada programador mandar o Excel por
 // e-mail separadamente.
+let _solicitacaoMaterialPendente = null;
+
+function _normalizarOrdemMaterial(valor) {
+  return String(valor == null ? '' : valor).trim().replace(/^0+(?=\d)/, '');
+}
+
+function _timestampEntregaMaterial(valor) {
+  if (typeof valor === 'number' && Number.isFinite(valor)) return valor;
+  if (!valor) return 0;
+  const convertido = new Date(String(valor)).getTime();
+  return Number.isNaN(convertido) ? 0 : convertido;
+}
+
+function _formatarEntregaMaterial(valor) {
+  const timestamp = _timestampEntregaMaterial(valor);
+  if (!timestamp) return { data: 'Não informada', hora: 'Não informada' };
+  const data = new Date(timestamp);
+  return {
+    data: data.toLocaleDateString('pt-BR'),
+    hora: data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  };
+}
+
+async function _buscarOrdensEntreguesParaSolicitacao(itens) {
+  const chavesCandidatas = new Set(itens.map(item => _normalizarOrdemMaterial(item.ordem)).filter(Boolean));
+  const resposta = await fetch(_FIREBASE_MATERIAIS_URL + '/materiais.json?ts=' + Date.now(), { cache: 'no-store' });
+  if (!resposta.ok) throw new Error('Resposta do servidor: ' + resposta.status);
+  const baseMateriais = await resposta.json();
+  const entreguesPorOrdem = new Map();
+
+  Object.entries(baseMateriais || {}).forEach(([semanaChave, enviosSemana]) => {
+    Object.entries(enviosSemana || {}).forEach(([pushId, envio]) => {
+      Object.entries((envio && envio.itens) || {}).forEach(([itemIdx, item]) => {
+        if (!item || String(item.status || '').trim().toUpperCase() !== 'ENTREGUE') return;
+        const chaveOrdem = _normalizarOrdemMaterial(item.ordem);
+        if (!chavesCandidatas.has(chaveOrdem)) return;
+        const registro = {
+          ordem: item.ordem || chaveOrdem,
+          entregueEm: item.entregueEm || '',
+          recebedor: item.recebedor || '',
+          entregador: item.entregador || '',
+          _timestamp: _timestampEntregaMaterial(item.entregueEm),
+          _semanaChave: semanaChave,
+          _pushId: pushId,
+          _itemIdx: itemIdx
+        };
+        const existente = entreguesPorOrdem.get(chaveOrdem);
+        if (!existente || registro._timestamp >= existente._timestamp) entreguesPorOrdem.set(chaveOrdem, registro);
+      });
+    });
+  });
+
+  return itens.map(item => {
+    const registro = entreguesPorOrdem.get(_normalizarOrdemMaterial(item.ordem));
+    return registro ? { ...registro, ordem: item.ordem || registro.ordem } : null;
+  }).filter(Boolean);
+}
+
+function _abrirConfirmacaoMateriais(itensOriginais, entregues, contexto) {
+  const chavesEntregues = new Set(entregues.map(item => _normalizarOrdemMaterial(item.ordem)));
+  const itensParaSolicitar = itensOriginais.filter(item => !chavesEntregues.has(_normalizarOrdemMaterial(item.ordem)));
+  _solicitacaoMaterialPendente = { ...contexto, itens: itensParaSolicitar, entregues, enviando: false };
+
+  const total = itensOriginais.length;
+  const quantidadeEntregue = entregues.length;
+  const quantidadeSolicitar = itensParaSolicitar.length;
+  document.getElementById('materiais-confirmacao-intro').innerHTML =
+    'Foram localizadas <strong>' + total + ' ' + (total === 1 ? 'ordem' : 'ordens') +
+    ' com solicitação de material</strong> na programação. Confira o resumo antes de enviar para a base de dados.';
+  document.getElementById('materiais-confirmacao-resumo').innerHTML =
+    '<div class="materiais-confirmacao-card"><strong>' + total + '</strong><span>' + (total === 1 ? 'ORDEM LOCALIZADA' : 'ORDENS LOCALIZADAS') + '</span></div>' +
+    '<div class="materiais-confirmacao-card solicitar"><strong>' + quantidadeSolicitar + '</strong><span>' + (quantidadeSolicitar === 1 ? 'SERÁ SOLICITADA' : 'SERÃO SOLICITADAS') + '</span></div>' +
+    '<div class="materiais-confirmacao-card entregues"><strong>' + quantidadeEntregue + '</strong><span>' + (quantidadeEntregue === 1 ? 'JÁ ENTREGUE' : 'JÁ ENTREGUES') + '</span></div>';
+
+  const areaEntregues = document.getElementById('materiais-confirmacao-entregues');
+  if (entregues.length) {
+    areaEntregues.innerHTML =
+      '<div class="materiais-confirmacao-alerta"><strong><i class=icon-alert-triangle></i> Ordens já entregues anteriormente</strong><br>As ordens abaixo não serão incluídas nesta nova solicitação.</div>' +
+      '<div class="materiais-entregues-lista">' + entregues.map(item => {
+        const momento = _formatarEntregaMaterial(item.entregueEm);
+        return '<article class="materiais-entregue-item">' +
+          '<div class="materiais-entregue-topo"><strong>OM ' + escHtml(item.ordem) + '</strong><span>ENTREGUE</span></div>' +
+          '<div class="materiais-entregue-dados">' +
+            '<div><small>Data da entrega</small><b>' + escHtml(momento.data) + '</b></div>' +
+            '<div><small>Horário</small><b>' + escHtml(momento.hora) + '</b></div>' +
+            '<div><small>Recebedor</small><b>' + escHtml(item.recebedor || 'Não informado') + '</b></div>' +
+            '<div><small>Entregador</small><b>' + escHtml(item.entregador || 'Não informado') + '</b></div>' +
+          '</div>' +
+        '</article>';
+      }).join('') + '</div>';
+  } else {
+    areaEntregues.innerHTML = '<div class="materiais-confirmacao-ok"><i class=icon-check></i> Nenhuma dessas ordens possui entrega anterior registrada.</div>';
+  }
+
+  const botaoConfirmar = document.getElementById('materiais-confirmacao-confirmar');
+  botaoConfirmar.disabled = quantidadeSolicitar === 0;
+  botaoConfirmar.innerHTML = quantidadeSolicitar
+    ? '<i class=icon-check></i> Confirmar e solicitar ' + quantidadeSolicitar + ' ' + (quantidadeSolicitar === 1 ? 'ordem' : 'ordens')
+    : 'Nenhuma ordem nova para solicitar';
+  document.getElementById('materiais-confirmacao-erro').textContent = '';
+  document.getElementById('materiais-confirmacao-fechar').disabled = false;
+  document.getElementById('materiais-confirmacao-cancelar').disabled = false;
+  document.getElementById('materiais-confirmacao-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  if (contexto.botaoOrigem) contexto.botaoOrigem.innerHTML = '<i class=icon-package></i> Aguardando confirmação...';
+  setTimeout(() => (quantidadeSolicitar ? botaoConfirmar : document.getElementById('materiais-confirmacao-cancelar')).focus(), 30);
+}
+
+function _fecharConfirmacaoMateriais() {
+  const pendente = _solicitacaoMaterialPendente;
+  if (pendente && pendente.enviando) return;
+  document.getElementById('materiais-confirmacao-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  if (pendente && pendente.botaoOrigem) {
+    pendente.botaoOrigem.disabled = false;
+    pendente.botaoOrigem.innerHTML = pendente.textoOriginal;
+    pendente.botaoOrigem.style.background = '';
+    pendente.botaoOrigem.style.borderColor = '';
+  }
+  _solicitacaoMaterialPendente = null;
+}
+
+async function _confirmarSolicitacaoMaterialBrucutu() {
+  const pendente = _solicitacaoMaterialPendente;
+  if (!pendente || pendente.enviando || !pendente.itens.length) return;
+  pendente.enviando = true;
+  const botaoConfirmar = document.getElementById('materiais-confirmacao-confirmar');
+  const botaoFechar = document.getElementById('materiais-confirmacao-fechar');
+  const botaoCancelar = document.getElementById('materiais-confirmacao-cancelar');
+  botaoConfirmar.disabled = true;
+  botaoFechar.disabled = true;
+  botaoCancelar.disabled = true;
+  botaoConfirmar.innerHTML = '<i class=icon-loader></i> Enviando...';
+  document.getElementById('materiais-confirmacao-erro').textContent = '';
+
+  const payload = {
+    schemaVersao: 4,
+    supervisao: supervisao || '',
+    semana: pendente.semNum,
+    ano: pendente.semAno,
+    enviadoEm: new Date().toISOString(),
+    itens: pendente.itens
+  };
+
+  try {
+    const resposta = await fetch(_FIREBASE_MATERIAIS_URL + '/materiais/' + pendente.chaveSemana + '.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resposta.ok) throw new Error('Resposta do servidor: ' + resposta.status);
+    const botaoOrigem = pendente.botaoOrigem;
+    const textoOriginal = pendente.textoOriginal;
+    document.getElementById('materiais-confirmacao-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    _solicitacaoMaterialPendente = null;
+    if (botaoOrigem) {
+      botaoOrigem.innerHTML = '<i class=icon-check></i> Enviado!';
+      botaoOrigem.style.background = 'var(--green)';
+      botaoOrigem.style.borderColor = 'var(--green)';
+      setTimeout(() => {
+        botaoOrigem.disabled = false;
+        botaoOrigem.innerHTML = textoOriginal;
+        botaoOrigem.style.background = '';
+        botaoOrigem.style.borderColor = '';
+      }, 2500);
+    }
+  } catch (erro) {
+    pendente.enviando = false;
+    botaoFechar.disabled = false;
+    botaoCancelar.disabled = false;
+    botaoConfirmar.disabled = false;
+    botaoConfirmar.innerHTML = '<i class=icon-refresh-cw></i> Tentar solicitar novamente';
+    document.getElementById('materiais-confirmacao-erro').textContent =
+      'Não foi possível enviar a solicitação. Verifique a conexão e tente novamente. Detalhe: ' + erro.message;
+  }
+}
+
 async function solicitarMaterialBrucutu() {
   if (!_FIREBASE_MATERIAIS_URL) {
     alert('A base de dados de Materiais ainda não foi configurada.\n\nEssa é uma funcionalidade BETA - fale com o responsável pelo AUTOPROG para configurar o acesso à base de dados antes de usar este botão.');
@@ -7062,29 +7285,15 @@ async function solicitarMaterialBrucutu() {
   const semAno = semanaWizard.ano || new Date().getFullYear();
   const chaveSemana = semAno + '-' + String(semNum).padStart(2, '0');
 
-  const payload = {
-    schemaVersao: 4,
-    supervisao: supervisao || '',
-    semana: semNum, ano: semAno,
-    enviadoEm: new Date().toISOString(),
-    itens: itens
-  };
-
   const btn = document.querySelector('button[onclick="solicitarMaterialBrucutu()"]');
   const textoOriginal = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class=icon-loader></i> Enviando...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class=icon-loader></i> Conferindo entregas...'; }
 
   try {
-    const resp = await fetch(_FIREBASE_MATERIAIS_URL + '/materiais/' + chaveSemana + '.json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!resp.ok) throw new Error('Resposta do servidor: ' + resp.status);
-    if (btn) { btn.innerHTML = '<i class=icon-check></i> Enviado!'; btn.style.background = 'var(--green)'; btn.style.borderColor = 'var(--green)'; }
-    setTimeout(() => { if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal; btn.style.background = ''; btn.style.borderColor = ''; } }, 2500);
-  } catch (err) {
-    alert('Não foi possível enviar a solicitação de material.\n\nVerifique sua conexão com a internet e se a base de dados está configurada corretamente.\n\nDetalhe técnico: ' + err.message);
+    const entregues = await _buscarOrdensEntreguesParaSolicitacao(itens);
+    _abrirConfirmacaoMateriais(itens, entregues, { semNum, semAno, chaveSemana, botaoOrigem: btn, textoOriginal });
+  } catch (erro) {
+    alert('Não foi possível conferir o histórico de entregas.\n\nNenhuma solicitação foi enviada. Verifique sua conexão com a internet e tente novamente.\n\nDetalhe técnico: ' + erro.message);
     if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal; }
   }
 }
