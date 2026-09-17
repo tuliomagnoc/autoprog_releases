@@ -7286,6 +7286,10 @@ async function _buscarOrdensEntreguesParaSolicitacao(itens) {
     if (!resposta.ok) {
       let msg = 'Resposta do servidor: ' + resposta.status;
       if (resposta._errorData && resposta._errorData.error) msg += ' - ' + resposta._errorData.error;
+            let rawDiag = localStorage.getItem('_facilita_auth_autoprog');
+      let tDiag = 'VAZIO';
+      try { if (rawDiag) { let p = JSON.parse(rawDiag); if (p.autenticacao && p.autenticacao.token) tDiag = p.autenticacao.token.substring(0,10); else tDiag = 'Sem Token'; } } catch(e){ tDiag = 'Erro Parse'; }
+      msg += '\n\nDiag: ' + tDiag;
       throw new Error(msg);
     }
   const baseMateriais = await resposta.json();
