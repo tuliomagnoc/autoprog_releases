@@ -1494,9 +1494,15 @@ const _FIREBASE_MATERIAIS_URL = 'https://automat-742d4-default-rtdb.firebaseio.c
           resp = await fetch(url, { ...options, headers });
         }
       } catch(_) {}
+      }
+      if (!resp.ok) {
+        try {
+          const errData = await resp.clone().json();
+          resp._errorData = errData;
+        } catch(e) {}
+      }
+      return resp;
     }
-    return resp;
-  }
 
 
 // Compara duas versões no formato "V2026.NN.NN.NN".
@@ -7277,7 +7283,11 @@ function _formatarEntregaMaterial(valor) {
 async function _buscarOrdensEntreguesParaSolicitacao(itens) {
     const chavesCandidatas = new Set(itens.map(item => _normalizarOrdemMaterial(item.ordem)).filter(Boolean));
     const resposta = await _fetchFb('/materiais.json?ts=' + Date.now(), { cache: 'no-store' });
-  if (!resposta.ok) throw new Error('Resposta do servidor: ' + resposta.status);
+    if (!resposta.ok) {
+      let msg = 'Resposta do servidor: ' + resposta.status;
+      if (resposta._errorData && resposta._errorData.error) msg += ' - ' + resposta._errorData.error;
+      throw new Error(msg);
+    }
   const baseMateriais = await resposta.json();
   const entreguesPorOrdem = new Map();
 
