@@ -7641,7 +7641,7 @@ function abrirConsultaEntregas() {
       const partes = chave.split('-');
       const rotulo = partes.length === 2 ? 'Semana ' + partes[1] + '/' + partes[0] : 'Semana ' + chave;
       const total = (estado.porSemana[chave] || []).length;
-      return '<option value="' + escapar(chave) + '"' + (chave === estado.semana ? ' selected' : '') + '>' + escapar(rotulo) + ' · ' + total + ' item(ns)</option>';
+      return '<option value="' + escHtml(chave) + '"' + (chave === estado.semana ? ' selected' : '') + '>' + escHtml(rotulo) + ' · ' + total + ' item(ns)</option>';
     }).join('');
     elSemana.disabled = false;
   }
@@ -7657,7 +7657,7 @@ function abrirConsultaEntregas() {
     const opcoes = [...mapa.entries()].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR', { sensitivity:'base' }));
     if (!mapa.has(estado[campo])) estado[campo] = '';
     elemento.innerHTML = '<option value="">' + rotuloPadrao + ' (' + opcoes.length + ')</option>' +
-      opcoes.map(([chave, rotulo]) => '<option value="' + escapar(chave) + '"' + (chave === estado[campo] ? ' selected' : '') + '>' + escapar(rotulo) + '</option>').join('');
+      opcoes.map(([chave, rotulo]) => '<option value="' + escHtml(chave) + '"' + (chave === estado[campo] ? ' selected' : '') + '>' + escHtml(rotulo) + '</option>').join('');
     elemento.disabled = !estado.semana || opcoes.length === 0;
   }
 
@@ -7762,21 +7762,21 @@ function abrirConsultaEntregas() {
     itensEvidencia.clear();
     const linhas = itens.map((item, indice) => {
       const detalheEntrega = item.status === 'ENTREGUE' && (item.recebedor || item.entregueEm)
-        ? '<span class="sub">' + (item.recebedor ? 'Recebedor: ' + escapar(item.recebedor) : '') + (item.recebedor && item.entregueEm ? '<br>' : '') + (item.entregueEm ? formatarDataHora(item.entregueEm) : '') + '</span>'
+        ? '<span class="sub">' + (item.recebedor ? 'Recebedor: ' + escHtml(item.recebedor) : '') + (item.recebedor && item.entregueEm ? '<br>' : '') + (item.entregueEm ? formatarDataHora(item.entregueEm) : '') + '</span>'
         : '';
       const possuiEvidencia = item.possuiEvidenciaEntrega === true || Boolean(item.evidenciaEntrega && item.evidenciaEntrega.dataUrl);
       const evidenciaId = 'evidencia-' + indice;
       if (possuiEvidencia) itensEvidencia.set(evidenciaId, item);
       const botaoEvidencia = possuiEvidencia
-        ? '<button type="button" class="evidencia-download disponivel" data-evidencia-id="' + evidenciaId + '" title="Baixar foto da evidência" aria-label="Baixar foto da evidência da OM ' + escapar(item.ordem) + '">' + iconeDownload + '</button>'
+        ? '<button type="button" class="evidencia-download disponivel" data-evidencia-id="' + evidenciaId + '" title="Baixar foto da evidência" aria-label="Baixar foto da evidência da OM ' + escHtml(item.ordem) + '">' + iconeDownload + '</button>'
         : '<button type="button" class="evidencia-download indisponivel" title="Nenhuma evidência cadastrada" aria-label="Nenhuma evidência cadastrada" disabled>' + iconeDownload + '</button>';
       return '<tr>' +
-        '<td data-label="Status"><span class="status ' + classeStatusConsulta(item.status) + '">' + escapar(item.status) + '</span>' + detalheEntrega + '</td>' +
-        '<td data-label="OM"><span class="ordem">' + (escapar(item.ordem) || '-') + '</span></td>' +
-        '<td data-label="Material / descrição"><span class="descricao">' + (escapar(item.descricao) || '-') + '</span>' + (item.observacaoMaterial ? '<span class="sub">' + escapar(item.observacaoMaterial) + '</span>' : '') + '</td>' +
-        '<td data-label="Local">' + (escapar(item.local) || '-') + '</td>' +
+        '<td data-label="Status"><span class="status ' + classeStatusConsulta(item.status) + '">' + escHtml(item.status) + '</span>' + detalheEntrega + '</td>' +
+        '<td data-label="OM"><span class="ordem">' + (escHtml(item.ordem) || '-') + '</span></td>' +
+        '<td data-label="Material / descrição"><span class="descricao">' + (escHtml(item.descricao) || '-') + '</span>' + (item.observacaoMaterial ? '<span class="sub">' + escHtml(item.observacaoMaterial) + '</span>' : '') + '</td>' +
+        '<td data-label="Local">' + (escHtml(item.local) || '-') + '</td>' +
         '<td data-label="Data programada">' + formatarData(item.dataExecucao) + '</td>' +
-        '<td data-label="Supervisão">' + (escapar(item.supervisao) || '-') + '</td>' +
+        '<td data-label="Supervisão">' + (escHtml(item.supervisao) || '-') + '</td>' +
         '<td data-label="Evidência" class="evidencia-coluna">' + botaoEvidencia + '</td>' +
       '</tr>';
     }).join('');
@@ -7828,7 +7828,7 @@ function abrirConsultaEntregas() {
       elSemana.innerHTML = '<option>Semanas indisponíveis</option>';
       elSupervisao.innerHTML = '<option>Supervisões indisponíveis</option>';
       elConteudo.className = 'error';
-      elConteudo.innerHTML = '<strong>Não foi possível consultar as entregas.</strong>Verifique sua conexão e tente novamente.<span class="sub">' + escapar(erro.message) + '</span>';
+      elConteudo.innerHTML = '<strong>Não foi possível consultar as entregas.</strong>Verifique sua conexão e tente novamente.<span class="sub">' + escHtml(erro.message) + '</span>';
     } finally {
       btnAtualizar.disabled = false;
       btnAtualizar.textContent = 'Atualizar dados';
