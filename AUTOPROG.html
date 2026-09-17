@@ -404,18 +404,17 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
   const _FACILITA_API = 'https://facilitapcm.vercel.app';
   const _AUTH_KEY = '_facilita_auth_autoprog';
 
-  let _memAuth = null;
   function _obterAuth() {
-    if (_memAuth) return _memAuth;
+    if (window._memAuth) return window._memAuth;
     try {
       const raw = localStorage.getItem(_AUTH_KEY);
-      if (raw) _memAuth = JSON.parse(raw);
-      return _memAuth;
+      if (raw) window._memAuth = JSON.parse(raw);
+      return window._memAuth;
     } catch(_) { return null; }
   }
 
   function _salvarAuth(dados) {
-    _memAuth = dados;
+    window._memAuth = dados;
     try { localStorage.setItem(_AUTH_KEY, JSON.stringify(dados)); } catch(e) { console.warn('Falha ao salvar login no disco:', e); }
   }
 
@@ -1472,8 +1471,12 @@ const _FIREBASE_MATERIAIS_URL = 'https://automat-742d4-default-rtdb.firebaseio.c
     let token = options.tokenOverride || '', refreshToken = options.refreshTokenOverride || '';
     if (!token) {
       try {
-      const dados = typeof _obterAuth === 'function' ? _obterAuth() : null;
-      if (dados && dados.autenticacao) {
+      let dados = window._memAuth;
+        if (!dados) {
+          const raw = localStorage.getItem('_facilita_auth_autoprog');
+          if (raw) dados = JSON.parse(raw);
+        }
+        if (dados && dados.autenticacao) {
         token = dados.autenticacao.token || '';
           refreshToken = dados.autenticacao.refreshToken || '';
         }
@@ -7289,7 +7292,7 @@ async function _buscarOrdensEntreguesParaSolicitacao(itens) {
     if (!resposta.ok) {
       let msg = 'Resposta do servidor: ' + resposta.status;
       if (resposta._errorData && resposta._errorData.error) msg += ' - ' + resposta._errorData.error;
-            let rawDiag = typeof _obterAuth === 'function' ? _obterAuth() : null;
+            let rawDiag = window._memAuth || (localStorage.getItem('_facilita_auth_autoprog') ? JSON.parse(localStorage.getItem('_facilita_auth_autoprog')) : null);
       let tDiag = 'VAZIO';
       try { if (rawDiag && rawDiag.autenticacao && rawDiag.autenticacao.token) tDiag = rawDiag.autenticacao.token.substring(0,10); else if (rawDiag) tDiag = 'Sem Token'; } catch(e){ tDiag = 'Erro'; }
       msg += '\n\nDiag: ' + tDiag;
