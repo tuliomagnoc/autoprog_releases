@@ -7275,8 +7275,8 @@ function _formatarEntregaMaterial(valor) {
 }
 
 async function _buscarOrdensEntreguesParaSolicitacao(itens) {
-  const chavesCandidatas = new Set(itens.map(item => _normalizarOrdemMaterial(item.ordem)).filter(Boolean));
-  const resposta = await _fetchFb('/materiais.json?ts=' + Date.now(), { cache: 'no-store', tokenOverride: _tokenPopup, refreshTokenOverride: _refreshTokenPopup });
+    const chavesCandidatas = new Set(itens.map(item => _normalizarOrdemMaterial(item.ordem)).filter(Boolean));
+    const resposta = await _fetchFb('/materiais.json?ts=' + Date.now(), { cache: 'no-store' });
   if (!resposta.ok) throw new Error('Resposta do servidor: ' + resposta.status);
   const baseMateriais = await resposta.json();
   const entreguesPorOrdem = new Map();
