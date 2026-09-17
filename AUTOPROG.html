@@ -1464,17 +1464,36 @@ const _DOWNLOAD_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_re
 // Deixe como está (vazio) até o Firebase estar configurado - o botão
 // mostra um aviso claro em vez de tentar enviar pra lugar nenhum.
 const _FIREBASE_MATERIAIS_URL = 'https://automat-742d4-default-rtdb.firebaseio.com';
-  function _fetchFb(path, options = {}) {
-    let token = '';
+  async function _fetchFb(path, options = {}) {
+    let token = '', refreshToken = '';
     try {
       const raw = localStorage.getItem('_facilita_auth_autoprog');
       const dados = raw ? JSON.parse(raw) : null;
-      token = dados && dados.autenticacao ? dados.autenticacao.token : '';
+      if (dados && dados.autenticacao) {
+        token = dados.autenticacao.token || '';
+        refreshToken = dados.autenticacao.refreshToken || '';
+      }
     } catch(_) {}
     const headers = { ...(options.headers || {}) };
     if (token) headers['Authorization'] = 'Bearer ' + token;
     const url = 'https://facilitapcm.vercel.app/api/firebase/proxy?path=' + encodeURIComponent(path);
-    return fetch(url, { ...options, headers });
+    let resp = await fetch(url, { ...options, headers });
+    if (resp.status === 401 && refreshToken) {
+      try {
+        const refreshResp = await fetch('https://facilitapcm.vercel.app/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOPROG' },
+          body: JSON.stringify({ refreshToken, modulo: 'AUTOPROG' })
+        });
+        const data = await refreshResp.json();
+        if (refreshResp.ok && data.ok) {
+          localStorage.setItem('_facilita_auth_autoprog', JSON.stringify(data));
+          headers['Authorization'] = 'Bearer ' + data.autenticacao.token;
+          resp = await fetch(url, { ...options, headers });
+        }
+      } catch(_) {}
+    }
+    return resp;
   }
 
 
