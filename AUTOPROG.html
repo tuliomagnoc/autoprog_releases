@@ -1465,15 +1465,17 @@ const _DOWNLOAD_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_re
 // mostra um aviso claro em vez de tentar enviar pra lugar nenhum.
 const _FIREBASE_MATERIAIS_URL = 'https://automat-742d4-default-rtdb.firebaseio.com';
   async function _fetchFb(path, options = {}) {
-    let token = '', refreshToken = '';
-    try {
+    let token = options.tokenOverride || '', refreshToken = options.refreshTokenOverride || '';
+    if (!token) {
+      try {
       const raw = localStorage.getItem('_facilita_auth_autoprog');
       const dados = raw ? JSON.parse(raw) : null;
       if (dados && dados.autenticacao) {
         token = dados.autenticacao.token || '';
-        refreshToken = dados.autenticacao.refreshToken || '';
-      }
-    } catch(_) {}
+          refreshToken = dados.autenticacao.refreshToken || '';
+        }
+      } catch(_) {}
+    }
     const headers = { ...(options.headers || {}) };
     if (token) headers['Authorization'] = 'Bearer ' + token;
     const url = 'https://facilitapcm.vercel.app/api/firebase/proxy?path=' + encodeURIComponent(path);
@@ -7274,7 +7276,7 @@ function _formatarEntregaMaterial(valor) {
 
 async function _buscarOrdensEntreguesParaSolicitacao(itens) {
   const chavesCandidatas = new Set(itens.map(item => _normalizarOrdemMaterial(item.ordem)).filter(Boolean));
-  const resposta = await _fetchFb('/materiais.json?ts=' + Date.now(), { cache: 'no-store' });
+  const resposta = await _fetchFb('/materiais.json?ts=' + Date.now(), { cache: 'no-store', tokenOverride: _tokenPopup, refreshTokenOverride: _refreshTokenPopup });
   if (!resposta.ok) throw new Error('Resposta do servidor: ' + resposta.status);
   const baseMateriais = await resposta.json();
   const entreguesPorOrdem = new Map();
@@ -7507,6 +7509,9 @@ async function solicitarMaterialBrucutu() {
 // Abre uma consulta independente e somente leitura dos materiais enviados.
 // A janela usa a mesma fonte do AutoMat e reflete o status atual da base.
 function abrirConsultaEntregas() {
+  const _authPopup = typeof _obterAuth === 'function' ? _obterAuth() : null;
+  const _tokenPopup = _authPopup && _authPopup.autenticacao ? _authPopup.autenticacao.token : '';
+  const _refreshTokenPopup = _authPopup && _authPopup.autenticacao ? _authPopup.autenticacao.refreshToken : '';
   if (!_FIREBASE_MATERIAIS_URL) {
     alert('A base de dados de Materiais ainda não foi configurada.');
     return;
@@ -7705,7 +7710,7 @@ function abrirConsultaEntregas() {
     const segmentos = [item._semanaChave, item._pushId, item._itemIdx].map(valor => encodeURIComponent(String(valor)));
     const caminhoSeparado = '/entregas/' + segmentos.join('/') + '/evidencia.json';
     try {
-      const resposta = await _fetchFb(caminhoSeparado, { cache:'no-store' });
+      const resposta = await _fetchFb(caminhoSeparado, { cache:'no-store', tokenOverride: _tokenPopup, refreshTokenOverride: _refreshTokenPopup });
       if (resposta.ok) {
         const evidencia = await resposta.json();
         if (evidencia && evidencia.dataUrl) return evidencia;
@@ -7713,7 +7718,7 @@ function abrirConsultaEntregas() {
     } catch (_) {}
     const caminhoLegado = '/materiais/' + segmentos[0] + '/' + segmentos[1] + '/itens/' + segmentos[2] + '/evidenciaEntrega.json';
     try {
-      const resposta = await _fetchFb(caminhoLegado, { cache:'no-store' });
+      const resposta = await _fetchFb(caminhoLegado, { cache:'no-store', tokenOverride: _tokenPopup, refreshTokenOverride: _refreshTokenPopup });
       if (resposta.ok) {
         const evidencia = await resposta.json();
         if (evidencia && evidencia.dataUrl) return evidencia;
