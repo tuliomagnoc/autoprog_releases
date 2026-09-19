@@ -1,0 +1,18 @@
+{
+  "versao": "V2026.27.01.89",
+  "data": "2026-09-19",
+  "novidades": [
+    "MELHORIA: versionamento e download do AutoMat migrados integralmente para o GitHub",
+    "MELHORIA: atualização obrigatória usa um canal público e estável no Facilita PCM",
+    "CORREÇÃO: filtros encadeados agora possuem todas as funções de alteração necessárias",
+    "CORREÇÃO: perfil PREPARADOR reconhece corretamente o status EM PREPARAÇÃO",
+    "NOVO: prioridade, prazo necessário, destino, quantidades e checklist por material",
+    "NOVO: painel de pendências atrasadas, itens sem responsável, ocorrências e histórico",
+    "SEGURANÇA: correções de status exigem justificativa e ficam registradas",
+    "REGRA: status ENTREGUE passa a ser registrado exclusivamente pelo AutoMat Mobile e fica somente para consulta no AutoMat",
+    "NOVO: controle de versão independente do AutoMat pelo GitHub",
+    "NOVO: filtros encadeados por semana, supervisão, status e número da ordem",
+    "NOVO: seleção individual ou por dia e alteração de status em massa",
+    "MELHORIA: ordens organizadas em lista e agrupadas por dia"
+  ]
+}

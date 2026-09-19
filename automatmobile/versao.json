@@ -1,0 +1,23 @@
+{
+  "versao": "V2026.27.01.05",
+  "versionCode": 5,
+  "obrigatoria": true,
+  "apkUrl": "https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/AutoMat-Mobile-V2026.27.01.05.apk",
+  "data": "2026-09-19",
+  "novidades": [
+    "MELHORIA: versionamento e download do AutoMat Mobile migrados integralmente para o GitHub",
+    "SEGURANÇA: aplicativo Android agora usa sessão criptografada e APIs protegidas, sem acesso direto à base de dados",
+    "NOVO: atualização obrigatória do APK com download automático e abertura do instalador Android",
+    "CORREÇÃO: sincronização da fila offline identifica corretamente cada item por solicitação e índice",
+    "NOVO: entrega total ou parcial com controle de quantidades",
+    "NOVO: ocorrências com observação, foto e histórico",
+    "NOVO: leitura de QR Code, comprovante e fila ordenada por prioridade",
+    "NOVO: rascunho offline, sincronização automática e alertas de demandas",
+    "MELHORIA: sincronização silenciosa da base ao navegar, usar os botões e retornar ao aplicativo",
+    "NOVO: controle de versão independente do AutoMat Mobile pelo GitHub",
+    "MELHORIA: assinatura e versão visíveis no rodapé de todas as telas",
+    "NOVO: identificação obrigatória do entregador antes da consulta da ordem",
+    "NOVO: entregador gravado na base de dados, na confirmação e no histórico",
+    "MELHORIA: fluxo responsivo exclusivo para celular e tablet"
+  ]
+}
