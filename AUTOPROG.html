@@ -396,7 +396,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
 
     <button id="btn-login-entrar" onclick="_loginCheck()" style="width:100%;padding:12px;background:#007E7A;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;">Entrar</button>
 
-    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.90</span></div>
+    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.91</span></div>
   </div>
 </div>
 <script>
@@ -425,6 +425,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
       return window._memAuth;
     } catch(_) { return null; }
   }
+  window._obterAuth = _obterAuth;
 
   function _salvarAuth(dados) {
     window._memAuth = dados;
@@ -1292,7 +1293,7 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
   </div>
 </div>
 <footer style="background:#555555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:0.04em;flex-shrink:0;">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.90</span>
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="color:#999;">-  V2026.27.01.91</span>
 </footer>
 </div><!-- app -->
 
@@ -1427,13 +1428,14 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
 // ============================================================
 // _APP_VERSION deve ser atualizado junto com o rodapé a cada entrega
 // (mesmo valor de "V2026.27.01.X" mostrado nas telas de login/rodapé).
-const _APP_VERSION = 'V2026.27.01.90';
+const _APP_VERSION = 'V2026.27.01.91';
 // Lista de novidades DA PRÓPRIA versão instalada (não confundir com a lista
 // de novidades da versão NOVA, buscada do GitHub em _checkForUpdate - essa
 // aqui é sempre sobre a versão que o usuário já está usando agora). Usada
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "V2026.27.01.91 — CORREÇÃO: ao carregar uma sessão salva, o AutoProg volta a reconhecer o elaborador, a planta e o PCM do usuário autenticado, inclusive quando esses campos estão vazios no arquivo antigo",
   "V2026.27.01.90 — MELHORIA: AutoProg integrado ao portal Facilita PCM na Azure, com distribuição pelo GitHub e informações desta atualização mantidas na etiqueta de novidades",
   "NOVO: confirmação inteligente antes de solicitar materiais, com quantidade de ordens, identificação das OMs já entregues e exclusão automática dessas ordens do novo envio",
   "NOVO: coluna Evidência na consulta de materiais, com download destacado quando houver foto registrada pelo AutoMat Mobile e ícone esmaecido quando não houver",
@@ -8969,6 +8971,30 @@ let supervisao = '';
 let sessaoElaborador = '';
 let sessaoPlanta = '';
 let sessaoPcm = '';
+
+// PERFIL_SESSAO_HELPERS_INICIO
+function _primeiroValorPerfil() {
+  for (let indice = 0; indice < arguments.length; indice++) {
+    const valor = String(arguments[indice] == null ? '' : arguments[indice]).trim();
+    if (valor) return valor;
+  }
+  return '';
+}
+
+function _resolverPerfilSessaoSalva(sessao, autenticacao, perfilAtual) {
+  const arquivo = sessao && typeof sessao === 'object' ? sessao : {};
+  const usuario = autenticacao && autenticacao.usuario && typeof autenticacao.usuario === 'object'
+    ? autenticacao.usuario
+    : {};
+  const atual = perfilAtual && typeof perfilAtual === 'object' ? perfilAtual : {};
+  return {
+    elaborador: _primeiroValorPerfil(usuario.nome, usuario.usuario, arquivo.elaborador, atual.elaborador),
+    planta: _primeiroValorPerfil(usuario.planta, arquivo.planta, atual.planta),
+    pcm: _primeiroValorPerfil(usuario.pcm, arquivo.pcm, atual.pcm)
+  };
+}
+// PERFIL_SESSAO_HELPERS_FIM
+
 function _atualizarBoxPerfil() {
   const box = document.getElementById('box-perfil-planta-pcm');
   const pl = document.getElementById('perfil-planta-val');
@@ -13748,11 +13774,21 @@ function _processarSessaoJSON(text) {
 
       supervisao       = s.supervisao       || '';
       
-      const __auth = typeof _obterAuth === 'function' ? _obterAuth() : null;
-      const __usr = __auth && __auth.usuario ? __auth.usuario : null;
-      sessaoElaborador = (__usr && (__usr.nome || __usr.usuario)) || s.elaborador || '';
-        sessaoPlanta = (__usr && __usr.planta) || s.planta || '';
-        sessaoPcm = (__usr && __usr.pcm) || s.pcm || '';
+      let __auth = typeof window._obterAuth === 'function' ? window._obterAuth() : window._memAuth;
+      if (!__auth) {
+        try {
+          const __authSalva = localStorage.getItem('_facilita_auth_autoprog');
+          if (__authSalva) __auth = JSON.parse(__authSalva);
+        } catch (_) {}
+      }
+      const __perfilSessao = _resolverPerfilSessaoSalva(s, __auth, {
+        elaborador: sessaoElaborador,
+        planta: sessaoPlanta,
+        pcm: sessaoPcm
+      });
+      sessaoElaborador = __perfilSessao.elaborador;
+      sessaoPlanta = __perfilSessao.planta;
+      sessaoPcm = __perfilSessao.pcm;
       if (typeof _atualizarBoxPerfil === 'function') _atualizarBoxPerfil();
 
       semanaWizard     = s.semanaWizard     || {num:null,ano:null,start:null,end:null};

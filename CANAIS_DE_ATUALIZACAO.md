@@ -12,7 +12,7 @@ Cada módulo consulta diretamente seu `versao.json` no GitHub. Uma publicação 
 
 Cada módulo mantém sua própria sequência e incrementa o último número a cada ajuste publicado:
 
-- AutoProg: `V2026.27.01.90`.
+- AutoProg: `V2026.27.01.91`.
 - AutoMat: `V2026.27.01.05`.
 - AutoMat Mobile: `V2026.27.01.05`.
 

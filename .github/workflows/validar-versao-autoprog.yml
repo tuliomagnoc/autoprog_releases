@@ -16,3 +16,5 @@ jobs:
           node-version: 20
       - name: Conferir versão, manifesto e etiqueta de novidades
         run: node scripts/verificar-versao-autoprog.js
+      - name: Testar restauração do perfil em sessões salvas
+        run: node scripts/testar-restauracao-perfil.js
