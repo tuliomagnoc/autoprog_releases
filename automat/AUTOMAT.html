@@ -477,22 +477,45 @@ async function _fetchFb(path, options = {}) {
     let auth = typeof _obterAuthAutomat === 'function' ? _obterAuthAutomat() : null;
     let token = auth && auth.autenticacao ? auth.autenticacao.token : '';
     let refreshToken = auth && auth.autenticacao ? auth.autenticacao.refreshToken : '';
-    const headers = { ...(options.headers || {}) };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const local = window.location.protocol === 'file:';
     const url = _FACILITA_DATA_API + '/api/firebase/proxy?path=' + encodeURIComponent(path);
-    let resp = await fetch(url, { ...options, headers });
+    const enviar = tokenAtual => {
+      if (!local) {
+        const headers = { ...(options.headers || {}) };
+        if (tokenAtual) headers['Authorization'] = 'Bearer ' + tokenAtual;
+        return fetch(url, { ...options, headers });
+      }
+      let corpo = options.body;
+      if (typeof corpo === 'string') {
+        try { corpo = JSON.parse(corpo); } catch (_) {}
+      }
+      return fetch(_FACILITA_DATA_API + '/api/firebase/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({
+          _facilitaTunnel: true,
+          method: String(options.method || 'GET').toUpperCase(),
+          path,
+          token: tokenAtual,
+          body: corpo
+        }),
+        cache: options.cache || 'default'
+      });
+    };
+    let resp = await enviar(token);
     if (resp.status === 401 && refreshToken) {
       try {
         const refreshResp = await fetch(_FACILITA_DATA_API + '/api/auth/refresh', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOMAT' },
+          headers: local
+            ? { 'Content-Type': 'text/plain;charset=UTF-8' }
+            : { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOMAT' },
           body: JSON.stringify({ refreshToken, modulo: 'AUTOMAT' })
         });
         const data = await refreshResp.json();
         if (refreshResp.ok && data.ok) {
           if (typeof _salvarAuthAutomat === 'function') _salvarAuthAutomat(data);
-          headers['Authorization'] = 'Bearer ' + data.autenticacao.token;
-          resp = await fetch(url, { ...options, headers });
+          resp = await enviar(data.autenticacao.token);
         }
       } catch(_) {}
     }
@@ -1754,6 +1777,17 @@ const _FACILITA_API = /^https?:$/.test(window.location.protocol)
   : 'https://black-meadow-0dc500c10.5.azurestaticapps.net';
 const _AUTH_STORAGE_KEY_AUTOMAT = '_facilita_auth_automat';
 
+function _opcoesPostAutomat(payload) {
+  const local = window.location.protocol === 'file:';
+  return {
+    method: 'POST',
+    headers: local
+      ? { 'Content-Type': 'text/plain;charset=UTF-8' }
+      : { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOMAT' },
+    body: JSON.stringify(payload)
+  };
+}
+
 function _obterAuthAutomat() {
   try {
     const raw = localStorage.getItem(_AUTH_STORAGE_KEY_AUTOMAT);
@@ -1845,14 +1879,10 @@ async function _executarLoginAutomat() {
   if (errEl) errEl.textContent = '';
 
   try {
-    const resp = await fetch(`${_FACILITA_API}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Facilita-Client': 'AUTOMAT'
-      },
-      body: JSON.stringify({ usuario, senha, modulo: 'AUTOMAT' })
-    });
+    const resp = await fetch(
+      `${_FACILITA_API}/api/auth/login`,
+      _opcoesPostAutomat({ usuario, senha, modulo: 'AUTOMAT' })
+    );
 
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok || !data.ok) {
@@ -1886,14 +1916,10 @@ async function _verificarSessaoAutomat() {
 
   if (auth.autenticacao.refreshToken) {
     try {
-      const resp = await fetch(`${_FACILITA_API}/api/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Facilita-Client': 'AUTOMAT'
-        },
-        body: JSON.stringify({ refreshToken: auth.autenticacao.refreshToken, modulo: 'AUTOMAT' })
-      });
+      const resp = await fetch(
+        `${_FACILITA_API}/api/auth/refresh`,
+        _opcoesPostAutomat({ refreshToken: auth.autenticacao.refreshToken, modulo: 'AUTOMAT' })
+      );
       const data = await resp.json().catch(() => ({}));
       if (resp.ok && data.ok) {
         _salvarAuthAutomat(data);

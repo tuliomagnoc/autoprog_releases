@@ -406,6 +406,17 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
     : 'https://black-meadow-0dc500c10.5.azurestaticapps.net';
   const _AUTH_KEY = '_facilita_auth_autoprog';
 
+  function _opcoesPostAutoprog(payload) {
+    const local = window.location.protocol === 'file:';
+    return {
+      method: 'POST',
+      headers: local
+        ? { 'Content-Type': 'text/plain;charset=UTF-8' }
+        : { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOPROG' },
+      body: JSON.stringify(payload)
+    };
+  }
+
   function _obterAuth() {
     if (window._memAuth) return window._memAuth;
     try {
@@ -491,14 +502,10 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
     if (err) err.textContent = '';
 
     try {
-      const resp = await fetch(_FACILITA_API + '/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Facilita-Client': 'AUTOPROG'
-        },
-        body: JSON.stringify({ usuario: usuario, senha: senha, modulo: 'AUTOPROG' })
-      });
+      const resp = await fetch(
+        _FACILITA_API + '/api/auth/login',
+        _opcoesPostAutoprog({ usuario: usuario, senha: senha, modulo: 'AUTOPROG' })
+      );
 
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data.ok) {
@@ -535,14 +542,10 @@ i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15
 
     if (auth.autenticacao.refreshToken) {
       try {
-        const resp = await fetch(_FACILITA_API + '/api/auth/refresh', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Facilita-Client': 'AUTOPROG'
-          },
-          body: JSON.stringify({ refreshToken: auth.autenticacao.refreshToken, modulo: 'AUTOPROG' })
-        });
+        const resp = await fetch(
+          _FACILITA_API + '/api/auth/refresh',
+          _opcoesPostAutoprog({ refreshToken: auth.autenticacao.refreshToken, modulo: 'AUTOPROG' })
+        );
         const data = await resp.json().catch(() => ({}));
         if (resp.ok && data.ok) {
           _salvarAuth(data);
@@ -1487,22 +1490,45 @@ const _FIREBASE_MATERIAIS_URL = 'https://automat-742d4-default-rtdb.firebaseio.c
         }
       } catch(_) {}
     }
-    const headers = { ...(options.headers || {}) };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const local = window.location.protocol === 'file:';
     const url = _FACILITA_MATERIAIS_API + '/api/firebase/proxy?path=' + encodeURIComponent(path);
-    let resp = await fetch(url, { ...options, headers });
+    const enviar = tokenAtual => {
+      if (!local) {
+        const headers = { ...(options.headers || {}) };
+        if (tokenAtual) headers['Authorization'] = 'Bearer ' + tokenAtual;
+        return fetch(url, { ...options, headers });
+      }
+      let corpo = options.body;
+      if (typeof corpo === 'string') {
+        try { corpo = JSON.parse(corpo); } catch (_) {}
+      }
+      return fetch(_FACILITA_MATERIAIS_API + '/api/firebase/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({
+          _facilitaTunnel: true,
+          method: String(options.method || 'GET').toUpperCase(),
+          path,
+          token: tokenAtual,
+          body: corpo
+        }),
+        cache: options.cache || 'default'
+      });
+    };
+    let resp = await enviar(token);
     if (resp.status === 401 && refreshToken) {
       try {
         const refreshResp = await fetch(_FACILITA_MATERIAIS_API + '/api/auth/refresh', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOPROG' },
+          headers: local
+            ? { 'Content-Type': 'text/plain;charset=UTF-8' }
+            : { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOPROG' },
           body: JSON.stringify({ refreshToken, modulo: 'AUTOPROG' })
         });
         const data = await refreshResp.json();
         if (refreshResp.ok && data.ok) {
           localStorage.setItem('_facilita_auth_autoprog', JSON.stringify(data));
-          headers['Authorization'] = 'Bearer ' + data.autenticacao.token;
-          resp = await fetch(url, { ...options, headers });
+          resp = await enviar(data.autenticacao.token);
         }
       } catch(_) {}
       }
