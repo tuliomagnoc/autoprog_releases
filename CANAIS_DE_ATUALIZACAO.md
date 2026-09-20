@@ -18,4 +18,6 @@ Cada módulo mantém sua própria sequência e incrementa o último número a ca
 
 Uma publicação somente está concluída depois que a mesma versão estiver alinhada no código-fonte, no manifesto do GitHub, na cópia hospedada na Azure e, no caso do AutoMat Mobile, no APK. O número de um módulo não deve ser copiado para outro módulo.
 
+No AutoProg, a primeira entrada de `novidades` deve começar com a versão publicada e ser igual à primeira entrada de `_NOVIDADES_ATUAL`. Essa é a informação apresentada pela etiqueta vibratória da tela inicial. A validação automática do GitHub bloqueia versões sem essa atualização.
+
 As APIs autenticadas e a base de dados não são hospedadas pelo GitHub; este repositório contém somente arquivos públicos de distribuição e controle de versão.
