@@ -469,6 +469,9 @@ const AUTOMAT_NOVIDADES_ATUAL = [
 
 // Mesma base de dados usada pelo botão "Solicitar Material" do AUTOPROG.
 const FIREBASE_URL = 'https://automat-742d4-default-rtdb.firebaseio.com';
+const _FACILITA_DATA_API = /^https?:$/.test(window.location.protocol)
+  ? window.location.origin
+  : 'https://black-meadow-0dc500c10.5.azurestaticapps.net';
 
 async function _fetchFb(path, options = {}) {
     let auth = typeof _obterAuthAutomat === 'function' ? _obterAuthAutomat() : null;
@@ -476,11 +479,11 @@ async function _fetchFb(path, options = {}) {
     let refreshToken = auth && auth.autenticacao ? auth.autenticacao.refreshToken : '';
     const headers = { ...(options.headers || {}) };
     if (token) headers['Authorization'] = 'Bearer ' + token;
-    const url = 'https://facilitapcm.vercel.app/api/firebase/proxy?path=' + encodeURIComponent(path);
+    const url = _FACILITA_DATA_API + '/api/firebase/proxy?path=' + encodeURIComponent(path);
     let resp = await fetch(url, { ...options, headers });
     if (resp.status === 401 && refreshToken) {
       try {
-        const refreshResp = await fetch('https://facilitapcm.vercel.app/api/auth/refresh', {
+        const refreshResp = await fetch(_FACILITA_DATA_API + '/api/auth/refresh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOMAT' },
           body: JSON.stringify({ refreshToken, modulo: 'AUTOMAT' })
@@ -1746,7 +1749,9 @@ function inicializarControleVersaoAutomat() {
 }
 
 // ── Autenticação Centralizada Facilita PCM ───────────────────────────
-const _FACILITA_API = 'https://facilitapcm.vercel.app';
+const _FACILITA_API = /^https?:$/.test(window.location.protocol)
+  ? window.location.origin
+  : 'https://black-meadow-0dc500c10.5.azurestaticapps.net';
 const _AUTH_STORAGE_KEY_AUTOMAT = '_facilita_auth_automat';
 
 function _obterAuthAutomat() {
