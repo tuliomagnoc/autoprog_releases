@@ -1,6 +1,6 @@
 {
-  "versao": "V2026.27.01.89",
-  "data": "2026-09-19",
+  "versao": "V2026.27.01.05",
+  "data": "2026-09-20",
   "novidades": [
     "MELHORIA: versionamento e download do AutoMat migrados integralmente para o GitHub",
     "MELHORIA: atualização obrigatória usa um canal público e estável no Facilita PCM",

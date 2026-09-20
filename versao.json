@@ -1,6 +1,6 @@
 {
-  "versao": "V2026.27.01.89",
-  "data": "2026-09-13",
+  "versao": "V2026.27.01.90",
+  "data": "2026-09-20",
   "novidades": [
     "NOVO: confirmação inteligente antes de solicitar materiais, com quantidade de ordens, identificação das OMs já entregues e exclusão automática dessas ordens do novo envio",
     "NOVO: coluna Evidência na consulta de materiais, com download destacado quando houver foto registrada pelo AutoMat Mobile e ícone esmaecido quando não houver",
