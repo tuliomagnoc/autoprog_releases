@@ -1,10 +1,13 @@
 {
-  "versao": "V2026.27.01.06",
-  "versionCode": 6,
+  "versao": "V2026.27.01.07",
+  "versionCode": 7,
   "obrigatoria": true,
-  "apkUrl": "https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/AutoMat-Mobile-V2026.27.01.06.apk",
-  "data": "2026-09-20",
+  "apkUrl": "https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/AutoMat-Mobile-V2026.27.01.07.apk",
+  "data": "2026-09-21",
   "novidades": [
+    "CORREÇÃO: aplicativo e versão web passam a usar somente a API do Azure, sem dependência da Vercel",
+    "NOVO: preparação e validação do aplicativo para iPhone e iPad com Expo/EAS",
+    "CORREÇÃO: favicon compartilhado com fallback PNG, suporte Apple e renovação automática de cache",
     "CORREÇÃO: logomarca da abertura do aplicativo centralizada dentro da área segura do Android, sem cortes",
     "MELHORIA: favicon oficial do AutoProg padronizado em todas as páginas do AutoMat Mobile",
     "MELHORIA: versionamento e download do AutoMat Mobile migrados integralmente para o GitHub",
