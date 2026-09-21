@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.91",
+  "versao": "V2026.27.01.92",
   "data": "2026-09-20",
   "novidades": [
+    "V2026.27.01.92 — MELHORIA: favicon oficial do AutoProg padronizado em todos os módulos, páginas e janelas auxiliares",
     "V2026.27.01.91 — CORREÇÃO: ao carregar uma sessão salva, o AutoProg volta a reconhecer o elaborador, a planta e o PCM do usuário autenticado, inclusive quando esses campos estão vazios no arquivo antigo",
     "V2026.27.01.90 — MELHORIA: AutoProg integrado ao portal Facilita PCM na Azure, com distribuição pelo GitHub e informações desta atualização mantidas na etiqueta de novidades",
     "NOVO: confirmação inteligente antes de solicitar materiais, com quantidade de ordens, identificação das OMs já entregues e exclusão automática dessas ordens do novo envio",

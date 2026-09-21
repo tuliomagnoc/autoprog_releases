@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.05",
+  "versao": "V2026.27.01.06",
   "data": "2026-09-20",
   "novidades": [
+    "MELHORIA: favicon oficial do AutoProg padronizado em todas as páginas do AutoMat",
     "MELHORIA: versionamento e download do AutoMat migrados integralmente para o GitHub",
     "MELHORIA: atualização obrigatória usa um canal público e estável no Facilita PCM",
     "CORREÇÃO: filtros encadeados agora possuem todas as funções de alteração necessárias",
