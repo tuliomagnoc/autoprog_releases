@@ -1,10 +1,11 @@
 {
-  "versao": "V2026.27.01.07",
-  "versionCode": 7,
+  "versao": "V2026.27.01.08",
+  "versionCode": 8,
   "obrigatoria": true,
-  "apkUrl": "https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/AutoMat-Mobile-V2026.27.01.07.apk",
-  "data": "2026-09-21",
+  "apkUrl": "https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/AutoMat-Mobile-V2026.27.01.08.apk",
+  "data": "2026-09-22",
   "novidades": [
+    "MELHORIA: consulta inicia com Planta e PCM do perfil autenticado e mantém os filtros encadeados",
     "CORREÇÃO: aplicativo e versão web passam a usar somente a API do Azure, sem dependência da Vercel",
     "NOVO: preparação e validação do aplicativo para iPhone e iPad com Expo/EAS",
     "CORREÇÃO: favicon compartilhado com fallback PNG, suporte Apple e renovação automática de cache",
