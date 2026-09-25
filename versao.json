@@ -1,8 +1,8 @@
 {
   "versao": "V2026.27.01.94",
-  "data": "2026-09-23",
+  "data": "2026-09-25",
   "novidades": [
-    "V2026.27.01.94 — MODO TEMPORÁRIO: AutoProg liberado para programação local sem login e sem consulta à base de materiais enquanto o acesso corporativo é regularizado",
+    "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
     "V2026.27.01.93 — CORREÇÃO: favicon oficial passa a usar SVG, PNG e ícone Apple compartilhados, com renovação automática de cache em todos os módulos",
     "V2026.27.01.92 — MELHORIA: favicon oficial do AutoProg padronizado em todos os módulos, páginas e janelas auxiliares",
     "V2026.27.01.91 — CORREÇÃO: ao carregar uma sessão salva, o AutoProg volta a reconhecer o elaborador, a planta e o PCM do usuário autenticado, inclusive quando esses campos estão vazios no arquivo antigo",
