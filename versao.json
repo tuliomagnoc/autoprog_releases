@@ -3,6 +3,8 @@
   "data": "2026-09-25",
   "novidades": [
     "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+    "AJUSTE VISUAL: a tela 8 não marca nem pisca em vermelho por ordens repetidas ou operação 0000; os registros permanecem disponíveis normalmente",
+    "AJUSTE VISUAL: telas 7 e 8 e Visualizar programação distinguem cada condição e status por uma cor exclusiva, inclusive URGT, SEGU, MAMB e SAUD",
     "AJUSTE VISUAL: tela 9 (Projeção) usa a mesma paleta suave das demais telas, com perdas e categorias destacadas sem cores saturadas",
     "V2026.27.01.93 — CORREÇÃO: favicon oficial passa a usar SVG, PNG e ícone Apple compartilhados, com renovação automática de cache em todos os módulos",
     "V2026.27.01.92 — MELHORIA: favicon oficial do AutoProg padronizado em todos os módulos, páginas e janelas auxiliares",

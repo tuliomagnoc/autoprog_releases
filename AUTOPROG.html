@@ -155,7 +155,6 @@ tbody tr.turno-row:hover td { opacity: 0.90; }
 
 /* BADGES */
 .badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; white-space: nowrap; }
-@keyframes op0000blink { 0%,100% { background: #ffd0d0; color: #C0305E; } 50% { background: #ffffff; color: #C0305E; } }
 @keyframes newsShake {
   0%, 100%   { transform: rotate(0deg) scale(1); box-shadow: 0 0 0 0 rgba(0,126,122,0.45); }
   2%   { transform: rotate(-12deg) scale(1.08); }
@@ -171,7 +170,6 @@ tbody tr.turno-row:hover td { opacity: 0.90; }
 #update-news-btn:hover { animation: none; }
 #tela1-novidades-btn { animation: newsShake 2.6s ease-in-out infinite; }
 #tela1-novidades-btn:hover { animation: none; }
-.op-0000-alert { animation: op0000blink 1s ease-in-out infinite; font-weight: 700 !important; }
 .badge-A { background: var(--red-bg); color: var(--red); }
 .badge-B { background: var(--amber-bg); color: var(--amber); }
 .badge-C { background: var(--green-bg); color: var(--green); }
@@ -562,15 +560,6 @@ tbody tr:hover { background: #f4faf8; }
 
 /* Telas 7 e 8: todos os estados usam fundos claros de intensidade semelhante.
    A borda lateral mantém o significado mesmo para quem distingue pouco as cores. */
-#screen-s7 tbody tr.omve, #screen-s8 tbody tr.omve {
-  --row-bg: #f9ecef; --row-hover: #f5e1e7; --row-text: #713246; --row-edge: #c86b83;
-}
-#screen-s7 tbody tr.atcr, #screen-s8 tbody tr.atcr {
-  --row-bg: #fff3e0; --row-hover: #ffedcf; --row-text: #775519; --row-edge: #c79a4e;
-}
-#screen-s7 tbody tr.urgente, #screen-s8 tbody tr.urgente {
-  --row-bg: #eaf5f9; --row-hover: #deeff6; --row-text: #205e72; --row-edge: #70b1c9;
-}
 #screen-s7 tbody tr.programada, #screen-s8 tbody tr.programada {
   --row-bg: #e7f6f0; --row-hover: #d9f0e7; --row-text: #255e51; --row-edge: #61ac8f;
 }
@@ -580,31 +569,50 @@ tbody tr:hover { background: #f4faf8; }
 #screen-s7 tbody tr.turno-row, #screen-s8 tbody tr.turno-row {
   --row-bg: #f6edf7; --row-hover: #f0e2f3; --row-text: #684a71; --row-edge: #af82bb;
 }
+#screen-s7 tbody tr.yss, #screen-s8 tbody tr.yss {
+  --row-bg: #f3f6dc; --row-hover: #ebf0c8; --row-text: #626b2f; --row-edge: #b4c16b;
+}
+#screen-s7 tbody tr.bloqueio, #screen-s8 tbody tr.bloqueio {
+  --row-bg: #f2eee7; --row-hover: #ebe5da; --row-text: #665545; --row-edge: #b19d84;
+}
+#screen-s7 tbody tr.manobra, #screen-s8 tbody tr.manobra {
+  --row-bg: #ffe0bd; --row-hover: #ffd3a3; --row-text: #77411e; --row-edge: #e58b3c;
+}
+#screen-s7 tbody tr.saude, #screen-s8 tbody tr.saude {
+  --row-bg: #fff0e9; --row-hover: #ffe5d9; --row-text: #85513b; --row-edge: #dda58c;
+}
+#screen-s7 tbody tr.meio-ambiente, #screen-s8 tbody tr.meio-ambiente {
+  --row-bg: #eef5e6; --row-hover: #e4efda; --row-text: #4a6538; --row-edge: #9fbe77;
+}
+#screen-s7 tbody tr.seguranca, #screen-s8 tbody tr.seguranca {
+  --row-bg: #eaeefb; --row-hover: #dfe6f8; --row-text: #3f517e; --row-edge: #849bd0;
+}
+#screen-s7 tbody tr.urgente, #screen-s8 tbody tr.urgente {
+  --row-bg: #eaf5f9; --row-hover: #deeff6; --row-text: #205e72; --row-edge: #70b1c9;
+}
+#screen-s7 tbody tr.atcr, #screen-s8 tbody tr.atcr {
+  --row-bg: #fff3e0; --row-hover: #ffedcf; --row-text: #775519; --row-edge: #c79a4e;
+}
+#screen-s7 tbody tr.omve, #screen-s8 tbody tr.omve {
+  --row-bg: #f9ecef; --row-hover: #f5e1e7; --row-text: #713246; --row-edge: #c86b83;
+}
 #screen-s7 tbody tr.rpl-executada, #screen-s8 tbody tr.rpl-executada {
   --row-bg: #eef2f3; --row-hover: #e7edef; --row-text: #526268; --row-edge: #9babb0;
 }
 #screen-s7 tbody tr.rpl-encerrada-sap, #screen-s8 tbody tr.rpl-encerrada-sap {
-  --row-bg: #f5f7f8; --row-hover: #eef1f3; --row-text: #6c797e; --row-edge: #bac4c7;
+  --row-bg: #e9edf2; --row-hover: #dfe5ed; --row-text: #556270; --row-edge: #a3aebd;
 }
-:is(#screen-s7, #screen-s8) tbody tr:is(.omve, .atcr, .urgente, .programada, .obs-row, .turno-row, .rpl-executada, .rpl-encerrada-sap) td:not(.op-0000-alert) {
+:is(#screen-s7, #screen-s8) tbody tr:is(.programada, .obs-row, .turno-row, .yss, .bloqueio, .manobra, .saude, .meio-ambiente, .seguranca, .urgente, .atcr, .omve, .rpl-executada, .rpl-encerrada-sap) td {
   background: var(--row-bg) !important;
   color: var(--row-text) !important;
   opacity: 1 !important;
 }
-:is(#screen-s7, #screen-s8) tbody tr:is(.omve, .atcr, .urgente, .programada, .obs-row, .turno-row, .rpl-executada, .rpl-encerrada-sap):hover td:not(.op-0000-alert) {
+:is(#screen-s7, #screen-s8) tbody tr:is(.programada, .obs-row, .turno-row, .yss, .bloqueio, .manobra, .saude, .meio-ambiente, .seguranca, .urgente, .atcr, .omve, .rpl-executada, .rpl-encerrada-sap):hover td {
   background: var(--row-hover) !important;
   opacity: 1 !important;
 }
-:is(#screen-s7, #screen-s8) tbody tr:is(.omve, .atcr, .urgente, .programada, .obs-row, .turno-row, .rpl-executada, .rpl-encerrada-sap) td:first-child {
+:is(#screen-s7, #screen-s8) tbody tr:is(.programada, .obs-row, .turno-row, .yss, .bloqueio, .manobra, .saude, .meio-ambiente, .seguranca, .urgente, .atcr, .omve, .rpl-executada, .rpl-encerrada-sap) td:first-child {
   border-left: 4px solid var(--row-edge) !important;
-}
-:is(#screen-s7, #screen-s8) tbody td.op-0000-alert {
-  background: #fff0f3 !important;
-  color: #a62e52 !important;
-  animation: repaginado-alerta-suave 2s ease-in-out infinite !important;
-}
-@keyframes repaginado-alerta-suave {
-  50% { box-shadow: inset 0 0 0 2px rgba(189, 49, 92, .28); }
 }
 
 /* Tela 9: mesma escala clara de estados, sem faixas saturadas. */
@@ -1742,6 +1750,8 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="/ass
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "AJUSTE VISUAL: a tela 8 não marca nem pisca em vermelho por ordens repetidas ou operação 0000; os registros permanecem disponíveis normalmente",
+  "AJUSTE VISUAL: telas 7 e 8 e Visualizar programação distinguem cada condição e status por uma cor exclusiva, inclusive URGT, SEGU, MAMB e SAUD",
   "AJUSTE VISUAL: tela 9 (Projeção) usa a mesma paleta suave das demais telas, com perdas e categorias destacadas sem cores saturadas",
   "V2026.27.01.93 — CORREÇÃO: favicon oficial passa a usar SVG, PNG e ícone Apple compartilhados, com renovação automática de cache em todos os módulos",
   "V2026.27.01.92 — MELHORIA: favicon oficial do AutoProg padronizado em todos os módulos, páginas e janelas auxiliares",
@@ -3134,6 +3144,42 @@ function blFilterApply(col) {
   if (typeof renderBacklogWizard === 'function') renderBacklogWizard();
 }
 
+// Paleta única das linhas das telas 7/8, Visualizar programação e exportações.
+// Uma ordem pode ter vários atributos; o primeiro caso abaixo define a cor da linha.
+const _TONS_ORDEM = {
+  omve:            {bg:'#f9ecef',fg:'#713246',edge:'#c86b83',classe:'omve'},
+  atcr:            {bg:'#fff3e0',fg:'#775519',edge:'#c79a4e',classe:'atcr'},
+  urgente:         {bg:'#eaf5f9',fg:'#205e72',edge:'#70b1c9',classe:'urgente'},
+  seguranca:       {bg:'#eaeefb',fg:'#3f517e',edge:'#849bd0',classe:'seguranca'},
+  meioAmbiente:    {bg:'#eef5e6',fg:'#4a6538',edge:'#9fbe77',classe:'meio-ambiente'},
+  saude:           {bg:'#fff0e9',fg:'#85513b',edge:'#dda58c',classe:'saude'},
+  bloqueio:        {bg:'#f2eee7',fg:'#665545',edge:'#b19d84',classe:'bloqueio'},
+  manobra:         {bg:'#ffe0bd',fg:'#77411e',edge:'#e58b3c',classe:'manobra'},
+  turno:           {bg:'#f6edf7',fg:'#684a71',edge:'#af82bb',classe:'turno-row'},
+  yss:             {bg:'#f3f6dc',fg:'#626b2f',edge:'#b4c16b',classe:'yss'},
+  obs:             {bg:'#edf3fb',fg:'#3d5c7b',edge:'#86abc9',classe:'obs-row'},
+  executada:       {bg:'#eef2f3',fg:'#526268',edge:'#9babb0',classe:'rpl-executada'},
+  encerradaSap:    {bg:'#e9edf2',fg:'#556270',edge:'#a3aebd',classe:'rpl-encerrada-sap'}
+};
+function _tomOrdem(d, p) {
+  if (d._preservadaProg) return _TONS_ORDEM.encerradaSap;
+  if (d._executada || (typeof _isExecComHistorico === 'function' && _isExecComHistorico(d))) return _TONS_ORDEM.executada;
+  const su = String(d['Status usuário'] || '').toUpperCase();
+  const tb = String(d['Texto breve'] || '').toUpperCase();
+  if (su.includes('OMVE')) return _TONS_ORDEM.omve;
+  if (su.includes('ATCR')) return _TONS_ORDEM.atcr;
+  if (su.includes('URGT') || su.includes('URG')) return _TONS_ORDEM.urgente;
+  if (su.includes('SEGU') || su.includes('SEG')) return _TONS_ORDEM.seguranca;
+  if (su.includes('MAMB')) return _TONS_ORDEM.meioAmbiente;
+  if (su.includes('SAUD')) return _TONS_ORDEM.saude;
+  if (tb.includes('PNEUM') || tb.includes('VALVULAS') || tb.includes('VÁLVULAS')) return _TONS_ORDEM.bloqueio;
+  if (tb.includes('BLOQUEIO') && tb.includes('DESBLOQUEIO')) return _TONS_ORDEM.manobra;
+  if (p && String((p.obs || '') + ' ' + (p._manualObs || '')).toLowerCase().includes('turno')) return _TONS_ORDEM.turno;
+  if (d._tipo === 'YSS') return _TONS_ORDEM.yss;
+  if (d._isOBS || d._tipo === 'OBS') return _TONS_ORDEM.obs;
+  return null;
+}
+
 function renderBacklog() {
   if (!document.getElementById('backlog-tbody')) return;
   const search = (document.getElementById('search-backlog')?.value||'').toLowerCase();
@@ -3191,10 +3237,8 @@ function renderBacklog() {
   const _rbFrag = document.createDocumentFragment();
   filtered.forEach(d => {
     const tr = document.createElement('tr');
-    const _su = (d['Status usuário'] || '').toUpperCase();
-    if (_su.includes('OMVE')) tr.classList.add('omve');
-    else if(_su.includes('ATCR')) tr.classList.add('atcr');
-    else if(_su.includes('URG')||_su.includes('SEG')||_su.includes('MAMB')||_su.includes('SAUD')) tr.classList.add('urgente');
+    const _tom = _tomOrdem(d, null);
+    if (_tom) tr.classList.add(_tom.classe);
 
     // Date alert
     let dateAlert = '';
@@ -3820,16 +3864,6 @@ async function _salvarPlanilhaTela10(wbOrigem, nomeArquivo) {
     return;
   }
   try {
-    const tons = {
-      omve:{bg:'F9ECEF',fg:'713246',edge:'C86B83'},
-      atcr:{bg:'FFF3E0',fg:'775519',edge:'C79A4E'},
-      urgente:{bg:'EAF5F9',fg:'205E72',edge:'70B1C9'},
-      bloqueio:{bg:'EEF2F3',fg:'526268',edge:'9BABB0'},
-      manobra:{bg:'FFE0BD',fg:'77411E',edge:'E58B3C'},
-      turno:{bg:'F6EDF7',fg:'684A71',edge:'AF82BB'},
-      yss:{bg:'FFF7E6',fg:'776031',edge:'D0AE64'},
-      obs:{bg:'EDF3FB',fg:'3D5C7B',edge:'86ABC9'}
-    };
     const normalizar = v => String(v==null?'':v).trim().replace(/^0+(?=\d)/,'');
     const semAcento = v => String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
     const porOrdem = new Map();
@@ -3841,16 +3875,8 @@ async function _salvarPlanilhaTela10(wbOrigem, nomeArquivo) {
       if(chave&&!progPorOrdem.has(chave)) progPorOrdem.set(chave,p);
     });
     const tomOrdem = (d,p) => {
-      const su=semAcento(d['Status usuário']), tb=semAcento(d['Texto breve']);
-      if(su.includes('OMVE')) return tons.omve;
-      if(su.includes('ATCR')) return tons.atcr;
-      if(su.includes('URGT')||su.includes('SEGU')||su.includes('MAMB')||su.includes('SAUD')) return tons.urgente;
-      if(tb.includes('PNEUM')||tb.includes('VALVULAS')) return tons.bloqueio;
-      if(tb.includes('BLOQUEIO')&&tb.includes('DESBLOQUEIO')) return tons.manobra;
-      if(p&&semAcento((p.obs||'')+' '+(p._manualObs||'')).includes('TURNO')) return tons.turno;
-      if(d._tipo==='YSS') return tons.yss;
-      if(d._isOBS||d._tipo==='OBS') return tons.obs;
-      return null;
+      const tom=_tomOrdem(d,p);
+      return tom ? {bg:tom.bg.slice(1).toUpperCase(),fg:tom.fg.slice(1).toUpperCase(),edge:tom.edge.slice(1).toUpperCase()} : null;
     };
     const fill = rgb => ({type:'pattern',pattern:'solid',fgColor:{argb:'FF'+rgb}});
     const livro = new ExcelJS.Workbook();
@@ -4703,12 +4729,9 @@ function renderCal() {
   filtered.forEach(d => {
     const prog = programacao[d._uid];
     const tr = document.createElement('tr');
-    if (d._tipo === 'YSS') tr.classList.add('yss');
-    const _su=(d['Status usuário']||'').toUpperCase();
-    if(_su.includes('OMVE')) tr.classList.add('omve');
-    else if(_su.includes('ATCR')) tr.classList.add('atcr');
-    else if(_su.includes('URG')||_su.includes('SEG')||_su.includes('MAMB')||_su.includes('SAUD')) tr.classList.add('urgente');
     if(prog) tr.classList.add('programada');
+    const _tom = _tomOrdem(d, prog);
+    if (_tom) tr.classList.add(_tom.classe);
 
     let dayOpts='<option value="">- não programar</option>';
     days.forEach((day,i)=>{ const sel=prog&&prog.data===day?'selected':''; dayOpts+=`<option value="${day}" ${sel}>${DIAS_SHORT[i]} ${fmtDateBR(day)}</option>`; });
@@ -6578,36 +6601,6 @@ function renderRPLWizard() {
     return;
   }
 
-  // Detect duplicate orders - criteria depend on the order type:
-  //  • YPM/YCA (sistemáticas): different Ordens sharing the same Plano manut.
-  //  • YCM/YIM (condicionais): different Ordens sharing the same
-  //    Texto breve + Loc.instalação (both identical).
-  // Each group is evaluated only within its own type - never mixed.
-  const _dupOrdens = (() => {
-    const byPlano = {};   // YPM/YCA
-    const byTextLoc = {}; // YCM/YIM
-    filtered.forEach(d => {
-      const ordem = d._ordem;
-      if (!ordem) return;
-      const tipo = d._tipo || '';
-      if (tipo === 'YPM' || tipo === 'YCA') {
-        const plano = (d['Plano manut.']||'').toString().trim();
-        if (plano) (byPlano[plano] = byPlano[plano] || new Set()).add(ordem);
-      } else if (tipo === 'YCM' || tipo === 'YIM') {
-        const texto = (d['Texto breve']||'').trim().toUpperCase();
-        const loc   = (d['Loc.instalação']||'').trim().toUpperCase();
-        if (texto && loc) {
-          const key = texto + '|' + loc;
-          (byTextLoc[key] = byTextLoc[key] || new Set()).add(ordem);
-        }
-      }
-    });
-    const dupSet = new Set();
-    Object.values(byPlano).forEach(s => { if (s.size > 1) s.forEach(o => dupSet.add(o)); });
-    Object.values(byTextLoc).forEach(s => { if (s.size > 1) s.forEach(o => dupSet.add(o)); });
-    return dupSet;
-  })();
-
   const today2=new Date().toISOString().split('T')[0];
   const prog=programacao;
   // Todas as linhas são montadas como uma ÚNICA string HTML e atribuídas ao
@@ -6619,23 +6612,10 @@ function renderRPLWizard() {
     const isProg=!!prog[d._uid];
     const naoProgData=naoProgramadas[d._uid]||null;
     const _su=(d['Status usuário']||'').toUpperCase();
-    let _trClass='';
-    if(d._preservadaProg) _trClass=' class="rpl-encerrada-sap"';  // sumiu do backlog = encerrada no SAP, mantém histórico
-    else if(_isExecComHistorico(d)) _trClass=' class="rpl-executada"';  // virou EXEC após já programada: cinza, "Em execução" (mesma regra visual da Apropriada)
-    else if(d._executada) _trClass=' class="rpl-executada"';  // já apropriada: cinza, sem ação
-    else if(_su.includes('OMVE')) _trClass=' class="omve"';
-    else if(_su.includes('ATCR')) _trClass=' class="atcr"';
-    else if(_su.includes('URG')||_su.includes('SEG')||_su.includes('MAMB')||_su.includes('SAUD')) _trClass=' class="urgente"';
-    const _trExtraClasses=[];
-    if(isProg) _trExtraClasses.push('programada');
-    if(d._isOBS) _trExtraClasses.push('obs-row');
-    // Turno: obs contains "turno"
-    const _progObsTurno = ((prog[d._uid]||{}).obs||'') + ' ' + ((prog[d._uid]||{})._manualObs||'');
-    if(_progObsTurno.toLowerCase().includes('turno')) _trExtraClasses.push('turno-row');
-    if(_trExtraClasses.length) _trClass = _trClass ? _trClass.slice(0,-1)+' '+_trExtraClasses.join(' ')+'"' : ' class="'+_trExtraClasses.join(' ')+'"';
-    // Texto escuro para acompanhar os tons suaves das linhas na prévia visual.
-    const _isStatusColorido = _su.includes('ATCR')||_su.includes('URG')||_su.includes('SEG')||_su.includes('MAMB')||_su.includes('SAUD')||_progObsTurno.toLowerCase().includes('turno');
-    const _rowTxtCor = d._preservadaProg ? '#6c797e' : (_su.includes('OMVE') ? '#713246' : (_isStatusColorido ? 'var(--text)' : 'var(--text2)'));
+    const _tom = _tomOrdem(d, prog[d._uid]);
+    const _classesLinha = [isProg ? 'programada' : '', _tom ? _tom.classe : ''].filter(Boolean);
+    const _trClass = _classesLinha.length ? ' class="' + _classesLinha.join(' ') + '"' : '';
+    const _rowTxtCor = _tom ? _tom.fg : 'var(--text2)';
 
     // Dates with alerts
     let dtMinHtml=fmtDateBR(d._dtMin)||'-';
@@ -6675,9 +6655,9 @@ function renderRPLWizard() {
       <td class="rpl-crit-col" data-cc="4" style="text-align:center;${rplCriticidadeAtiva?'':'display:none;'}"><span class="badge badge-${d._abc||''}">${d._abc||''}</span></td>
       <td style="white-space:normal;font-weight:500;font-size:11px;" title="${escHtml(d['Texto breve'])}">${escHtml(d['Texto breve'])}</td>
       <td style="white-space:normal;font-size:11px;color:${_rowTxtCor};" title="${escHtml(d['Loc.instalação'])}">${escHtml(d['Loc.instalação'])}</td>
-      <td style="font-size:11px;font-weight:500;cursor:pointer;" class="${_dupOrdens.has(d._ordem)?'op-0000-alert':''}" title="${_dupOrdens.has(d._ordem)?'⚠ Ordem duplicada - ':''}Duplo clique para editar" ondblclick="abrirEditarOperacao('${d._uid}')">${d._ordem}${_novaAlteradaBadge(d)}</td>
+      <td style="font-size:11px;font-weight:500;cursor:pointer;" title="Duplo clique para editar" ondblclick="abrirEditarOperacao('${d._uid}')">${d._ordem}${_novaAlteradaBadge(d)}</td>
       <td style="text-align:center;"><span class="badge badge-${d._tipo}">${d._tipo}</span></td>
-      <td style="font-size:11px;text-align:center;" class="${d['Operação']==='0000'?'op-0000-alert':''}">${d['Operação']||''}</td>
+      <td style="font-size:11px;text-align:center;">${d['Operação']||''}</td>
       <td style="font-size:11px;">${d._centrab}</td>
       <td style="font-size:11px;text-align:center;">${d['Número']!==undefined&&d['Número']!==''?d['Número']:''}</td>
       <td style="text-align:right;font-weight:500;">${d._hh>0?d._hh+'h':''}</td>
@@ -10737,16 +10717,8 @@ function buildVisualizacaoHTML() {
   const days   = semNum ? getWeekDaysByNum(semNum, semAno) : [];
   const DIAS_FULL = ['SEGUNDA FEIRA','TERÇA FEIRA','QUARTA FEIRA','QUINTA FEIRA','SEXTA FEIRA','SÁBADO','DOMINGO'];
   const STATUS_EX = ['AGAP','AGMT','APRV','AGRL','EXEC','ENC','AGEN'];
-  // Mesma família de tons suaves usada nas linhas das telas 7 e 8.
+  // Mesma paleta única usada nas linhas das telas 7 e 8.
   const VIZ_TONS = {
-    omve:     {bg:'#f9ecef',fg:'#713246',edge:'#c86b83'},
-    atcr:     {bg:'#fff3e0',fg:'#775519',edge:'#c79a4e'},
-    urgente:  {bg:'#eaf5f9',fg:'#205e72',edge:'#70b1c9'},
-    bloqueio: {bg:'#eef2f3',fg:'#526268',edge:'#9babb0'},
-    manobra:  {bg:'#ffe0bd',fg:'#77411e',edge:'#e58b3c'},
-    turno:    {bg:'#f6edf7',fg:'#684a71',edge:'#af82bb'},
-    yss:      {bg:'#fff7e6',fg:'#776031',edge:'#d0ae64'},
-    obs:      {bg:'#edf3fb',fg:'#3d5c7b',edge:'#86abc9'},
     neutra:   {bg:'#ffffff',fg:'#263d42',edge:'#dbe7e5'},
     alternada:{bg:'#f7faf9',fg:'#263d42',edge:'#dbe7e5'}
   };
@@ -10851,17 +10823,8 @@ function buildVisualizacaoHTML() {
     } else {
       ordens.forEach(function(item,ri){
         const d=item.d,p=item.p;
-        const su=(d['Status usuário']||'').toUpperCase();
-        const tb=(d['Texto breve']||'').toUpperCase();
-        const isOmve=su.includes('OMVE');
-        const isAtcr=su.includes('ATCR');
-        const isUrgt=su.includes('URGT')||su.includes('SEG')||su.includes('MAMB')||su.includes('SAUD');
-        const isBlqBV=tb.includes('PNEUM')||tb.includes('VALVULAS')||tb.includes('VÁLVULAS');
-        const isBlqBE=!isBlqBV&&((tb.includes('BLOQUEIO')&&tb.includes('DESBLOQUEIO'))||tb.includes('BLOQUEIO/DESBLOQUEIO')||tb.includes('BLOQUEIO E DESBLOQUEIO'));
-        const isYss=d._tipo==='YSS';
-        const isObsRow=!!(d._isOBS);
-        const isTurno=((p.obs||'').toLowerCase().includes('turno')||(p._manualObs||'').toLowerCase().includes('turno'));
-        const tom=isOmve?VIZ_TONS.omve:isAtcr?VIZ_TONS.atcr:isUrgt?VIZ_TONS.urgente:isBlqBV?VIZ_TONS.bloqueio:isBlqBE?VIZ_TONS.manobra:isTurno?VIZ_TONS.turno:isYss?VIZ_TONS.yss:isObsRow?VIZ_TONS.obs:(ri%2===0?VIZ_TONS.neutra:VIZ_TONS.alternada);
+        const tomEspecial=_tomOrdem(d,p);
+        const tom=tomEspecial||(ri%2===0?VIZ_TONS.neutra:VIZ_TONS.alternada);
         const {bg,fg,edge}=tom;
         const n=Number(d['Número']??1)||1;
         const desc=esc(d['Texto breve']||'');
@@ -10885,7 +10848,7 @@ function buildVisualizacaoHTML() {
         const rid=globalId++;
         // Vencimento mantém destaque nas linhas neutras; nas condições já
         // sinalizadas, acompanha o texto escuro do próprio tom suave.
-        const dtMaxColor=(isOmve||isBlqBV||isBlqBE||isYss)?fg:'#C0305E';
+        const dtMaxColor=tomEspecial?fg:'#C0305E';
         rows+=`<tr draggable="true" data-uid="${item.uid}" data-day="${day}" ${_rowAttrs(d,p,day,days)} style="background:${bg};color:${fg};${PX};cursor:grab;" ondragstart="_vDS(event)" ondragend="_vDE(event)" ondragover="_vDO(event)" ondragleave="_vDL(event)" ondrop="_vDP(event)">
           <td style="${TDC}background:${bg};color:${fg};border-left:3px solid ${edge};${PX}">${rid}</td>
           <td style="${TD}background:${bg};color:${fg};${PX}">${descWithAbc}</td>
@@ -13663,17 +13626,7 @@ async function exportarVisualizacaoExcel() {
   function hexToArgb(hex) { return 'FF' + hex.replace('#',''); }
 
   function getRowTone(d, p) {
-    const su=(d['Status usuário']||'').toUpperCase();
-    const tb=(d['Texto breve']||'').toUpperCase();
-    if(su.includes('OMVE')) return {bg:'#f9ecef',fg:'#713246',edge:'#c86b83'};
-    if(su.includes('ATCR')) return {bg:'#fff3e0',fg:'#775519',edge:'#c79a4e'};
-    if(su.includes('URGT')||su.includes('SEG')||su.includes('MAMB')||su.includes('SAUD')) return {bg:'#eaf5f9',fg:'#205e72',edge:'#70b1c9'};
-    if(tb.includes('PNEUM')||tb.includes('VALVULAS')||tb.includes('VÁLVULAS')) return {bg:'#eef2f3',fg:'#526268',edge:'#9babb0'};
-    if(tb.includes('BLOQUEIO')&&tb.includes('DESBLOQUEIO')) return {bg:'#ffe0bd',fg:'#77411e',edge:'#e58b3c'};
-    if(p&&((p.obs||'').toLowerCase().includes('turno')||(p._manualObs||'').toLowerCase().includes('turno'))) return {bg:'#f6edf7',fg:'#684a71',edge:'#af82bb'};
-    if(d._tipo==='YSS') return {bg:'#fff7e6',fg:'#776031',edge:'#d0ae64'};
-    if(d._isOBS||d._tipo==='OBS') return {bg:'#edf3fb',fg:'#3d5c7b',edge:'#86abc9'};
-    return null;
+    return _tomOrdem(d,p);
   }
 
   function getStatusObs(d) {
