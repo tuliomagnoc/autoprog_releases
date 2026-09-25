@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.07",
-  "data": "2026-09-21",
+  "versao": "V2026.27.01.08",
+  "data": "2026-09-25",
   "novidades": [
+    "V2026.27.01.08 — AJUSTE VISUAL: AutoMat repaginado no padrão do AutoProg, com acesso, filtros, indicadores, lista e painel de tratativa renovados",
     "CORREÇÃO: favicon compartilhado com fallback PNG, suporte Apple e renovação automática de cache",
     "MELHORIA: favicon oficial do AutoProg padronizado em todas as páginas do AutoMat",
     "MELHORIA: versionamento e download do AutoMat migrados integralmente para o GitHub",

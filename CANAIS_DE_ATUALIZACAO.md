@@ -13,8 +13,8 @@ Cada módulo consulta diretamente seu `versao.json` no GitHub. Uma publicação 
 Cada módulo mantém sua própria sequência e incrementa o último número a cada ajuste publicado:
 
 - AutoProg: `V2026.27.01.94` (mantida temporariamente até a liberação da versão 95).
-- AutoMat: `V2026.27.01.05`.
-- AutoMat Mobile: `V2026.27.01.05`.
+- AutoMat: `V2026.27.01.08`.
+- AutoMat Mobile: `V2026.27.01.08`.
 
 Uma publicação somente está concluída depois que a mesma versão estiver alinhada no código-fonte, no manifesto do GitHub, na cópia hospedada na Azure e, no caso do AutoMat Mobile, no APK. O número de um módulo não deve ser copiado para outro módulo.
 
