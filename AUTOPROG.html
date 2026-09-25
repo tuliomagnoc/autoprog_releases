@@ -615,21 +615,21 @@ tbody tr:hover { background: #f4faf8; }
   border-left: 4px solid var(--row-edge) !important;
 }
 
-/* Tela 9: mesma escala clara de estados, sem faixas saturadas. */
+/* Tela 9: cabeçalhos de maior contraste; linhas permanecem suaves. */
 #screen-s9 .proj-group-title,
 #screen-s9 .proj-loss-title { border-left: 4px solid var(--proj-edge); background: var(--proj-bg); color: var(--proj-text); }
-#screen-s9 .proj-sist { --proj-bg: #e7f6f0; --proj-text: #255e51; --proj-edge: #61ac8f; }
-#screen-s9 .proj-cond { --proj-bg: #fff3e0; --proj-text: #775519; --proj-edge: #c79a4e; }
-#screen-s9 .proj-loss-head.proj-sist th { background: #e7f6f0; color: #255e51; }
-#screen-s9 .proj-loss-head.proj-cond th { background: #fff3e0; color: #775519; }
+#screen-s9 .proj-sist { --proj-bg: #13756d; --proj-text: #fff; --proj-edge: #57c8ad; }
+#screen-s9 .proj-cond { --proj-bg: #9a610f; --proj-text: #fff; --proj-edge: #e9b657; }
+#screen-s9 .proj-loss-head.proj-sist th { background: #13756d; color: #fff; }
+#screen-s9 .proj-loss-head.proj-cond th { background: #9a610f; color: #fff; }
 #screen-s9 .proj-loss-head th { border-bottom: 1px solid var(--border); }
 #screen-s9 .proj-loss-row td { background: #fcf6f7; color: var(--text); }
 #screen-s9 .proj-loss-row td:first-child { border-left: 4px solid #c86b83; }
 #screen-s9 .proj-loss-row:hover td { background: #f9ecef; }
 #screen-s9 .proj-extra-title,
-#screen-s9 .proj-extra-box thead th { background: #eef2f3; color: #526268; }
+#screen-s9 .proj-extra-box thead th { background: #42616a; color: #fff; }
 #screen-s9 .proj-extra-title { border-left: 4px solid #9babb0; }
-#screen-s9 .proj-extra-box thead th.proj-imos-head { background: #fff3e0; color: #775519; }
+#screen-s9 .proj-extra-box thead th.proj-imos-head { background: #9a610f; color: #fff; }
 
 @media (max-width: 1100px) {
   .repaginado-login-spacer { width: 45vw; }
@@ -1750,6 +1750,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="/ass
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "AJUSTE VISUAL: cabeçalhos da tela 9 (Projeção) escurecidos para melhorar o contraste, mantendo as linhas de dados em tons suaves",
   "AJUSTE VISUAL: a tela 8 não marca nem pisca em vermelho por ordens repetidas ou operação 0000; os registros permanecem disponíveis normalmente",
   "AJUSTE VISUAL: telas 7 e 8 e Visualizar programação distinguem cada condição e status por uma cor exclusiva, inclusive URGT, SEGU, MAMB e SAUD",
   "AJUSTE VISUAL: tela 9 (Projeção) usa a mesma paleta suave das demais telas, com perdas e categorias destacadas sem cores saturadas",
