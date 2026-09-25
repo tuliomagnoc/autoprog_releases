@@ -3,6 +3,7 @@
   "data": "2026-09-25",
   "novidades": [
     "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+    "AJUSTE: compilação de projeções de vários programadores removida do AutoProg; o controle consolidado ficará para o futuro módulo AutoControl",
     "AJUSTE DE TEXTO: botão da tela 1 agora apresenta 'Ok, vamos começar!'",
     "AJUSTE VISUAL: cabeçalhos da tela 9 (Projeção) escurecidos para melhorar o contraste, mantendo as linhas de dados em tons suaves",
     "AJUSTE VISUAL: a tela 8 não marca nem pisca em vermelho por ordens repetidas ou operação 0000; os registros permanecem disponíveis normalmente",
@@ -31,7 +32,6 @@
     "NOVO: colaborador com status T (Treinamento) na tela de Efetivo gera automaticamente uma observação programada",
     "NOVO: botão de novidades sempre visível na tela de Boas-vindas",
     "NOVO: verificação de duplicidade ao inserir Operação manualmente",
-    "Painel de Controle: gráfico comparativo por coordenação, tabela 'Resumo por Coordenação', justificativa editável nas perdas, compila a projeção de vários programadores",
     "Nova logomarca do AUTOPROG em todo o sistema",
     "CORREÇÃO DE SEGURANÇA: texto livre vindo do SAP protegido contra conteúdo malicioso",
     "Manual do usuário atualizado com todas as novidades"
