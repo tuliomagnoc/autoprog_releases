@@ -607,6 +607,22 @@ tbody tr:hover { background: #f4faf8; }
   50% { box-shadow: inset 0 0 0 2px rgba(189, 49, 92, .28); }
 }
 
+/* Tela 9: mesma escala clara de estados, sem faixas saturadas. */
+#screen-s9 .proj-group-title,
+#screen-s9 .proj-loss-title { border-left: 4px solid var(--proj-edge); background: var(--proj-bg); color: var(--proj-text); }
+#screen-s9 .proj-sist { --proj-bg: #e7f6f0; --proj-text: #255e51; --proj-edge: #61ac8f; }
+#screen-s9 .proj-cond { --proj-bg: #fff3e0; --proj-text: #775519; --proj-edge: #c79a4e; }
+#screen-s9 .proj-loss-head.proj-sist th { background: #e7f6f0; color: #255e51; }
+#screen-s9 .proj-loss-head.proj-cond th { background: #fff3e0; color: #775519; }
+#screen-s9 .proj-loss-head th { border-bottom: 1px solid var(--border); }
+#screen-s9 .proj-loss-row td { background: #fcf6f7; color: var(--text); }
+#screen-s9 .proj-loss-row td:first-child { border-left: 4px solid #c86b83; }
+#screen-s9 .proj-loss-row:hover td { background: #f9ecef; }
+#screen-s9 .proj-extra-title,
+#screen-s9 .proj-extra-box thead th { background: #eef2f3; color: #526268; }
+#screen-s9 .proj-extra-title { border-left: 4px solid #9babb0; }
+#screen-s9 .proj-extra-box thead th.proj-imos-head { background: #fff3e0; color: #775519; }
+
 @media (max-width: 1100px) {
   .repaginado-login-spacer { width: 45vw; }
   .topbar { padding: 0 14px; gap: 10px; }
@@ -1726,6 +1742,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="/ass
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "AJUSTE VISUAL: tela 9 (Projeção) usa a mesma paleta suave das demais telas, com perdas e categorias destacadas sem cores saturadas",
   "V2026.27.01.93 — CORREÇÃO: favicon oficial passa a usar SVG, PNG e ícone Apple compartilhados, com renovação automática de cache em todos os módulos",
   "V2026.27.01.92 — MELHORIA: favicon oficial do AutoProg padronizado em todos os módulos, páginas e janelas auxiliares",
   "V2026.27.01.91 — CORREÇÃO: ao carregar uma sessão salva, o AutoProg volta a reconhecer o elaborador, a planta e o PCM do usuário autenticado, inclusive quando esses campos estão vazios no arquivo antigo",
@@ -9671,8 +9688,8 @@ function abrirHistoricoAderencia() {
 // tela Projeção (IMOS, YCO, MOTOR...) - same visual pattern, reusable.
 function _buildProjBox(titulo, list, mostrarImosCol) {
   const _uniqOrdensLocal = l => l.filter((d,i,a) => a.findIndex(x => x._ordem === d._ordem) === i);
-  const TH2 = 'padding:6px 8px;font-size:11px;font-weight:600;background:#555555;color:#fff;text-align:left;white-space:nowrap;';
-  const TH2C = 'padding:6px 8px;font-size:11px;font-weight:600;background:#555555;color:#fff;text-align:center;white-space:nowrap;';
+  const TH2 = 'padding:6px 8px;font-size:11px;font-weight:600;text-align:left;white-space:nowrap;';
+  const TH2C = 'padding:6px 8px;font-size:11px;font-weight:600;text-align:center;white-space:nowrap;';
   const TD2 = 'padding:5px 8px;font-size:11px;border-bottom:1px solid #e0e0e0;vertical-align:top;';
   const rowsHtml = list.length ? list.map(d => {
     const n = Number(d['Número']??1)||1;
@@ -9681,7 +9698,7 @@ function _buildProjBox(titulo, list, mostrarImosCol) {
     const prog = programacao[d._uid||d._ordem];
     const dtProg = prog && prog.data ? fmtDateBR(prog.data) : '-';
     const imosCell = mostrarImosCol
-      ? '<td style="'+TD2+'text-align:center;color:#EE6F16;font-weight:700;">' + ((d._diasAberto!==undefined&&d._diasAberto!==null) ? d._diasAberto : '-') + '</td>'
+      ? '<td style="'+TD2+'text-align:center;color:#956323;font-weight:700;">' + ((d._diasAberto!==undefined&&d._diasAberto!==null) ? d._diasAberto : '-') + '</td>'
       : '';
     return '<tr>'
       + '<td style="'+TD2+'max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escHtml(d['Texto breve'])+'">' + escHtml(d['Texto breve']) + '</td>'
@@ -9697,8 +9714,8 @@ function _buildProjBox(titulo, list, mostrarImosCol) {
       + '</tr>';
   }).join('') : '<tr><td colspan="'+(mostrarImosCol?10:9)+'" style="text-align:center;padding:20px;color:#999;font-style:italic;">Nenhuma OM encontrada</td></tr>';
 
-  return '<div style="margin-top:12px;">'
-    + '<div style="background:#555555;color:#fff;padding:9px 14px;font-size:13px;font-weight:600;border-radius:var(--radius) var(--radius) 0 0;">'
+  return '<div class="proj-extra-box" style="margin-top:12px;">'
+    + '<div class="proj-extra-title" style="padding:9px 14px;font-size:13px;font-weight:600;border-radius:var(--radius) var(--radius) 0 0;">'
     + titulo + ' - ' + _uniqOrdensLocal(list).length + ' ordem(ns)'
     + '</div>'
     + '<div style="overflow:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);">'
@@ -9712,7 +9729,7 @@ function _buildProjBox(titulo, list, mostrarImosCol) {
     + '<th style="'+TH2C+'">Nº</th>'
     + '<th style="'+TH2C+'">DURAÇÃO</th>'
     + '<th style="'+TH2C+'">TOTAL HH</th>'
-    + (mostrarImosCol ? '<th style="'+TH2C+'background:#EE6F16;">IMOS (dias)</th>' : '')
+    + (mostrarImosCol ? '<th class="proj-imos-head" style="'+TH2C+'">IMOS (dias)</th>' : '')
     + '<th style="'+TH2C+'">DATA PROG.</th>'
     + '</tr></thead>'
     + '<tbody>' + rowsHtml + '</tbody>'
@@ -9986,14 +10003,14 @@ function renderProjecaoScreen() {
       <span style="font-size:20px;font-weight:700;color:${color||'var(--text)'};">${value}</span>
     </div>`;
 
-  const groupCard = (title, bgColor, items) =>
-    `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-width:280px;">
-      <div style="background:${bgColor};color:#fff;padding:9px 14px;font-size:12px;font-weight:600;">${title}</div>
+  const groupCard = (title, kind, items) =>
+    `<div class="proj-group-card proj-${kind}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-width:280px;">
+      <div class="proj-group-title" style="padding:9px 14px;font-size:12px;font-weight:600;">${title}</div>
       <div style="padding:10px 14px;">${items}</div>
     </div>`;
 
   const cardsHtml =
-    groupCard('Sistemáticas - YPM + YCA', '#007E7A',
+    groupCard('Sistemáticas - YPM + YCA', 'sist',
       card('Total de ordens na carteira', uniqOrdens(ycaYpm).length, '<i class=icon-clipboard></i>', 'var(--text)') +
       card('Total aderentes vencendo na semana', uniqOrdens(ycaYpm.filter(d=>isAder(d)&&venceSem(d))).length, '<i class=icon-check-circle></i>', '#007E7A') +
       card('Total aderentes vencendo no mês', uniqOrdens(ycaYpm.filter(d=>isAder(d)&&d._dtMax&&monthStart&&monthEnd&&d._dtMax>=monthStart&&d._dtMax<=monthEnd&&!venceSem(d))).length, '<i class=icon-check></i>', '#007E7A') +
@@ -10001,7 +10018,7 @@ function renderProjecaoScreen() {
       card('Adiantadas e aderentes (meses seguintes)', uniqOrdens(ycaYpm.filter(d=>isAdiant(d)&&isProgSem(d))).length, '<i class=icon-calendar></i>', '#007E7A') +
       card('Total programado aderente', uniqOrdens(ycaYpm.filter(d=>isProgSem(d)&&isAder(d))).length, '<i class=icon-bar-chart-2></i>', '#007E7A')
     ) +
-    groupCard('Condicionais - YCM', '#EE6F16',
+    groupCard('Condicionais - YCM', 'cond',
       card('Total de ordens na carteira', uniqOrdens(ycm).length, '<i class=icon-clipboard></i>', 'var(--text)') +
       card('Total aderentes vencendo na semana', uniqOrdens(ycm.filter(d=>isAder(d)&&venceSemYCM(d))).length, '<i class=icon-check-circle></i>', '#007E7A') +
       card('Total aderentes vencendo no mês', uniqOrdens(ycm.filter(d=>isAder(d)&&d._dtMax&&monthStart&&monthEnd&&d._dtMax>=monthStart&&d._dtMax<=monthEnd&&!inWeek(d._dtMax))).length, '<i class=icon-check></i>', '#007E7A') +
@@ -10015,7 +10032,7 @@ function renderProjecaoScreen() {
   const perdasSist = uniqOrdens(ycaYpm.filter(d => venceSem(d) && ehPerda(d)));
   const perdasCond = uniqOrdens(ycm.filter(d => venceSemYCM(d) && ehPerda(d)));
 
-  const theadRow = (hdrColor) => `<tr style="background:${hdrColor};color:#fff;">
+  const theadRow = (kind) => `<tr class="proj-loss-head proj-${kind}">
     <th style="padding:6px 8px;font-size:11px;font-weight:600;text-align:left;white-space:nowrap;">SUPERVISÃO</th>
     <th style="padding:6px 8px;font-size:11px;font-weight:600;text-align:left;">TEXTO BREVE</th>
     <th style="padding:6px 8px;font-size:11px;font-weight:600;text-align:left;">LOC. INSTALAÇÃO</th>
@@ -10035,7 +10052,7 @@ function renderProjecaoScreen() {
            <button class="btn" title="Editar justificativa" onclick="abrirNaoProgramar('${d._uid}')" style="font-size:10px;padding:2px 6px;border-color:var(--border2);background:var(--surface);cursor:pointer;line-height:1;"><i class=icon-edit></i></button>
          </span>`
       : `<button class="btn" style="font-size:10px;padding:2px 8px;color:var(--red);border-color:var(--red);" onclick="abrirNaoProgramar('${d._uid}')">+ Inserir</button>`;
-    return `<tr style="border-bottom:1px solid var(--border);">
+    return `<tr class="proj-loss-row" style="border-bottom:1px solid var(--border);">
       <td style="padding:5px 8px;font-size:11px;white-space:nowrap;">${supervisao||'-'}</td>
       <td style="padding:5px 8px;font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(d['Texto breve'])}">${escHtml(d['Texto breve'])}</td>
       <td style="padding:5px 8px;font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(d['Loc.instalação'])}">${escHtml(d['Loc.instalação'])}</td>
@@ -10052,23 +10069,23 @@ function renderProjecaoScreen() {
 
   const perdasHtml = `
     <div style="margin-bottom:20px;">
-      <div style="background:#007E7A;color:#fff;padding:9px 14px;font-size:13px;font-weight:600;border-radius:var(--radius) var(--radius) 0 0;">
+      <div class="proj-loss-title proj-sist" style="padding:9px 14px;font-size:13px;font-weight:600;border-radius:var(--radius) var(--radius) 0 0;">
         <i class=icon-trending-down></i> Perdas - Sistemáticas (YPM + YCA) - ${uniqOrdens(perdasSist).length} ordem(ns)
       </div>
       <div style="overflow:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);">
         <table style="width:100%;border-collapse:collapse;">
-          <thead>${theadRow('#007E7A')}</thead>
+          <thead>${theadRow('sist')}</thead>
           <tbody>${perdasSist.length ? rows(perdasSist) : empty}</tbody>
         </table>
       </div>
     </div>
     <div style="margin-bottom:20px;">
-      <div style="background:#EE6F16;color:#fff;padding:9px 14px;font-size:13px;font-weight:600;border-radius:var(--radius) var(--radius) 0 0;">
+      <div class="proj-loss-title proj-cond" style="padding:9px 14px;font-size:13px;font-weight:600;border-radius:var(--radius) var(--radius) 0 0;">
         <i class=icon-trending-down></i> Perdas - Condicionais (YCM) - ${uniqOrdens(perdasCond).length} ordem(ns)
       </div>
       <div style="overflow:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);">
         <table style="width:100%;border-collapse:collapse;">
-          <thead>${theadRow('#EE6F16')}</thead>
+          <thead>${theadRow('cond')}</thead>
           <tbody>${perdasCond.length ? rows(perdasCond) : empty}</tbody>
         </table>
       </div>
