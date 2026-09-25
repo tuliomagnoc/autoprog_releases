@@ -3,6 +3,7 @@
   "data": "2026-09-25",
   "novidades": [
     "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+    "MELHORIA: a etiqueta de novidades consulta os ajustes publicados da mesma versão e valida todas as notas antes da publicação",
     "AJUSTE: compilação de projeções de vários programadores removida do AutoProg; o controle consolidado ficará para o futuro módulo AutoControl",
     "AJUSTE DE TEXTO: botão da tela 1 agora apresenta 'Ok, vamos começar!'",
     "AJUSTE VISUAL: cabeçalhos da tela 9 (Projeção) escurecidos para melhorar o contraste, mantendo as linhas de dados em tons suaves",

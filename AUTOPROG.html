@@ -1743,6 +1743,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="/ass
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "MELHORIA: a etiqueta de novidades consulta os ajustes publicados da mesma versão e valida todas as notas antes da publicação",
   "AJUSTE: compilação de projeções de vários programadores removida do AutoProg; o controle consolidado ficará para o futuro módulo AutoControl",
   "AJUSTE DE TEXTO: botão da tela 1 agora apresenta 'Ok, vamos começar!'",
   "AJUSTE VISUAL: cabeçalhos da tela 9 (Projeção) escurecidos para melhorar o contraste, mantendo as linhas de dados em tons suaves",
@@ -1779,6 +1780,7 @@ const _NOVIDADES_ATUAL = [
   "CORREÇÃO DE SEGURANÇA: texto livre vindo do SAP protegido contra conteúdo malicioso",
   "Manual do usuário atualizado com todas as novidades"
 ];
+let _NOVIDADES_EXIBIDAS = _NOVIDADES_ATUAL;
 const _VERSION_CHECK_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/versao.json';
 const _DOWNLOAD_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/AUTOPROG.html';
 
@@ -1875,6 +1877,16 @@ function _compararVersoes(a, b) {
   return 0;
 }
 
+function _receberNovidadesMesmaVersao(data) {
+  if (!data || data.versao !== _APP_VERSION || !Array.isArray(data.novidades) || !data.novidades.length) return;
+  _NOVIDADES_EXIBIDAS = data.novidades;
+  const pop = document.getElementById('tela1-novidades-pop');
+  const lista = document.getElementById('tela1-novidades-lista');
+  if (pop && pop.style.display === 'block' && lista) {
+    lista.innerHTML = _NOVIDADES_EXIBIDAS.map(n => '<li style="margin-bottom:6px;">' + escHtml(n) + '</li>').join('');
+  }
+}
+
 function _checkForUpdate() {
   let done = false;
   const timeoutId = setTimeout(() => { done = true; }, 5000);
@@ -1887,6 +1899,8 @@ function _checkForUpdate() {
       // Versão do usuário igual ou mais nova (ex: build de teste local) não avisa.
       if (data && data.versao && _compararVersoes(data.versao, _APP_VERSION) > 0) {
         _showUpdateBlockingModal(data.versao, data.novidades);
+      } else {
+        _receberNovidadesMesmaVersao(data);
       }
     })
     .catch(() => {
@@ -1960,7 +1974,7 @@ function _toggleNovidades(ev) {
 
 // Botão de novidades SEMPRE visível na Tela 1 (Boas-vindas), independente
 // de haver ou não uma atualização pendente - mostra as novidades DA
-// PRÓPRIA versão instalada (_NOVIDADES_ATUAL), pra quem quiser reconsultar
+// PRÓPRIA versão instalada (_NOVIDADES_EXIBIDAS), pra quem quiser reconsultar
 // o que mudou sem precisar esperar um aviso de atualização aparecer.
 function _toggleNovidadesAtual(ev) {
   if (ev) ev.stopPropagation();
@@ -1972,8 +1986,12 @@ function _toggleNovidadesAtual(ev) {
     if (versaoEl) versaoEl.textContent = _APP_VERSION;
     const listaEl = document.getElementById('tela1-novidades-lista');
     if (listaEl) {
-      listaEl.innerHTML = _NOVIDADES_ATUAL.map(n => '<li style="margin-bottom:6px;">' + escHtml(n) + '</li>').join('');
+      listaEl.innerHTML = _NOVIDADES_EXIBIDAS.map(n => '<li style="margin-bottom:6px;">' + escHtml(n) + '</li>').join('');
     }
+    fetch(_VERSION_CHECK_URL + '?noticias=' + Date.now(), { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(_receberNovidadesMesmaVersao)
+      .catch(() => {}); // Sem conexão: mantém as novidades incluídas no arquivo.
   }
   pop.style.display = abrir ? 'block' : 'none';
   if (abrir) {

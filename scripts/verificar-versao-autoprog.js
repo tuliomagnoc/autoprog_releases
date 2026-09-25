@@ -35,8 +35,12 @@ if (!Array.isArray(novidadesInstaladas) || !novidadesInstaladas.length) {
 if (!String(manifesto.novidades[0]).startsWith(manifesto.versao)) {
   falhar(`a primeira novidade do manifesto deve começar com ${manifesto.versao}.`);
 }
-if (novidadesInstaladas[0] !== manifesto.novidades[0]) {
-  falhar('a novidade principal do manifesto e da etiqueta vibratória não são iguais.');
+const notasDaVersao = lista => {
+  const proximaVersao = lista.findIndex((nota, indice) => indice > 0 && /^V\d{4}\./.test(String(nota)));
+  return lista.slice(0, proximaVersao < 0 ? lista.length : proximaVersao);
+};
+if (JSON.stringify(notasDaVersao(novidadesInstaladas)) !== JSON.stringify(notasDaVersao(manifesto.novidades))) {
+  falhar('todas as novidades da versão atual devem coincidir entre o manifesto e a etiqueta vibratória.');
 }
 
 const ocorrenciasVersao = html.split(manifesto.versao).length - 1;
