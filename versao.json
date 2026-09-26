@@ -3,7 +3,10 @@
   "data": "2026-09-25",
   "novidades": [
     "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
-    "AJUSTE RESPONSIVO: as 10 telas se adaptam a notebooks e desktops; nas telas 7 e 8, todas as colunas operacionais permanecem acessíveis sem rolagem horizontal, e IMOS acompanha o botão Detalhes da tela 8",
+    "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
+    "AJUSTE VISUAL: removido o botão redundante Ordenar / filtrar das telas 7 e 8, sem alterar os dados e filtros principais",
+    "MELHORIA: Detalhes da tela 8 expande as colunas da esquerda para a direita em uma tabela de linhas únicas, com filtros nos cabeçalhos",
+    "AJUSTE RESPONSIVO: as 10 telas se adaptam a notebooks e desktops; na tela 8, o modo compacto evita rolagem horizontal e Detalhes mantém todas as colunas em linha única, com rolagem apenas dentro da tabela quando necessário",
     "AJUSTE VISUAL: janela Consultar Entregas da tela 10 repaginada com o padrão do AutoMat, mantendo filtros, status e download de evidências",
     "MELHORIA: a etiqueta de novidades consulta os ajustes publicados da mesma versão e valida todas as notas antes da publicação",
     "AJUSTE: compilação de projeções de vários programadores removida do AutoProg; o controle consolidado ficará para o futuro módulo AutoControl",

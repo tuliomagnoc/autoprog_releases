@@ -665,7 +665,7 @@ main { max-width: 1420px; padding: 26px clamp(16px, 3vw, 36px) 42px; }
 
     <button id="btn-login-entrar" onclick="_executarLoginAutomat()" style="width:100%;padding:12px;background:#007E7A;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;">Entrar</button>
 
-    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.08</span></div>
+    <div style="margin-top:20px;font-size:10px;color:#bbb;">Desenvolvido por <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#007E7A;text-decoration:none;font-weight:600;">TULIO.CARMO</a> <span style="color:#ccc;">- V2026.27.01.09</span></div>
   </div>
 </div>
 
@@ -736,7 +736,7 @@ main { max-width: 1420px; padding: 26px clamp(16px, 3vw, 36px) 42px; }
 </main>
 
 <footer style="background:#555555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:0.04em;flex-shrink:0;">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span id="automat-versao-rodape" style="color:#999;">- V2026.27.01.08</span>
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span id="automat-versao-rodape" style="color:#999;">- V2026.27.01.09</span>
   
 </footer>
 </div><!-- /.app-automat -->
@@ -755,12 +755,223 @@ main { max-width: 1420px; padding: 26px clamp(16px, 3vw, 36px) 42px; }
 </div>
 
 <script>
+(function (global) {
+  'use strict';
+
+  const LIMITS = Object.freeze({ AUTOPROG: 15, AUTOMAT: 10, AUTOMATMOBILE: 10, USUARIOS: 5 });
+
+  function criar(config) {
+    const modulo = String(config.modulo || '').toUpperCase();
+    const limite = (LIMITS[modulo] || 10) * 60_000;
+    const storage = config.storage || global.localStorage;
+    const activityKey = '_facilita_ultima_atividade_' + modulo.toLowerCase();
+    let ultimaAtividade = Date.now();
+    let ultimaRequisicao = 0;
+    let ultimoRegistroLocal = 0;
+    let timer = null;
+    let aviso = null;
+    let renovacao = null;
+    let toque = null;
+    let ativo = false;
+    const janelas = new WeakSet();
+
+    function erroSessao() {
+      const erro = new Error('Sua sessão expirou por inatividade. Entre novamente.');
+      erro.status = 401;
+      erro.codigo = 'SESSAO_EXPIRADA';
+      return erro;
+    }
+
+    function esconderAviso() {
+      if (aviso) aviso.remove();
+      aviso = null;
+    }
+
+    function expirar() {
+      if (!ativo) return;
+      ativo = false;
+      clearTimeout(timer);
+      esconderAviso();
+      try { storage.removeItem(activityKey); } catch (_) {}
+      config.limparAuth();
+      config.aoExpirar('Sua sessão expirou por inatividade. Entre novamente.');
+    }
+
+    function mostrarAviso(restante) {
+      if (!aviso) {
+        aviso = global.document.createElement('div');
+        aviso.setAttribute('role', 'alert');
+        aviso.style.cssText = 'position:fixed;z-index:2147483647;top:12px;left:50%;transform:translateX(-50%);max-width:min(430px,calc(100vw - 24px));padding:12px 16px;border-radius:12px;background:#17324a;color:#fff;box-shadow:0 12px 30px #0004;font:600 13px/1.4 system-ui,sans-serif;display:flex;align-items:center;gap:12px;';
+        const texto = global.document.createElement('span');
+        texto.className = 'facilita-aviso-texto';
+        const continuar = global.document.createElement('button');
+        continuar.type = 'button';
+        continuar.textContent = 'Continuar';
+        continuar.style.cssText = 'border:0;border-radius:7px;background:#00c8a7;color:#083f39;font:700 12px system-ui,sans-serif;padding:9px 12px;cursor:pointer;';
+        continuar.addEventListener('click', registrarAtividade);
+        aviso.append(texto, continuar);
+        global.document.body.appendChild(aviso);
+      }
+      aviso.querySelector('.facilita-aviso-texto').textContent =
+        'Sua sessão será encerrada em ' + Math.max(1, Math.ceil(restante / 1000)) + ' s por inatividade.';
+    }
+
+    function verificarTempo() {
+      clearTimeout(timer);
+      if (!ativo) return false;
+      try {
+        const compartilhada = Number(storage.getItem(activityKey));
+        if (compartilhada > ultimaAtividade && compartilhada <= Date.now()) ultimaAtividade = compartilhada;
+      } catch (_) {}
+      const restante = limite - (Date.now() - ultimaAtividade);
+      if (restante <= 0) { expirar(); return false; }
+      if (restante <= 60_000) mostrarAviso(restante);
+      else esconderAviso();
+      timer = global.setTimeout(verificarTempo, restante <= 60_000 ? 1000 : Math.max(1000, restante - 60_000));
+      return true;
+    }
+
+    function salvarAtividade() {
+      if (Date.now() - ultimoRegistroLocal < 15_000) return;
+      ultimoRegistroLocal = Date.now();
+      try { storage.setItem(activityKey, String(ultimaAtividade)); } catch (_) {}
+    }
+
+    function registrarAtividade() {
+      if (!ativo) return;
+      if (!verificarTempo()) return;
+      ultimaAtividade = Date.now();
+      salvarAtividade();
+      esconderAviso();
+      verificarTempo();
+      if (Date.now() - ultimaRequisicao >= 2 * 60_000 && !toque) {
+        toque = buscar(config.apiBase + '/api/auth/activity', { method: 'POST' })
+          .catch(() => {})
+          .finally(() => { toque = null; });
+      }
+    }
+
+    function observarJanela(janela) {
+      if (!janela || janelas.has(janela)) return;
+      janelas.add(janela);
+      ['pointerdown', 'keydown', 'input', 'touchstart'].forEach(tipo =>
+        janela.document.addEventListener(tipo, registrarAtividade, { passive: true }));
+      janela.addEventListener('focus', () => {
+        if (verificarTempo()) registrarAtividade();
+      });
+      janela.document.addEventListener('visibilitychange', () => {
+        if (!janela.document.hidden && verificarTempo()) registrarAtividade();
+      });
+    }
+
+    function iniciar(restaurar) {
+      if (!config.obterAuth()?.autenticacao?.sessaoId) return false;
+      let guardado = 0;
+      try { guardado = restaurar ? Number(storage.getItem(activityKey)) : 0; } catch (_) {}
+      ultimaAtividade = guardado > 0 && guardado <= Date.now() ? guardado : Date.now();
+      ativo = true;
+      ultimoRegistroLocal = 0;
+      salvarAtividade();
+      observarJanela(global);
+      return verificarTempo();
+    }
+
+    function parar() {
+      ativo = false;
+      clearTimeout(timer);
+      esconderAviso();
+      try { storage.removeItem(activityKey); } catch (_) {}
+    }
+
+    async function renovar(forcar) {
+      if (renovacao) return renovacao;
+      const auth = config.obterAuth();
+      if (!auth?.autenticacao?.sessaoId || !auth.autenticacao.refreshToken) { expirar(); throw erroSessao(); }
+      if (!forcar && Number(auth.autenticacao.expiraEm) > Date.now() + 2 * 60_000) return auth;
+      renovacao = (async () => {
+        let resposta;
+        try {
+          resposta = await fetch(config.apiBase + '/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': modulo },
+            body: JSON.stringify({ refreshToken: auth.autenticacao.refreshToken, sessaoId: auth.autenticacao.sessaoId, modulo })
+          });
+        } catch (_) {
+          throw new Error('Sem conexão para renovar a sessão. Tente novamente.');
+        }
+        const dados = await resposta.json().catch(() => ({}));
+        if (!resposta.ok || !dados.ok) {
+          if (resposta.status === 401 || resposta.status === 403) { expirar(); throw erroSessao(); }
+          throw new Error('Não foi possível renovar a sessão agora. Tente novamente.');
+        }
+        config.salvarAuth(dados);
+        ultimaRequisicao = Date.now();
+        return dados;
+      })().finally(() => { renovacao = null; });
+      return renovacao;
+    }
+
+    async function buscar(url, options = {}) {
+      if (!ativo || !verificarTempo()) throw erroSessao();
+      const { facilitaBackground, ...fetchOptions } = options;
+      let auth = await renovar(false);
+      const enviar = dados => fetch(url, {
+        ...fetchOptions,
+        headers: {
+          ...(fetchOptions.headers || {}),
+          Authorization: 'Bearer ' + dados.autenticacao.token,
+          'X-Facilita-Client': modulo,
+          'X-Facilita-Session': dados.autenticacao.sessaoId,
+          ...(facilitaBackground ? { 'X-Facilita-Background': '1' } : {})
+        }
+      });
+      let resposta = await enviar(auth);
+      if (resposta.status === 401) {
+        const dados = await resposta.clone().json().catch(() => ({}));
+        if (dados.codigo === 'SESSAO_EXPIRADA') { expirar(); throw erroSessao(); }
+        auth = await renovar(true);
+        resposta = await enviar(auth);
+        if (resposta.status === 401) { expirar(); throw erroSessao(); }
+      }
+      if (!facilitaBackground && resposta.ok) ultimaRequisicao = Date.now();
+      return resposta;
+    }
+
+    async function logout() {
+      const auth = config.obterAuth();
+      parar();
+      if (auth?.autenticacao?.sessaoId) {
+        try {
+          await fetch(config.apiBase + '/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + auth.autenticacao.token,
+              'X-Facilita-Client': modulo,
+              'X-Facilita-Session': auth.autenticacao.sessaoId,
+              'Content-Type': 'application/json'
+            },
+            body: '{}'
+          });
+        } catch (_) {}
+      }
+      config.limparAuth();
+    }
+
+    return { buscar, expirar, iniciar, logout, observarJanela, parar, registrarAtividade, renovar, verificarTempo };
+  }
+
+  global.FacilitaSessao = { LIMITS, criar };
+})(window);
+
+</script>
+<script>
 // ── Configuração ──────────────────────────────────────────────────────
 // Versão e atualização independentes do AUTOPROG e do AutoMat Mobile.
-const AUTOMAT_APP_VERSION = 'V2026.27.01.08';
+const AUTOMAT_APP_VERSION = 'V2026.27.01.09';
 const AUTOMAT_VERSION_CHECK_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automat/versao.json';
 const AUTOMAT_DOWNLOAD_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automat/AUTOMAT.html';
 const AUTOMAT_NOVIDADES_ATUAL = [
+  'SESSÃO: renovação automática das consultas e encerramento após 10 minutos sem uso, sem leituras periódicas da base',
   'REGRA: status ENTREGUE passa a ser registrado exclusivamente pelo AutoMat Mobile e fica somente para consulta no AutoMat',
   'NOVO: controle de versão independente do AutoMat pelo GitHub',
   'NOVO: filtros encadeados por semana, supervisão, status e número da ordem',
@@ -776,50 +987,33 @@ const _FACILITA_DATA_API = /^https?:$/.test(window.location.protocol)
   : 'https://black-meadow-0dc500c10.5.azurestaticapps.net';
 
 async function _fetchFb(path, options = {}) {
-    let auth = typeof _obterAuthAutomat === 'function' ? _obterAuthAutomat() : null;
-    let token = auth && auth.autenticacao ? auth.autenticacao.token : '';
-    let refreshToken = auth && auth.autenticacao ? auth.autenticacao.refreshToken : '';
     const local = window.location.protocol === 'file:';
     const url = _FACILITA_DATA_API + '/api/firebase/proxy?path=' + encodeURIComponent(path);
-    const enviar = tokenAtual => {
-      if (!local) {
-        const headers = { ...(options.headers || {}) };
-        if (tokenAtual) headers['Authorization'] = 'Bearer ' + tokenAtual;
-        return fetch(url, { ...options, headers });
-      }
+    if (!local) return window._sessaoAutomat.buscar(url, options);
+    await window._sessaoAutomat.renovar(false);
       let corpo = options.body;
       if (typeof corpo === 'string') {
         try { corpo = JSON.parse(corpo); } catch (_) {}
       }
-      return fetch(_FACILITA_DATA_API + '/api/firebase/proxy', {
+      const enviar = auth => fetch(_FACILITA_DATA_API + '/api/firebase/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify({
           _facilitaTunnel: true,
           method: String(options.method || 'GET').toUpperCase(),
           path,
-          token: tokenAtual,
+          token: auth.autenticacao.token,
+          sessionId: auth.autenticacao.sessaoId,
+          module: 'AUTOMAT',
           body: corpo
         }),
         cache: options.cache || 'default'
       });
-    };
-    let resp = await enviar(token);
-    if (resp.status === 401 && refreshToken) {
-      try {
-        const refreshResp = await fetch(_FACILITA_DATA_API + '/api/auth/refresh', {
-          method: 'POST',
-          headers: local
-            ? { 'Content-Type': 'text/plain;charset=UTF-8' }
-            : { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOMAT' },
-          body: JSON.stringify({ refreshToken, modulo: 'AUTOMAT' })
-        });
-        const data = await refreshResp.json();
-        if (refreshResp.ok && data.ok) {
-          if (typeof _salvarAuthAutomat === 'function') _salvarAuthAutomat(data);
-          resp = await enviar(data.autenticacao.token);
-        }
-      } catch(_) {}
+    let resp = await enviar(_obterAuthAutomat());
+    if (resp.status === 401) {
+      const erro = await resp.clone().json().catch(() => ({}));
+      if (erro.codigo === 'SESSAO_EXPIRADA') window._sessaoAutomat.expirar();
+      else resp = await enviar(await window._sessaoAutomat.renovar(true));
     }
     return resp;
   }
@@ -2148,6 +2342,12 @@ function _exibirLoginAutomat(msgErro) {
   }, 100);
 }
 
+window._sessaoAutomat = FacilitaSessao.criar({
+  modulo: 'AUTOMAT', apiBase: _FACILITA_API,
+  obterAuth: _obterAuthAutomat, salvarAuth: _salvarAuthAutomat,
+  limparAuth: _limparAuthAutomat, aoExpirar: _exibirLoginAutomat
+});
+
 function _alternarVisibilidadeSenhaAutomat() {
   const input = document.getElementById('login-input');
   const btn = document.getElementById('btn-toggle-senha');
@@ -2194,6 +2394,7 @@ async function _executarLoginAutomat() {
     }
 
     _salvarAuthAutomat(data);
+    window._sessaoAutomat.iniciar(false);
     _exibirAppAutomat(data.usuario);
     carregarDados();
   } catch (err) {
@@ -2205,7 +2406,7 @@ async function _executarLoginAutomat() {
 
 async function _verificarSessaoAutomat() {
   const auth = _obterAuthAutomat();
-  if (!auth || !auth.autenticacao || !auth.autenticacao.token) {
+  if (!auth || !auth.autenticacao || !auth.autenticacao.token || !window._sessaoAutomat.iniciar(true)) {
     _exibirLoginAutomat();
     return;
   }
@@ -2216,28 +2417,18 @@ async function _verificarSessaoAutomat() {
     return;
   }
 
-  if (auth.autenticacao.refreshToken) {
-    try {
-      const resp = await fetch(
-        `${_FACILITA_API}/api/auth/refresh`,
-        _opcoesPostAutomat({ refreshToken: auth.autenticacao.refreshToken, modulo: 'AUTOMAT' })
-      );
-      const data = await resp.json().catch(() => ({}));
-      if (resp.ok && data.ok) {
-        _salvarAuthAutomat(data);
-        _exibirAppAutomat(data.usuario);
-        carregarDados();
-        return;
-      }
-    } catch (_) {}
+  try {
+    const data = await window._sessaoAutomat.renovar(true);
+    _exibirAppAutomat(data.usuario);
+  } catch (erro) {
+    if (erro.codigo === 'SESSAO_EXPIRADA') { _exibirLoginAutomat(erro.message); return; }
+    _exibirAppAutomat(auth.usuario);
   }
-
-  _limparAuthAutomat();
-  _exibirLoginAutomat('Sua sessão expirou. Digite suas credenciais novamente.');
+  carregarDados();
 }
 
-function _logoutAutomat() {
-  _limparAuthAutomat();
+async function _logoutAutomat() {
+  await window._sessaoAutomat.logout();
   window.location.reload();
 }
 

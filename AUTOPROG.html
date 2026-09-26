@@ -636,14 +636,9 @@ tbody tr:hover { background: #f4faf8; }
 .screen, .screen .wizard-body, .screen .table-wrap, .screen .toolbar { min-width: 0; }
 :is(#screen-s7, #screen-s8):not(.ap-card-mode) .ap-compact-table { width: 100% !important; min-width: 0 !important; table-layout: fixed !important; }
 :is(#screen-s7, #screen-s8):not(.ap-card-mode) .ap-compact-table :is(th, td) { min-width: 0 !important; max-width: none !important; white-space: normal !important; overflow-wrap: anywhere; padding: 7px 5px; }
-.ap-columns-menu { position: relative; flex: 0 0 auto; }
-.ap-columns-menu summary { cursor: pointer; padding: 8px 11px; border: 1px solid var(--border2); border-radius: 9px; background: #fff; font-size: 11px; font-weight: 700; white-space: nowrap; }
-.ap-columns-menu[open] summary { border-color: var(--accent); color: var(--accent); }
-.ap-col-options { position: absolute; z-index: 300; top: calc(100% + 5px); left: 0; width: min(380px, calc(100vw - 32px)); max-height: min(55vh, 430px); overflow-y: auto; padding: 8px; border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: var(--shadow-md); }
-.ap-col-option { display: flex; align-items: center; gap: 5px; padding: 5px; border-bottom: 1px solid var(--border); }
-.ap-col-option:last-child { border-bottom: 0; }
-.ap-col-option > span { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 11px; font-weight: 650; }
-.ap-col-option .btn { min-height: 27px; padding: 3px 6px; font-size: 10px; }
+#screen-s8.ap-details-active .table-wrap { overflow-x: auto !important; }
+#screen-s8.ap-details-active .ap-compact-table { width: max-content !important; min-width: 100% !important; table-layout: auto !important; }
+#screen-s8.ap-details-active .ap-compact-table :is(th, td) { min-width: max-content !important; max-width: none !important; white-space: nowrap !important; overflow-wrap: normal !important; }
 :is(#screen-s7, #screen-s8).ap-card-mode .table-wrap { overflow-x: hidden !important; }
 :is(#screen-s7, #screen-s8).ap-card-mode .ap-compact-table,
 :is(#screen-s7, #screen-s8).ap-card-mode .ap-compact-table tbody { display: block; width: 100% !important; min-width: 0 !important; }
@@ -816,6 +811,216 @@ tbody tr:hover { background: #f4faf8; }
   </div>
 </div>
 <script>
+(function (global) {
+  'use strict';
+
+  const LIMITS = Object.freeze({ AUTOPROG: 15, AUTOMAT: 10, AUTOMATMOBILE: 10, USUARIOS: 5 });
+
+  function criar(config) {
+    const modulo = String(config.modulo || '').toUpperCase();
+    const limite = (LIMITS[modulo] || 10) * 60_000;
+    const storage = config.storage || global.localStorage;
+    const activityKey = '_facilita_ultima_atividade_' + modulo.toLowerCase();
+    let ultimaAtividade = Date.now();
+    let ultimaRequisicao = 0;
+    let ultimoRegistroLocal = 0;
+    let timer = null;
+    let aviso = null;
+    let renovacao = null;
+    let toque = null;
+    let ativo = false;
+    const janelas = new WeakSet();
+
+    function erroSessao() {
+      const erro = new Error('Sua sessão expirou por inatividade. Entre novamente.');
+      erro.status = 401;
+      erro.codigo = 'SESSAO_EXPIRADA';
+      return erro;
+    }
+
+    function esconderAviso() {
+      if (aviso) aviso.remove();
+      aviso = null;
+    }
+
+    function expirar() {
+      if (!ativo) return;
+      ativo = false;
+      clearTimeout(timer);
+      esconderAviso();
+      try { storage.removeItem(activityKey); } catch (_) {}
+      config.limparAuth();
+      config.aoExpirar('Sua sessão expirou por inatividade. Entre novamente.');
+    }
+
+    function mostrarAviso(restante) {
+      if (!aviso) {
+        aviso = global.document.createElement('div');
+        aviso.setAttribute('role', 'alert');
+        aviso.style.cssText = 'position:fixed;z-index:2147483647;top:12px;left:50%;transform:translateX(-50%);max-width:min(430px,calc(100vw - 24px));padding:12px 16px;border-radius:12px;background:#17324a;color:#fff;box-shadow:0 12px 30px #0004;font:600 13px/1.4 system-ui,sans-serif;display:flex;align-items:center;gap:12px;';
+        const texto = global.document.createElement('span');
+        texto.className = 'facilita-aviso-texto';
+        const continuar = global.document.createElement('button');
+        continuar.type = 'button';
+        continuar.textContent = 'Continuar';
+        continuar.style.cssText = 'border:0;border-radius:7px;background:#00c8a7;color:#083f39;font:700 12px system-ui,sans-serif;padding:9px 12px;cursor:pointer;';
+        continuar.addEventListener('click', registrarAtividade);
+        aviso.append(texto, continuar);
+        global.document.body.appendChild(aviso);
+      }
+      aviso.querySelector('.facilita-aviso-texto').textContent =
+        'Sua sessão será encerrada em ' + Math.max(1, Math.ceil(restante / 1000)) + ' s por inatividade.';
+    }
+
+    function verificarTempo() {
+      clearTimeout(timer);
+      if (!ativo) return false;
+      try {
+        const compartilhada = Number(storage.getItem(activityKey));
+        if (compartilhada > ultimaAtividade && compartilhada <= Date.now()) ultimaAtividade = compartilhada;
+      } catch (_) {}
+      const restante = limite - (Date.now() - ultimaAtividade);
+      if (restante <= 0) { expirar(); return false; }
+      if (restante <= 60_000) mostrarAviso(restante);
+      else esconderAviso();
+      timer = global.setTimeout(verificarTempo, restante <= 60_000 ? 1000 : Math.max(1000, restante - 60_000));
+      return true;
+    }
+
+    function salvarAtividade() {
+      if (Date.now() - ultimoRegistroLocal < 15_000) return;
+      ultimoRegistroLocal = Date.now();
+      try { storage.setItem(activityKey, String(ultimaAtividade)); } catch (_) {}
+    }
+
+    function registrarAtividade() {
+      if (!ativo) return;
+      if (!verificarTempo()) return;
+      ultimaAtividade = Date.now();
+      salvarAtividade();
+      esconderAviso();
+      verificarTempo();
+      if (Date.now() - ultimaRequisicao >= 2 * 60_000 && !toque) {
+        toque = buscar(config.apiBase + '/api/auth/activity', { method: 'POST' })
+          .catch(() => {})
+          .finally(() => { toque = null; });
+      }
+    }
+
+    function observarJanela(janela) {
+      if (!janela || janelas.has(janela)) return;
+      janelas.add(janela);
+      ['pointerdown', 'keydown', 'input', 'touchstart'].forEach(tipo =>
+        janela.document.addEventListener(tipo, registrarAtividade, { passive: true }));
+      janela.addEventListener('focus', () => {
+        if (verificarTempo()) registrarAtividade();
+      });
+      janela.document.addEventListener('visibilitychange', () => {
+        if (!janela.document.hidden && verificarTempo()) registrarAtividade();
+      });
+    }
+
+    function iniciar(restaurar) {
+      if (!config.obterAuth()?.autenticacao?.sessaoId) return false;
+      let guardado = 0;
+      try { guardado = restaurar ? Number(storage.getItem(activityKey)) : 0; } catch (_) {}
+      ultimaAtividade = guardado > 0 && guardado <= Date.now() ? guardado : Date.now();
+      ativo = true;
+      ultimoRegistroLocal = 0;
+      salvarAtividade();
+      observarJanela(global);
+      return verificarTempo();
+    }
+
+    function parar() {
+      ativo = false;
+      clearTimeout(timer);
+      esconderAviso();
+      try { storage.removeItem(activityKey); } catch (_) {}
+    }
+
+    async function renovar(forcar) {
+      if (renovacao) return renovacao;
+      const auth = config.obterAuth();
+      if (!auth?.autenticacao?.sessaoId || !auth.autenticacao.refreshToken) { expirar(); throw erroSessao(); }
+      if (!forcar && Number(auth.autenticacao.expiraEm) > Date.now() + 2 * 60_000) return auth;
+      renovacao = (async () => {
+        let resposta;
+        try {
+          resposta = await fetch(config.apiBase + '/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': modulo },
+            body: JSON.stringify({ refreshToken: auth.autenticacao.refreshToken, sessaoId: auth.autenticacao.sessaoId, modulo })
+          });
+        } catch (_) {
+          throw new Error('Sem conexão para renovar a sessão. Tente novamente.');
+        }
+        const dados = await resposta.json().catch(() => ({}));
+        if (!resposta.ok || !dados.ok) {
+          if (resposta.status === 401 || resposta.status === 403) { expirar(); throw erroSessao(); }
+          throw new Error('Não foi possível renovar a sessão agora. Tente novamente.');
+        }
+        config.salvarAuth(dados);
+        ultimaRequisicao = Date.now();
+        return dados;
+      })().finally(() => { renovacao = null; });
+      return renovacao;
+    }
+
+    async function buscar(url, options = {}) {
+      if (!ativo || !verificarTempo()) throw erroSessao();
+      const { facilitaBackground, ...fetchOptions } = options;
+      let auth = await renovar(false);
+      const enviar = dados => fetch(url, {
+        ...fetchOptions,
+        headers: {
+          ...(fetchOptions.headers || {}),
+          Authorization: 'Bearer ' + dados.autenticacao.token,
+          'X-Facilita-Client': modulo,
+          'X-Facilita-Session': dados.autenticacao.sessaoId,
+          ...(facilitaBackground ? { 'X-Facilita-Background': '1' } : {})
+        }
+      });
+      let resposta = await enviar(auth);
+      if (resposta.status === 401) {
+        const dados = await resposta.clone().json().catch(() => ({}));
+        if (dados.codigo === 'SESSAO_EXPIRADA') { expirar(); throw erroSessao(); }
+        auth = await renovar(true);
+        resposta = await enviar(auth);
+        if (resposta.status === 401) { expirar(); throw erroSessao(); }
+      }
+      if (!facilitaBackground && resposta.ok) ultimaRequisicao = Date.now();
+      return resposta;
+    }
+
+    async function logout() {
+      const auth = config.obterAuth();
+      parar();
+      if (auth?.autenticacao?.sessaoId) {
+        try {
+          await fetch(config.apiBase + '/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + auth.autenticacao.token,
+              'X-Facilita-Client': modulo,
+              'X-Facilita-Session': auth.autenticacao.sessaoId,
+              'Content-Type': 'application/json'
+            },
+            body: '{}'
+          });
+        } catch (_) {}
+      }
+      config.limparAuth();
+    }
+
+    return { buscar, expirar, iniciar, logout, observarJanela, parar, registrarAtividade, renovar, verificarTempo };
+  }
+
+  global.FacilitaSessao = { LIMITS, criar };
+})(window);
+
+</script>
+<script>
 (function(){
   const _FACILITA_API = /^https?:$/.test(window.location.protocol)
     ? window.location.origin
@@ -849,6 +1054,7 @@ tbody tr:hover { background: #f4faf8; }
   }
 
   function _limparAuth() {
+    window._memAuth = null;
     try {
       localStorage.removeItem(_AUTH_KEY);
       localStorage.removeItem('_autoprog_auth');
@@ -884,6 +1090,16 @@ tbody tr:hover { background: #f4faf8; }
       if (u) u.focus();
     }, 100);
   }
+
+  window._sessaoAutoprog = FacilitaSessao.criar({
+    modulo: 'AUTOPROG', apiBase: _FACILITA_API,
+    obterAuth: _obterAuth, salvarAuth: _salvarAuth, limparAuth: _limparAuth,
+    aoExpirar: mensagem => {
+      // Garante a tentativa de autosave mesmo se o navegador retardar o intervalo em segundo plano.
+      if (typeof window._autoSave === 'function') void window._autoSave();
+      _hide(mensagem);
+    }
+  });
 
   window._alternarVisibilidadeSenhaAutoprog = function() {
     const input = document.getElementById('login-input');
@@ -932,6 +1148,7 @@ tbody tr:hover { background: #f4faf8; }
       }
 
       _salvarAuth(data);
+      window._sessaoAutoprog.iniciar(false);
       _show(data.usuario);
     } catch (e) {
       if (err) err.textContent = 'Erro de comunicação com o servidor de autenticação. Verifique sua conexão.';
@@ -940,14 +1157,14 @@ tbody tr:hover { background: #f4faf8; }
     }
   };
 
-  window._logoutAutoprog = function(){
-    _limparAuth();
+  window._logoutAutoprog = async function(){
+    await window._sessaoAutoprog.logout();
     window.location.reload();
   };
 
   document.addEventListener('DOMContentLoaded', async function(){
     const auth = _obterAuth();
-    if (!auth || !auth.autenticacao || !auth.autenticacao.token) {
+    if (!auth || !auth.autenticacao || !auth.autenticacao.token || !window._sessaoAutoprog.iniciar(true)) {
       _hide();
       return;
     }
@@ -957,23 +1174,13 @@ tbody tr:hover { background: #f4faf8; }
       return;
     }
 
-    if (auth.autenticacao.refreshToken) {
-      try {
-        const resp = await fetch(
-          _FACILITA_API + '/api/auth/refresh',
-          _opcoesPostAutoprog({ refreshToken: auth.autenticacao.refreshToken, modulo: 'AUTOPROG' })
-        );
-        const data = await resp.json().catch(() => ({}));
-        if (resp.ok && data.ok) {
-          _salvarAuth(data);
-          _show(data.usuario);
-          return;
-        }
-      } catch(_) {}
+    try {
+      const data = await window._sessaoAutoprog.renovar(true);
+      _show(data.usuario);
+    } catch (erro) {
+      if (erro.codigo === 'SESSAO_EXPIRADA') _hide(erro.message);
+      else _show(auth.usuario);
     }
-
-    _limparAuth();
-    _hide('Sua sessão expirou. Digite suas credenciais novamente.');
   });
 })();
 </script>
@@ -1849,7 +2056,10 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
-  "AJUSTE RESPONSIVO: as 10 telas se adaptam a notebooks e desktops; nas telas 7 e 8, todas as colunas operacionais permanecem acessíveis sem rolagem horizontal, e IMOS acompanha o botão Detalhes da tela 8",
+  "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
+  "AJUSTE VISUAL: removido o botão redundante Ordenar / filtrar das telas 7 e 8, sem alterar os dados e filtros principais",
+  "MELHORIA: Detalhes da tela 8 expande as colunas da esquerda para a direita em uma tabela de linhas únicas, com filtros nos cabeçalhos",
+  "AJUSTE RESPONSIVO: as 10 telas se adaptam a notebooks e desktops; na tela 8, o modo compacto evita rolagem horizontal e Detalhes mantém todas as colunas em linha única, com rolagem apenas dentro da tabela quando necessário",
   "AJUSTE VISUAL: janela Consultar Entregas da tela 10 repaginada com o padrão do AutoMat, mantendo filtros, status e download de evidências",
   "MELHORIA: a etiqueta de novidades consulta os ajustes publicados da mesma versão e valida todas as notas antes da publicação",
   "AJUSTE: compilação de projeções de vários programadores removida do AutoProg; o controle consolidado ficará para o futuro módulo AutoControl",
@@ -1905,62 +2115,38 @@ const _FIREBASE_MATERIAIS_URL = 'https://automat-742d4-default-rtdb.firebaseio.c
     ? window.location.origin
     : 'https://black-meadow-0dc500c10.5.azurestaticapps.net';
   async function _fetchFb(path, options = {}) {
-    let token = options.tokenOverride || '', refreshToken = options.refreshTokenOverride || '';
-    if (!token) {
-      try {
-      let dados = window._memAuth;
-        if (!dados) {
-          const raw = localStorage.getItem('_facilita_auth_autoprog');
-          if (raw) dados = JSON.parse(raw);
-        }
-        if (dados && dados.autenticacao) {
-        token = dados.autenticacao.token || '';
-          refreshToken = dados.autenticacao.refreshToken || '';
-        }
-      } catch(_) {}
-    }
     const local = window.location.protocol === 'file:';
     const url = _FACILITA_MATERIAIS_API + '/api/firebase/proxy?path=' + encodeURIComponent(path);
-    const enviar = tokenAtual => {
-      if (!local) {
-        const headers = { ...(options.headers || {}) };
-        if (tokenAtual) headers['Authorization'] = 'Bearer ' + tokenAtual;
-        return fetch(url, { ...options, headers });
-      }
+    let resp;
+    if (!local) {
+      resp = await window._sessaoAutoprog.buscar(url, options);
+    } else {
+      await window._sessaoAutoprog.renovar(false);
       let corpo = options.body;
       if (typeof corpo === 'string') {
         try { corpo = JSON.parse(corpo); } catch (_) {}
       }
-      return fetch(_FACILITA_MATERIAIS_API + '/api/firebase/proxy', {
+      const enviar = auth => fetch(_FACILITA_MATERIAIS_API + '/api/firebase/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify({
           _facilitaTunnel: true,
           method: String(options.method || 'GET').toUpperCase(),
           path,
-          token: tokenAtual,
+          token: auth.autenticacao.token,
+          sessionId: auth.autenticacao.sessaoId,
+          module: 'AUTOPROG',
           body: corpo
         }),
         cache: options.cache || 'default'
       });
-    };
-    let resp = await enviar(token);
-    if (resp.status === 401 && refreshToken) {
-      try {
-        const refreshResp = await fetch(_FACILITA_MATERIAIS_API + '/api/auth/refresh', {
-          method: 'POST',
-          headers: local
-            ? { 'Content-Type': 'text/plain;charset=UTF-8' }
-            : { 'Content-Type': 'application/json', 'X-Facilita-Client': 'AUTOPROG' },
-          body: JSON.stringify({ refreshToken, modulo: 'AUTOPROG' })
-        });
-        const data = await refreshResp.json();
-        if (refreshResp.ok && data.ok) {
-          localStorage.setItem('_facilita_auth_autoprog', JSON.stringify(data));
-          resp = await enviar(data.autenticacao.token);
-        }
-      } catch(_) {}
+      resp = await enviar(window._obterAuth());
+      if (resp.status === 401) {
+        const erro = await resp.clone().json().catch(() => ({}));
+        if (erro.codigo === 'SESSAO_EXPIRADA') window._sessaoAutoprog.expirar();
+        else resp = await enviar(await window._sessaoAutoprog.renovar(true));
       }
+    }
       if (!resp.ok) {
         try {
           const errData = await resp.clone().json();
@@ -1993,6 +2179,7 @@ function _receberNovidadesMesmaVersao(data) {
   if (pop && pop.style.display === 'block' && lista) {
     lista.innerHTML = _NOVIDADES_EXIBIDAS.map(n => '<li style="margin-bottom:6px;">' + escHtml(n) + '</li>').join('');
   }
+
 }
 
 function _checkForUpdate() {
@@ -4552,8 +4739,8 @@ function apSyncResponsiveCards() {
   const backlog = document.getElementById('screen-s7');
   const rpl = document.getElementById('screen-s8');
   backlog?.classList.toggle('ap-card-mode', window.innerWidth < 2100);
-  backlog?.classList.toggle('ap-details-active', rplCriticidadeAtiva);
-  rpl?.classList.toggle('ap-card-mode', window.innerWidth < 1900 || rplCriticidadeAtiva);
+  backlog?.classList.remove('ap-details-active');
+  rpl?.classList.toggle('ap-card-mode', window.innerWidth < 1900 && !rplCriticidadeAtiva);
   rpl?.classList.toggle('ap-details-active', rplCriticidadeAtiva);
 }
 window.addEventListener('resize', apSyncResponsiveCards);
@@ -4563,57 +4750,6 @@ function apLabelRowCells(rowHtml, labels) {
   return rowHtml.replace(/<td(?=[\s>])/g, () => `<td data-label="${labels[index++] || ''}"`);
 }
 
-function apSetupResponsiveTableControls() {
-  [['bl', 'screen-s7'], ['rpl', 'screen-s8']].forEach(([kind, screenId]) => {
-    const screen = document.getElementById(screenId);
-    const toolbar = screen?.querySelector('.toolbar');
-    if (!toolbar || toolbar.querySelector('.ap-columns-menu')) return;
-    const menu = document.createElement('details');
-    menu.className = 'ap-columns-menu';
-    const summary = document.createElement('summary');
-    summary.textContent = 'Ordenar / filtrar';
-    menu.appendChild(summary);
-    const list = document.createElement('div');
-    list.className = 'ap-col-options';
-    screen.querySelectorAll('.ap-compact-table thead th').forEach(th => {
-      const sort = (th.getAttribute('onclick') || '').match(/\b(?:blSortBy|rplSortByW)\('([^']+)'\)/);
-      const filter = (th.querySelector('.col-filter-icon')?.getAttribute('onclick') || '').match(/\b(?:blOpenFilter|rplOpenFilterW)\(event,'([^']+)'\)/);
-      if (!sort && !filter) return;
-      const item = document.createElement('div');
-      item.className = 'ap-col-option';
-      const name = document.createElement('span');
-      name.textContent = [...th.childNodes].filter(node => node.nodeType === Node.TEXT_NODE)
-        .map(node => node.textContent.trim()).filter(Boolean).join(' ') || th.textContent.replace('▾', '').trim();
-      item.appendChild(name);
-      if (sort) {
-        const button = document.createElement('button');
-        button.type = 'button'; button.className = 'btn'; button.textContent = 'Ordenar';
-        button.setAttribute('aria-label', 'Ordenar por ' + name.textContent);
-        button.addEventListener('click', event => {
-          event.stopPropagation();
-          (kind === 'bl' ? blSortBy : rplSortByW)(sort[1]);
-          menu.open = false;
-        });
-        item.appendChild(button);
-      }
-      if (filter) {
-        const button = document.createElement('button');
-        button.type = 'button'; button.className = 'btn'; button.textContent = 'Filtrar';
-        button.setAttribute('aria-label', 'Filtrar ' + name.textContent);
-        button.addEventListener('click', event => {
-          event.stopPropagation();
-          (kind === 'bl' ? blOpenFilter : rplOpenFilterW)({target: button}, filter[1]);
-          menu.open = false;
-        });
-        item.appendChild(button);
-      }
-      list.appendChild(item);
-    });
-    menu.appendChild(list);
-    toolbar.insertBefore(menu, toolbar.querySelector('[style*="margin-left:auto"]') || null);
-  });
-}
-
 function goStep(n) {
   currentStep = n;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -4621,7 +4757,6 @@ function goStep(n) {
   if (sc) sc.classList.add('active');
   renderStepIndicator();
   apSyncResponsiveCards();
-  if (n === 7 || n === 8) apSetupResponsiveTableControls();
   // Show save/load buttons from step 4 onwards
   const btnHistSessoes = document.getElementById('btn-hist-sessoes');
   if (btnHistSessoes) btnHistSessoes.style.display = 'inline-flex';
@@ -5512,8 +5647,8 @@ function rplClearFiltersW() {
     btnCrit.style.background = '';
     btnCrit.style.color = '';
     btnCrit.style.borderColor = '';
-    btnCrit.innerHTML = '<i class=icon-target></i> Criticidade';
-    btnCrit.title = 'Ativar ordenação por Índice de Criticidade';
+    btnCrit.innerHTML = '<i class=icon-target></i> Detalhes';
+    btnCrit.title = 'Mostrar IMOS e os campos de criticidade; ordenar por Índice de Criticidade';
   }
   if (typeof _rplToggleCritCols === 'function') _rplToggleCritCols(false);
 
@@ -6498,6 +6633,9 @@ function _rplToggleCritCols(animate) {
       cell.style.display = show ? '' : 'none';
     });
     return;
+  }
+  if (show) {
+    document.querySelectorAll('#screen-s8 .rpl-crit-col').forEach(cell => { cell.style.display = 'none'; });
   }
   // Animated (only on button toggle):
   // Active  → show left-to-right (1→4) | Inactive→ hide right-to-left (4→1)
@@ -7497,10 +7635,6 @@ async function _buscarOrdensEntreguesParaSolicitacao(itens) {
     if (!resposta.ok) {
       let msg = 'Resposta do servidor: ' + resposta.status;
       if (resposta._errorData && resposta._errorData.error) msg += ' - ' + resposta._errorData.error;
-            let rawDiag = window._memAuth || (localStorage.getItem('_facilita_auth_autoprog') ? JSON.parse(localStorage.getItem('_facilita_auth_autoprog')) : null);
-      let tDiag = 'VAZIO';
-      try { if (rawDiag && rawDiag.autenticacao && rawDiag.autenticacao.token) tDiag = rawDiag.autenticacao.token.substring(0,10); else if (rawDiag) tDiag = 'Sem Token'; } catch(e){ tDiag = 'Erro'; }
-      msg += '\n\nDiag: ' + tDiag;
       throw new Error(msg);
     }
   const baseMateriais = await resposta.json();
@@ -7734,9 +7868,6 @@ async function solicitarMaterialBrucutu() {
 // Abre uma consulta independente e somente leitura dos materiais enviados.
 // A janela usa a mesma fonte do AutoMat e reflete o status atual da base.
 function abrirConsultaEntregas() {
-  const _authPopup = typeof _obterAuth === 'function' ? _obterAuth() : null;
-  const _tokenPopup = _authPopup && _authPopup.autenticacao ? _authPopup.autenticacao.token : '';
-  const _refreshTokenPopup = _authPopup && _authPopup.autenticacao ? _authPopup.autenticacao.refreshToken : '';
   if (!_FIREBASE_MATERIAIS_URL) {
     alert('A base de dados de Materiais ainda não foi configurada.');
     return;
@@ -7841,6 +7972,7 @@ function abrirConsultaEntregas() {
   janela.focus();
 
   const logo = doc.getElementById('consulta-logo');
+  if (window._sessaoAutoprog) window._sessaoAutoprog.observarJanela(janela);
   if (logo && typeof LOGO_AUTOPROG === 'string') logo.src = LOGO_AUTOPROG;
 
   
@@ -7983,7 +8115,7 @@ function abrirConsultaEntregas() {
     const segmentos = [item._semanaChave, item._pushId, item._itemIdx].map(valor => encodeURIComponent(String(valor)));
     const caminhoSeparado = '/entregas/' + segmentos.join('/') + '/evidencia.json';
     try {
-      const resposta = await _fetchFb(caminhoSeparado, { cache:'no-store', tokenOverride: _tokenPopup, refreshTokenOverride: _refreshTokenPopup });
+      const resposta = await _fetchFb(caminhoSeparado, { cache:'no-store' });
       if (resposta.ok) {
         const evidencia = await resposta.json();
         if (evidencia && evidencia.dataUrl) return evidencia;
@@ -7991,7 +8123,7 @@ function abrirConsultaEntregas() {
     } catch (_) {}
     const caminhoLegado = '/materiais/' + segmentos[0] + '/' + segmentos[1] + '/itens/' + segmentos[2] + '/evidenciaEntrega.json';
     try {
-      const resposta = await _fetchFb(caminhoLegado, { cache:'no-store', tokenOverride: _tokenPopup, refreshTokenOverride: _refreshTokenPopup });
+      const resposta = await _fetchFb(caminhoLegado, { cache:'no-store' });
       if (resposta.ok) {
         const evidencia = await resposta.json();
         if (evidencia && evidencia.dataUrl) return evidencia;
