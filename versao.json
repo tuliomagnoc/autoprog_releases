@@ -3,6 +3,7 @@
   "data": "2026-09-25",
   "novidades": [
     "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+    "AJUSTE VISUAL: o Dashboard usa as cores padronizadas e distintas de ATCR, OMVE, URGT, SEGU, MAMB e SAUD nos indicadores e nas ordens",
     "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
     "AJUSTE VISUAL: removido o botão redundante Ordenar / filtrar das telas 7 e 8, sem alterar os dados e filtros principais",
     "MELHORIA: Detalhes da tela 8 expande as colunas da esquerda para a direita em uma tabela de linhas únicas, com filtros nos cabeçalhos",

@@ -2056,6 +2056,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "AJUSTE VISUAL: o Dashboard usa as cores padronizadas e distintas de ATCR, OMVE, URGT, SEGU, MAMB e SAUD nos indicadores e nas ordens",
   "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
   "AJUSTE VISUAL: removido o botão redundante Ordenar / filtrar das telas 7 e 8, sem alterar os dados e filtros principais",
   "MELHORIA: Detalhes da tela 8 expande as colunas da esquerda para a direita em uma tabela de linhas únicas, com filtros nos cabeçalhos",
@@ -7160,17 +7161,21 @@ function _buildDashboardHTML() {
   const _pISO = s => { if(s===null||s===undefined||s==='') return null; const iso = fmtDate(s); if(!iso) return null; const p=iso.split('T')[0].split('-'); if(p.length<3)return null; const d=new Date(+p[0],+p[1]-1,+p[2]); d.setHours(0,0,0,0); return isNaN(d)?null:d; };
   const _su = d => (d['Status usuário']||'').toUpperCase();
   const _esc = s => String(s==null?'':s).replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  // Helper local de tags de status (NÃO usar getStatusObs - ela é aninhada em
-  // outras funções e não existe no escopo global; usá-la aqui quebra a tela).
-  const _statusTags = d => {
-    const su=_su(d), t=[];
-    if(su.includes('OMVE'))t.push('OM VERMELHA');
-    if(su.includes('ATCR'))t.push('ATIVO CRÍTICO');
-    if(su.includes('URGT'))t.push('URGENTE');
-    if(su.includes('SEGU'))t.push('SEGURANÇA');
-    if(su.includes('MAMB'))t.push('MEIO AMBIENTE');
-    if(su.includes('SAUD'))t.push('SAÚDE');
-    return t.join(' / ');
+  // Um mesmo registro pode carregar mais de um status; cada etiqueta mantém
+  // sua própria cor, mesmo quando a linha usa a primeira condição prioritária.
+  const _statusBadges = d => {
+    const su=_su(d);
+    const status=[
+      ['OMVE','OM VERMELHA',_TONS_ORDEM.omve],
+      ['ATCR','ATIVO CRÍTICO',_TONS_ORDEM.atcr],
+      ['URGT','URGENTE',_TONS_ORDEM.urgente],
+      ['SEGU','SEGURANÇA',_TONS_ORDEM.seguranca],
+      ['MAMB','MEIO AMBIENTE',_TONS_ORDEM.meioAmbiente],
+      ['SAUD','SAÚDE',_TONS_ORDEM.saude]
+    ];
+    return status.filter(([sigla])=>su.includes(sigla)).map(([sigla,nome,tom])=>
+      `<span title="${nome}" style="display:inline-block;background:${tom.bg};color:${tom.fg};border:1px solid ${tom.edge};border-radius:8px;padding:1px 5px;font-size:9px;font-weight:700;white-space:nowrap;">${sigla}</span>`
+    ).join('') || '-';
   };
 
   // Universo: backlog (respeita CT do efetivo, exclui OBS/manuais/YEM), não executadas
@@ -7183,31 +7188,31 @@ function _buildDashboardHTML() {
   // dedup por ordem, mantendo primeira ocorrência
   function _uniqOrdens(list){ const seen=new Set(), out=[]; list.forEach(d=>{ if(d._ordem&&!seen.has(d._ordem)){seen.add(d._ordem);out.push(d);} }); return out; }
 
-  // Mesma escala suave da Visualização da programação, inclusive para as
-  // ordens de bloqueio/desbloqueio que usam um laranja mais perceptível.
+  // A paleta do Dashboard referencia a fonte única das telas 7/8 e da
+  // Visualização da programação; assim os status não divergem novamente.
   const DASH_TONS = {
-    omve:    {bg:'#f9ecef',fg:'#713246',edge:'#c86b83'},
-    atcr:    {bg:'#fff3e0',fg:'#775519',edge:'#c79a4e'},
-    urgente: {bg:'#eaf5f9',fg:'#205e72',edge:'#70b1c9'},
-    bloqueio:{bg:'#eef2f3',fg:'#526268',edge:'#9babb0'},
-    manobra: {bg:'#ffe0bd',fg:'#77411e',edge:'#e58b3c'},
-    yss:     {bg:'#fff7e6',fg:'#776031',edge:'#d0ae64'},
+    omve: _TONS_ORDEM.omve,
+    atcr: _TONS_ORDEM.atcr,
+    urgente: _TONS_ORDEM.urgente,
+    seguranca: _TONS_ORDEM.seguranca,
+    meioAmbiente: _TONS_ORDEM.meioAmbiente,
+    saude: _TONS_ORDEM.saude,
+    bloqueio: _TONS_ORDEM.bloqueio,
+    manobra: _TONS_ORDEM.manobra,
+    yss: _TONS_ORDEM.yss,
     verde:   {bg:'#e7f6f0',fg:'#255e51',edge:'#61ac8f'},
     neutro:  {bg:'#f5f7f8',fg:'#526268',edge:'#bac4c7'}
   };
-  const _dashTomOrdem = d => {
-    const su=_su(d), tb=String(d['Texto breve']||'').toUpperCase();
-    if (su.includes('OMVE')) return DASH_TONS.omve;
-    if (su.includes('ATCR')) return DASH_TONS.atcr;
-    if (su.includes('URGT')||su.includes('SEGU')||su.includes('MAMB')||su.includes('SAUD')) return DASH_TONS.urgente;
-    if (tb.includes('PNEUM')||tb.includes('VALVULAS')||tb.includes('VÁLVULAS')) return DASH_TONS.bloqueio;
-    if (tb.includes('BLOQUEIO')&&tb.includes('DESBLOQUEIO')) return DASH_TONS.manobra;
-    if (d._tipo==='YSS') return DASH_TONS.yss;
-    return null;
-  };
+  const _dashTomOrdem = d => _tomOrdem(d,programacao[d._uid||d._ordem]);
   const _dashEstiloOrdem = d => {
     const tom=_dashTomOrdem(d);
     return tom ? `background:${tom.bg};color:${tom.fg};border-left:3px solid ${tom.edge};` : '';
+  };
+  const _dashOrdemBadge = d => {
+    const tom=_dashTomOrdem(d);
+    return tom
+      ? `<span style="display:inline-block;background:${tom.bg};color:${tom.fg};border:1px solid ${tom.edge};border-radius:6px;padding:1px 5px;font-weight:700;white-space:nowrap;">${_esc(d._ordem)}</span>`
+      : _esc(d._ordem);
   };
 
   // ── estilos base (cores AUTOPROG) ──
@@ -7296,7 +7301,7 @@ function _buildDashboardHTML() {
         <td style="${TDC}font-weight:600;">${_esc(p)}</td>
         <td style="${TD}max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${_esc(desc)}">${_esc(desc)}</td>
         <td style="${TDC}"><span style="background:var(--amber-bg);color:var(--amber);padding:2px 8px;border-radius:10px;font-weight:700;">${ords.length} ciclos</span></td>
-        <td style="${TD}font-size:9px;color:var(--text2);">${ords.join(', ')}</td>
+        <td style="${TD}font-size:9px;color:var(--text2);">${ords.map(ord=>_dashOrdemBadge(arr.find(d=>d._ordem===ord))).join(' ')}</td>
       </tr>`;
     }).join('') || `<tr><td colspan="4" style="${TD}text-align:center;color:#999;">Nenhuma sistemática com mais de 1 ciclo.</td></tr>`;
     html += `<div style="${CARD}grid-column:span 2;">
@@ -7333,7 +7338,7 @@ function _buildDashboardHTML() {
 
   // ══ 7. BACKLOG POR STATUS DE SEGURANÇA ══
   (function(){
-    const statusList=[['ATCR',DASH_TONS.atcr],['OMVE',DASH_TONS.omve],['MAMB',DASH_TONS.urgente],['SAUD',DASH_TONS.urgente],['SEGU',DASH_TONS.urgente],['URGT',DASH_TONS.urgente]];
+    const statusList=[['ATCR',DASH_TONS.atcr],['OMVE',DASH_TONS.omve],['MAMB',DASH_TONS.meioAmbiente],['SAUD',DASH_TONS.saude],['SEGU',DASH_TONS.seguranca],['URGT',DASH_TONS.urgente]];
     const seenS={}; statusList.forEach(([st])=>seenS[st]=new Set());
     _uniqOrdens(backlog).forEach(d=>{ const s=_su(d); statusList.forEach(([st])=>{ if(s.includes(st))seenS[st].add(d._ordem); }); });
     const cells = statusList.map(([st,tom])=>{
@@ -7363,7 +7368,7 @@ function _buildDashboardHTML() {
       <td style="${TDC}font-weight:600;">${_esc(x.d._ordem)}</td>
       <td style="${TD}max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${_esc(x.d['Texto breve']||'')}">${_esc(x.d['Texto breve']||'')}</td>
       <td style="${TDC}"><span style="background:${x.d._abc==='A'?'var(--red-bg);color:var(--red)':x.d._abc==='B'?'var(--amber-bg);color:var(--amber)':'var(--green-bg);color:var(--green)'};padding:1px 7px;border-radius:8px;font-weight:700;">${x.d._abc||'-'}</span></td>
-      <td style="${TD}font-size:9px;color:var(--text2);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_esc(_statusTags(x.d)||'-')}</td>
+      <td style="${TD}max-width:150px;"><div style="display:flex;flex-wrap:wrap;gap:3px;">${_statusBadges(x.d)}</div></td>
       <td style="${TDC}"><div style="display:flex;align-items:center;gap:5px;"><div style="flex:1;background:#eef2f2;border-radius:3px;height:12px;overflow:hidden;"><div style="width:${(x.score/max*100).toFixed(0)}%;background:var(--accent);height:100%;"></div></div><strong style="font-size:11px;">${x.score}</strong></div></td>
     </tr>`).join('') || `<tr><td colspan="6" style="${TD}text-align:center;color:#999;">Sem ordens priorizáveis.</td></tr>`;
     html += `<div style="${CARD}grid-column:span 2;">
