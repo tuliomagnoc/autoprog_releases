@@ -991,6 +991,7 @@ tbody tr:hover { background: #f4faf8; }
         headers: {
           ...(fetchOptions.headers || {}),
           Authorization: 'Bearer ' + dados.autenticacao.token,
+          'X-Facilita-Token': 'Bearer ' + dados.autenticacao.token,
           'X-Facilita-Client': modulo,
           'X-Facilita-Session': dados.autenticacao.sessaoId,
           ...(facilitaBackground ? { 'X-Facilita-Background': '1' } : {})
@@ -1017,6 +1018,7 @@ tbody tr:hover { background: #f4faf8; }
             method: 'POST',
             headers: {
               Authorization: 'Bearer ' + auth.autenticacao.token,
+              'X-Facilita-Token': 'Bearer ' + auth.autenticacao.token,
               'X-Facilita-Client': modulo,
               'X-Facilita-Session': auth.autenticacao.sessaoId,
               'Content-Type': 'application/json'
@@ -2072,6 +2074,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação; o logout por inatividade continua após 15 minutos sem uso",
   "CORREÇÃO: autosave detecta alterações reais e grava no arquivo vinculado a cada verificação, mesmo durante o uso contínuo da tela",
   "SESSÃO: leitura com rolagem e movimento do ponteiro conta como atividade; logout do AutoProg permanece após 15 minutos reais sem uso",
   "CORREÇÃO: autosave preserva o arquivo da sessão e não abre o diálogo de programação nova quando a escrita falha ou a permissão precisa ser renovada",
