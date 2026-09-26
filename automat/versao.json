@@ -1,10 +1,11 @@
 {
-  "versao": "V2026.27.01.09",
+  "versao": "V2026.27.01.10",
   "data": "2026-09-26",
   "novidades": [
+    "V2026.27.01.10 — SESSÃO: removido o logout automático por inatividade; sair manualmente e validação de credenciais permanecem",
     "V2026.27.01.09 — SESSÃO: consultas renovam a credencial automaticamente e o acesso é encerrado após 10 minutos sem uso, sem leituras periódicas da base",
     "V2026.27.01.08 — AJUSTE VISUAL: AutoMat repaginado no padrão do AutoProg, com acesso, filtros, indicadores, lista e painel de tratativa renovados",
-    "SESSÃO: renovação automática das consultas e encerramento após 10 minutos sem uso, sem leituras periódicas da base",
+    "SESSÃO: renovação automática das consultas sem leituras periódicas da base",
     "CORREÇÃO: favicon compartilhado com fallback PNG, suporte Apple e renovação automática de cache",
     "MELHORIA: favicon oficial do AutoProg padronizado em todas as páginas do AutoMat",
     "MELHORIA: versionamento e download do AutoMat migrados integralmente para o GitHub",

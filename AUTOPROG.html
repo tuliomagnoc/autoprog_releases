@@ -814,144 +814,49 @@ tbody tr:hover { background: #f4faf8; }
 (function (global) {
   'use strict';
 
-  const LIMITS = Object.freeze({ AUTOPROG: 15, AUTOMAT: 10, AUTOMATMOBILE: 10, USUARIOS: 5 });
+  // Mantido para compatibilidade com clientes que consultam esta propriedade.
+  // Nenhum módulo encerra a sessão por tempo de inatividade.
+  const LIMITS = Object.freeze({});
 
   function criar(config) {
     const modulo = String(config.modulo || '').toUpperCase();
-    const limite = (LIMITS[modulo] || 10) * 60_000;
-    const storage = config.storage || global.localStorage;
-    const activityKey = '_facilita_ultima_atividade_' + modulo.toLowerCase();
-    let ultimaAtividade = Date.now();
-    let ultimaRequisicao = 0;
-    let ultimoRegistroLocal = 0;
-    let timer = null;
-    let aviso = null;
     let renovacao = null;
-    let toque = null;
     let ativo = false;
-    let ultimoEventoPassivo = 0;
-    const janelas = new WeakSet();
 
     function erroSessao() {
-      const erro = new Error('Sua sessão expirou por inatividade. Entre novamente.');
+      const erro = new Error('Sua sessão não é mais válida. Entre novamente.');
       erro.status = 401;
       erro.codigo = 'SESSAO_EXPIRADA';
       return erro;
     }
 
-    function esconderAviso() {
-      if (aviso) aviso.remove();
-      aviso = null;
-    }
-
     function expirar() {
       if (!ativo) return;
       ativo = false;
-      clearTimeout(timer);
-      esconderAviso();
-      try { storage.removeItem(activityKey); } catch (_) {}
       config.limparAuth();
-      config.aoExpirar('Sua sessão expirou por inatividade. Entre novamente.');
-    }
-
-    function mostrarAviso(restante) {
-      if (!aviso) {
-        aviso = global.document.createElement('div');
-        aviso.setAttribute('role', 'alert');
-        aviso.style.cssText = 'position:fixed;z-index:2147483647;top:12px;left:50%;transform:translateX(-50%);max-width:min(430px,calc(100vw - 24px));padding:12px 16px;border-radius:12px;background:#17324a;color:#fff;box-shadow:0 12px 30px #0004;font:600 13px/1.4 system-ui,sans-serif;display:flex;align-items:center;gap:12px;';
-        const texto = global.document.createElement('span');
-        texto.className = 'facilita-aviso-texto';
-        const continuar = global.document.createElement('button');
-        continuar.type = 'button';
-        continuar.textContent = 'Continuar';
-        continuar.style.cssText = 'border:0;border-radius:7px;background:#00c8a7;color:#083f39;font:700 12px system-ui,sans-serif;padding:9px 12px;cursor:pointer;';
-        continuar.addEventListener('click', registrarAtividade);
-        aviso.append(texto, continuar);
-        global.document.body.appendChild(aviso);
-      }
-      aviso.querySelector('.facilita-aviso-texto').textContent =
-        'Sua sessão será encerrada em ' + Math.max(1, Math.ceil(restante / 1000)) + ' s por inatividade.';
+      config.aoExpirar('Sua sessão não é mais válida. Entre novamente.');
     }
 
     function verificarTempo() {
-      clearTimeout(timer);
-      if (!ativo) return false;
-      try {
-        const compartilhada = Number(storage.getItem(activityKey));
-        if (compartilhada > ultimaAtividade && compartilhada <= Date.now()) ultimaAtividade = compartilhada;
-      } catch (_) {}
-      const restante = limite - (Date.now() - ultimaAtividade);
-      if (restante <= 0) { expirar(); return false; }
-      if (restante <= 60_000) mostrarAviso(restante);
-      else esconderAviso();
-      timer = global.setTimeout(verificarTempo, restante <= 60_000 ? 1000 : Math.max(1000, restante - 60_000));
-      return true;
-    }
-
-    function salvarAtividade() {
-      if (Date.now() - ultimoRegistroLocal < 15_000) return;
-      ultimoRegistroLocal = Date.now();
-      try { storage.setItem(activityKey, String(ultimaAtividade)); } catch (_) {}
+      return ativo;
     }
 
     function registrarAtividade() {
-      if (!ativo) return;
-      if (!verificarTempo()) return;
-      ultimaAtividade = Date.now();
-      salvarAtividade();
-      esconderAviso();
-      verificarTempo();
-      if (Date.now() - ultimaRequisicao >= 2 * 60_000 && !toque) {
-        toque = buscar(config.apiBase + '/api/auth/activity', { method: 'POST' })
-          .catch(() => {})
-          .finally(() => { toque = null; });
-      }
+      // Compatibilidade: a atividade não controla mais o tempo da sessão.
     }
 
-    function registrarAtividadePassiva() {
-      const agora = Date.now();
-      if (agora - ultimoEventoPassivo < 30_000) return;
-      ultimoEventoPassivo = agora;
-      registrarAtividade();
+    function observarJanela() {
+      // Mantido para janelas auxiliares que usam a mesma API.
     }
 
-    function observarJanela(janela) {
-      if (!janela || janelas.has(janela)) return;
-      janelas.add(janela);
-      ['pointerdown', 'keydown', 'input', 'touchstart'].forEach(tipo =>
-        janela.document.addEventListener(tipo, registrarAtividade, { passive: true }));
-      // No AutoProg, ler/rolar ou mover o ponteiro também é uso real. O limite
-      // de 30s evita trabalho contínuo enquanto o ponteiro está em movimento.
-      if (modulo === 'AUTOPROG') {
-        ['scroll', 'wheel', 'pointermove'].forEach(tipo =>
-          janela.document.addEventListener(tipo, registrarAtividadePassiva, { passive: true, capture: true }));
-      }
-      janela.addEventListener('focus', () => {
-        if (verificarTempo()) registrarAtividade();
-      });
-      janela.document.addEventListener('visibilitychange', () => {
-        if (!janela.document.hidden && verificarTempo()) registrarAtividade();
-      });
-    }
-
-    function iniciar(restaurar) {
+    function iniciar() {
       if (!config.obterAuth()?.autenticacao?.sessaoId) return false;
-      let guardado = 0;
-      try { guardado = restaurar ? Number(storage.getItem(activityKey)) : 0; } catch (_) {}
-      ultimaAtividade = guardado > 0 && guardado <= Date.now() ? guardado : Date.now();
       ativo = true;
-      ultimoRegistroLocal = 0;
-      ultimoEventoPassivo = 0;
-      salvarAtividade();
-      observarJanela(global);
-      return verificarTempo();
+      return true;
     }
 
     function parar() {
       ativo = false;
-      clearTimeout(timer);
-      esconderAviso();
-      try { storage.removeItem(activityKey); } catch (_) {}
     }
 
     async function renovar(forcar) {
@@ -976,14 +881,13 @@ tbody tr:hover { background: #f4faf8; }
           throw new Error('Não foi possível renovar a sessão agora. Tente novamente.');
         }
         config.salvarAuth(dados);
-        ultimaRequisicao = Date.now();
         return dados;
       })().finally(() => { renovacao = null; });
       return renovacao;
     }
 
     async function buscar(url, options = {}) {
-      if (!ativo || !verificarTempo()) throw erroSessao();
+      if (!ativo) throw erroSessao();
       const { facilitaBackground, ...fetchOptions } = options;
       let auth = await renovar(false);
       const enviar = dados => fetch(url, {
@@ -1005,7 +909,6 @@ tbody tr:hover { background: #f4faf8; }
         resposta = await enviar(auth);
         if (resposta.status === 401) { expirar(); throw erroSessao(); }
       }
-      if (!facilitaBackground && resposta.ok) ultimaRequisicao = Date.now();
       return resposta;
     }
 
@@ -2074,14 +1977,14 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
-  "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
   "CORREÇÃO: ao reabrir um JSON com acesso de escrita, o AutoProg solicita autorização e preserva o vínculo para autosave no mesmo arquivo; sem suporte do navegador, informa que a gravação direta não está disponível",
-  "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação; o logout por inatividade continua após 15 minutos sem uso",
+  "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação",
   "CORREÇÃO: autosave detecta alterações reais e grava no arquivo vinculado a cada verificação, mesmo durante o uso contínuo da tela",
-  "SESSÃO: leitura com rolagem e movimento do ponteiro conta como atividade; logout do AutoProg permanece após 15 minutos reais sem uso",
   "CORREÇÃO: autosave preserva o arquivo da sessão e não abre o diálogo de programação nova quando a escrita falha ou a permissão precisa ser renovada",
   "AJUSTE VISUAL: o Dashboard usa as cores padronizadas e distintas de ATCR, OMVE, URGT, SEGU, MAMB e SAUD nos indicadores e nas ordens",
-  "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
+  "SESSÃO: consultas renovam a credencial automaticamente, sem apagar a programação e com autosave preservado",
   "AJUSTE VISUAL: removido o botão redundante Ordenar / filtrar das telas 7 e 8, sem alterar os dados e filtros principais",
   "MELHORIA: Detalhes da tela 8 expande as colunas da esquerda para a direita em uma tabela de linhas únicas, com filtros nos cabeçalhos",
   "AJUSTE RESPONSIVO: as 10 telas se adaptam a notebooks e desktops; na tela 8, o modo compacto evita rolagem horizontal e Detalhes mantém todas as colunas em linha única, com rolagem apenas dentro da tabela quando necessário",

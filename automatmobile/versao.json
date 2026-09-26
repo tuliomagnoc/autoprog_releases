@@ -5,8 +5,9 @@
   "apkUrl": "https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/AutoMat-Mobile-V2026.27.01.09.apk",
   "data": "2026-09-26",
   "novidades": [
-    "V2026.27.01.09 — SESSÃO: renovação automática da credencial e encerramento após 10 minutos sem uso, sem consultas contínuas; fila offline preservada no APK",
-    "SESSÃO: atualização de dados ao usar o app sem consulta contínua; acesso encerrado após 10 minutos sem uso",
+    "V2026.27.01.09 — SESSÃO: removido o logout automático por inatividade no site; o aplicativo Android permanece inalterado nesta atualização",
+    "SESSÃO: renovação automática da credencial sem consultas contínuas; fila offline preservada no APK",
+    "SESSÃO: atualização de dados ao usar o app sem consulta contínua",
     "MELHORIA: consulta inicia com Planta e PCM do perfil autenticado e mantém os filtros encadeados",
     "CORREÇÃO: aplicativo e versão web passam a usar somente a API do Azure, sem dependência da Vercel",
     "NOVO: preparação e validação do aplicativo para iPhone e iPad com Expo/EAS",
