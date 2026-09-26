@@ -1096,7 +1096,8 @@ tbody tr:hover { background: #f4faf8; }
     obterAuth: _obterAuth, salvarAuth: _salvarAuth, limparAuth: _limparAuth,
     aoExpirar: mensagem => {
       // Garante a tentativa de autosave mesmo se o navegador retardar o intervalo em segundo plano.
-      if (typeof window._autoSave === 'function') void window._autoSave();
+      // Sem arquivo gravável, não abra o diálogo de "programação nova" sobre o login.
+      if (_autoSaveHandle && typeof window._autoSave === 'function') void window._autoSave();
       _hide(mensagem);
     }
   });
@@ -2056,6 +2057,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "CORREÇÃO: autosave preserva o arquivo da sessão e não abre o diálogo de programação nova quando a escrita falha ou a permissão precisa ser renovada",
   "AJUSTE VISUAL: o Dashboard usa as cores padronizadas e distintas de ATCR, OMVE, URGT, SEGU, MAMB e SAUD nos indicadores e nas ordens",
   "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
   "AJUSTE VISUAL: removido o botão redundante Ordenar / filtrar das telas 7 e 8, sem alterar os dados e filtros principais",
@@ -2712,6 +2714,7 @@ let rplDayFilter = null; // active day filter (ISO date string or null) // col -
 let rplWeekOffset = 0; // deslocamento de semanas na barra de dias da RPL (0 = semana da sessão; -1 anterior, +1 seguinte...)
 let blFilterDropdown = null;
 let _autoSaveHandle = null;
+let _arquivoSessaoSelecionado = false; // sessão já salva/carregada, mesmo sem permissão de escrita
 let _sessaoIniciada = false; // vira true após o 1º salvamento OU carregamento de sessão - libera navegação livre pelas bolinhas (telas 2-10)
 let _capCTFilter = '';
 let _saveHistory = []; // últimos 10 saves para reverter
@@ -13826,7 +13829,7 @@ function _exibirSessaoConsulta(jsonText, fileName) {
   win.document.close();
 }
 
-function salvarSessao() {
+async function salvarSessao() {
   // Captura o texto do campo de observações SÓ se estiver na tela 5 (nas outras
   // telas o .value do textarea oculto pode não refletir o valor real; a variável
   // efObservacoes mantida pelo oninput é a fonte de verdade).
@@ -13859,30 +13862,38 @@ function salvarSessao() {
     if (btn) { const o=btn.innerHTML; btn.innerHTML='<i class=icon-check></i>'; btn.style.color='var(--green)'; setTimeout(()=>{btn.innerHTML=o;btn.style.color='';},1500); }
   };
 
-  // If a file handle is already established (session already has a saved
-  // JSON), write directly to it - NEVER re-show the "Save As" dialog again.
-  // Only ask where to save the very first time (no handle yet).
-  if (_autoSaveHandle) {
-    _autoSaveHandle.createWritable()
-      .then(writable => { writable.write(json); return writable; })
-      .then(writable => { writable.close(); feedback(); })
-      .catch(err => {
-        console.warn('salvarSessao: handle write failed, falling back to picker.', err);
-        _autoSaveHandle = null;
-        salvarSessao(); // retry once, will fall into the picker branch below
-      });
-    return;
-  }
+  try {
+    // Arquivo já vinculado: nunca descartá-lo nem abrir "Salvar como" por
+    // causa de uma falha transitória. O clique permite recuperar a permissão.
+    if (_autoSaveHandle) {
+      if (typeof _autoSaveHandle.queryPermission === 'function' &&
+          await _autoSaveHandle.queryPermission({ mode: 'readwrite' }) !== 'granted') {
+        const perm = typeof _autoSaveHandle.requestPermission === 'function'
+          ? await _autoSaveHandle.requestPermission({ mode: 'readwrite' }) : 'denied';
+        if (perm !== 'granted') throw new Error('Permissão de escrita não concedida para o arquivo da sessão.');
+      }
+      const writable = await _autoSaveHandle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      _arquivoSessaoSelecionado = true;
+      feedback();
+      return;
+    }
 
-  if (window.showSaveFilePicker) {
-    window.showSaveFilePicker({
-      suggestedName: fileName,
-      types: [{ description: 'JSON', accept: {'application/json': ['.json']} }]
-    }).then(handle => { _autoSaveHandle = handle; return handle.createWritable(); })
-      .then(writable => { writable.write(json); return writable; })
-      .then(writable => { writable.close(); feedback(); })
-      .catch(err => { if (err.name !== 'AbortError') console.error(err); });
-  } else {
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{ description: 'JSON', accept: {'application/json': ['.json']} }]
+      });
+      _autoSaveHandle = handle;
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      _arquivoSessaoSelecionado = true;
+      feedback();
+      return;
+    }
+
     const blob = new Blob([json], {type:'application/json'});
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -13890,7 +13901,12 @@ function salvarSessao() {
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+    _arquivoSessaoSelecionado = true;
     feedback();
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    console.warn('Não foi possível salvar a sessão no arquivo vinculado:', err);
+    alert('Não foi possível gravar no arquivo da sessão. O vínculo com ele foi preservado. Verifique a permissão de escrita e tente salvar novamente.\n\nDetalhes: ' + err.message);
   }
 }
 
@@ -13898,13 +13914,19 @@ function carregarSessao(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) { _processarSessaoJSON(e.target.result); };
+  reader.onload = function(e) {
+    if (_processarSessaoJSON(e.target.result)) {
+      // FileReader não fornece uma permissão de escrita para o mesmo arquivo.
+      _autoSaveHandle = null;
+      _arquivoSessaoSelecionado = true;
+    }
+  };
   reader.readAsText(file);
 }
 
 function carregarSessaoFSA() {
   if (window.showOpenFilePicker) {
-    window.showOpenFilePicker({
+    return window.showOpenFilePicker({
       types: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
       multiple: false
     }).then(async ([handle]) => {
@@ -13913,15 +13935,18 @@ function carregarSessaoFSA() {
       if (perm !== 'granted') {
         perm = await handle.requestPermission({ mode: 'readwrite' });
       }
-      if (perm === 'granted') {
-        _autoSaveHandle = handle;
-      } else {
-        _showAutoSaveToast('<i class=icon-alert-triangle></i> Permissão negada - use <i class=icon-save></i> para salvar manualmente');
-        alert('O navegador negou permissão de escrita no arquivo.\n\nPara ativar o auto-save:\n• Tente mover o arquivo JSON para uma pasta diferente (ex: Documentos)\n• Ou use o botão 💾 para salvar manualmente após cada alteração.');
-      }
       const file = await handle.getFile();
       const text = await file.text();
-      _processarSessaoJSON(text);
+      if (_processarSessaoJSON(text)) {
+        // Preserve o vínculo mesmo se a escrita foi negada; Salvar pode
+        // solicitar a permissão novamente sem criar outro arquivo.
+        _autoSaveHandle = handle;
+        _arquivoSessaoSelecionado = true;
+        if (perm !== 'granted') {
+          _showAutoSaveToast('<i class=icon-alert-triangle></i> Autorize a escrita pelo botão Salvar para ativar o autosave');
+          alert('Sessão carregada, mas o navegador não autorizou a escrita no arquivo.\n\nClique em Salvar para tentar conceder a permissão. Até lá, o autosave não poderá alterar esse arquivo.');
+        }
+      }
     }).catch(err => { if (err.name !== 'AbortError') console.error(err); });
   } else {
     // Fallback: classic input
@@ -14040,8 +14065,9 @@ function _processarSessaoJSON(text) {
       alert('Sessão carregada!\n' +
         'Supervisão: ' + (supervisao||'-') + ' | Semana: ' + (semanaWizard.num||'-') + '/' + (semanaWizard.ano||'-') + '\n' +
         dados.length + ' operações | ' + Object.keys(programacao).length + ' programadas');
+      return true;
 
-    } catch(err) { alert('Erro ao carregar sessão: ' + err.message); }
+    } catch(err) { alert('Erro ao carregar sessão: ' + err.message); return false; }
 }
 
 // Init
@@ -14183,7 +14209,7 @@ function _updateLastSaveLabel() {
   } catch(e) {}
 }
 
-function _showAutoSaveToast(msg) {
+  function _showAutoSaveToast(msg) {
     let toast = document.getElementById('autosave-toast');
     if (!toast) {
       toast = document.createElement('div');
@@ -14213,13 +14239,29 @@ function _showAutoSaveToast(msg) {
     }
   }
 
+  let _avisoSemArquivo = false;
+  let _avisoFalhaAutoSave = false;
+  let _autoSaveEmAndamento = false;
   async function _autoSave() {
     // Condição: ao menos 1 operação programada, mudanças não salvas e 9s de ociosidade
     if (Object.keys(programacao).length === 0) return;
     if (!_unsavedChanges) return;
     const idleSecs = (Date.now() - _lastActivity) / 1000;
     if (idleSecs < 9) return;
+    if (_autoSaveEmAndamento) return;
 
+    // Uma sessão aberta por FileReader ou salva como download já tem arquivo,
+    // mas o navegador não forneceu acesso de escrita a ele. Não a trate como
+    // programação nova nem sugira criar outro arquivo automaticamente.
+    if (!_autoSaveHandle && _arquivoSessaoSelecionado) {
+      if (!_avisoSemArquivo) {
+        _showAutoSaveToast('<i class=icon-alert-triangle></i> Arquivo sem acesso de escrita; use Salvar para vincular uma cópia editável');
+        _avisoSemArquivo = true;
+      }
+      return;
+    }
+
+    _autoSaveEmAndamento = true;
     try {
       const json = _buildSessaoJSON();
 
@@ -14227,13 +14269,17 @@ function _showAutoSaveToast(msg) {
         // Sessão importada: salva silenciosamente no mesmo arquivo
         const perm = await _autoSaveHandle.queryPermission({ mode: 'readwrite' });
         if (perm !== 'granted') {
-          _showAutoSaveToast('<i class=icon-alert-triangle></i> Permissão perdida - salve manualmente com <i class=icon-save></i>');
+          if (!_avisoFalhaAutoSave) {
+            _showAutoSaveToast('<i class=icon-alert-triangle></i> Permissão perdida - clique em Salvar para autorizar o arquivo');
+            _avisoFalhaAutoSave = true;
+          }
           return;
         }
         const writable = await _autoSaveHandle.createWritable();
         await writable.write(json);
         await writable.close();
         _unsavedChanges = false;
+        _avisoFalhaAutoSave = false;
         _showAutoSaveToast('<i class=icon-save></i> Salvo automaticamente');
 
       } else {
@@ -14286,9 +14332,16 @@ function _showAutoSaveToast(msg) {
       }
     } catch(e) {
       console.warn('Auto-save error:', e);
+      if (!_avisoFalhaAutoSave) {
+        _showAutoSaveToast('<i class=icon-alert-triangle></i> Falha ao gravar no arquivo; clique em Salvar para tentar novamente');
+        _avisoFalhaAutoSave = true;
+      }
+    } finally {
+      _autoSaveEmAndamento = false;
     }
   }
 
+  window._autoSave = _autoSave;
   setInterval(_autoSave, 10000);
 
   // Ao tentar fechar a aba/janela com trabalho não salvo: dispara uma
