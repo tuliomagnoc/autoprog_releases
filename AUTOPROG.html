@@ -829,6 +829,7 @@ tbody tr:hover { background: #f4faf8; }
     let renovacao = null;
     let toque = null;
     let ativo = false;
+    let ultimoEventoPassivo = 0;
     const janelas = new WeakSet();
 
     function erroSessao() {
@@ -907,11 +908,24 @@ tbody tr:hover { background: #f4faf8; }
       }
     }
 
+    function registrarAtividadePassiva() {
+      const agora = Date.now();
+      if (agora - ultimoEventoPassivo < 30_000) return;
+      ultimoEventoPassivo = agora;
+      registrarAtividade();
+    }
+
     function observarJanela(janela) {
       if (!janela || janelas.has(janela)) return;
       janelas.add(janela);
       ['pointerdown', 'keydown', 'input', 'touchstart'].forEach(tipo =>
         janela.document.addEventListener(tipo, registrarAtividade, { passive: true }));
+      // No AutoProg, ler/rolar ou mover o ponteiro também é uso real. O limite
+      // de 30s evita trabalho contínuo enquanto o ponteiro está em movimento.
+      if (modulo === 'AUTOPROG') {
+        ['scroll', 'wheel', 'pointermove'].forEach(tipo =>
+          janela.document.addEventListener(tipo, registrarAtividadePassiva, { passive: true, capture: true }));
+      }
       janela.addEventListener('focus', () => {
         if (verificarTempo()) registrarAtividade();
       });
@@ -927,6 +941,7 @@ tbody tr:hover { background: #f4faf8; }
       ultimaAtividade = guardado > 0 && guardado <= Date.now() ? guardado : Date.now();
       ativo = true;
       ultimoRegistroLocal = 0;
+      ultimoEventoPassivo = 0;
       salvarAtividade();
       observarJanela(global);
       return verificarTempo();
@@ -2057,6 +2072,8 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
+  "CORREÇÃO: autosave detecta alterações reais e grava no arquivo vinculado a cada verificação, mesmo durante o uso contínuo da tela",
+  "SESSÃO: leitura com rolagem e movimento do ponteiro conta como atividade; logout do AutoProg permanece após 15 minutos reais sem uso",
   "CORREÇÃO: autosave preserva o arquivo da sessão e não abre o diálogo de programação nova quando a escrita falha ou a permissão precisa ser renovada",
   "AJUSTE VISUAL: o Dashboard usa as cores padronizadas e distintas de ATCR, OMVE, URGT, SEGU, MAMB e SAUD nos indicadores e nas ordens",
   "SESSÃO: consultas renovam a credencial automaticamente; após 15 minutos sem uso, o acesso é encerrado sem apagar a programação, com autosave preservado",
@@ -14166,7 +14183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener(ev, () => { _lastActivity = Date.now(); }, {passive:true})
   );
 
-  function _buildSessaoJSON() {
+  function _buildSessaoJSON(incluirData = true) {
     // Só lê o textarea se a tela 5 estiver ativa (o campo existe no DOM em todas
     // as telas, mas seu .value só é confiável na tela 5; nas outras, a variável
     // efObservacoes - mantida pelo oninput - é a fonte de verdade). Evita que o
@@ -14181,9 +14198,9 @@ document.addEventListener('DOMContentLoaded', () => {
       supervisao, semanaWizard, programacao, naoProgramadas,
       efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
       rawMateriais, ataParticipantes, _impDados, todosOsCentros,
-      sortOverrides, _exportChecklist, _pendencias, historicoEncerradas,
-      _data: new Date().toISOString()
+      sortOverrides, _exportChecklist, _pendencias, historicoEncerradas
     };
+    if (incluirData) sessao._data = new Date().toISOString();
     return JSON.stringify(sessao);
   }
 
@@ -14242,13 +14259,16 @@ function _updateLastSaveLabel() {
   let _avisoSemArquivo = false;
   let _avisoFalhaAutoSave = false;
   let _autoSaveEmAndamento = false;
+  let _ultimoConteudoAutoSave = null;
   async function _autoSave() {
-    // Condição: ao menos 1 operação programada, mudanças não salvas e 9s de ociosidade
+    // Para um arquivo já vinculado, compare o conteúdo real: nem toda edição
+    // passa por saveProgState, e movimentos do mouse não devem adiar a gravação.
     if (Object.keys(programacao).length === 0) return;
-    if (!_unsavedChanges) return;
-    const idleSecs = (Date.now() - _lastActivity) / 1000;
-    if (idleSecs < 9) return;
     if (_autoSaveEmAndamento) return;
+    const conteudo = _autoSaveHandle ? _buildSessaoJSON(false) : null;
+    if (!_unsavedChanges && (!_autoSaveHandle || conteudo === _ultimoConteudoAutoSave)) return;
+    // O aviso da primeira gravação continua aguardando 9s de ociosidade.
+    if (!_autoSaveHandle && (Date.now() - _lastActivity) / 1000 < 9) return;
 
     // Uma sessão aberta por FileReader ou salva como download já tem arquivo,
     // mas o navegador não forneceu acesso de escrita a ele. Não a trate como
@@ -14279,6 +14299,7 @@ function _updateLastSaveLabel() {
         await writable.write(json);
         await writable.close();
         _unsavedChanges = false;
+        _ultimoConteudoAutoSave = conteudo;
         _avisoFalhaAutoSave = false;
         _showAutoSaveToast('<i class=icon-save></i> Salvo automaticamente');
 
