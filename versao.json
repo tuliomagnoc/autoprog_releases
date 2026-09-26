@@ -3,7 +3,7 @@
   "data": "2026-09-26",
   "novidades": [
     "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
-    "CORREÇÃO: quando o navegador não permite gravar no JSON importado, o AutoProg oferece cópia automática local a cada 10 segundos e recuperação ao reimportar; o arquivo original só muda pelo botão Salvar",
+    "CORREÇÃO: ao reabrir um JSON com acesso de escrita, o AutoProg solicita autorização e preserva o vínculo para autosave no mesmo arquivo; sem suporte do navegador, informa que a gravação direta não está disponível",
     "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação; o logout por inatividade continua após 15 minutos sem uso",
     "CORREÇÃO: autosave detecta alterações reais e grava no arquivo vinculado a cada verificação, mesmo durante o uso contínuo da tela",
     "SESSÃO: leitura com rolagem e movimento do ponteiro conta como atividade; logout do AutoProg permanece após 15 minutos reais sem uso",

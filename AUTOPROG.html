@@ -1114,7 +1114,7 @@ tbody tr:hover { background: #f4faf8; }
     aoExpirar: mensagem => {
       // Garante a tentativa de autosave mesmo se o navegador retardar o intervalo em segundo plano.
       // Sem arquivo gravável, não abra o diálogo de "programação nova" sobre o login.
-      if ((_autoSaveHandle || _backupLocalHabilitado) && typeof window._autoSave === 'function') void window._autoSave();
+      if (_autoSaveHandle && typeof window._autoSave === 'function') void window._autoSave();
       _hide(mensagem);
     }
   });
@@ -1176,7 +1176,7 @@ tbody tr:hover { background: #f4faf8; }
   };
 
   window._logoutAutoprog = async function(){
-    if ((_autoSaveHandle || _backupLocalHabilitado) && typeof window._autoSave === 'function') await window._autoSave();
+    if (_autoSaveHandle && typeof window._autoSave === 'function') await window._autoSave();
     await window._sessaoAutoprog.logout();
     window.location.reload();
   };
@@ -2075,7 +2075,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
-  "CORREÇÃO: quando o navegador não permite gravar no JSON importado, o AutoProg oferece cópia automática local a cada 10 segundos e recuperação ao reimportar; o arquivo original só muda pelo botão Salvar",
+  "CORREÇÃO: ao reabrir um JSON com acesso de escrita, o AutoProg solicita autorização e preserva o vínculo para autosave no mesmo arquivo; sem suporte do navegador, informa que a gravação direta não está disponível",
   "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação; o logout por inatividade continua após 15 minutos sem uso",
   "CORREÇÃO: autosave detecta alterações reais e grava no arquivo vinculado a cada verificação, mesmo durante o uso contínuo da tela",
   "SESSÃO: leitura com rolagem e movimento do ponteiro conta como atividade; logout do AutoProg permanece após 15 minutos reais sem uso",
@@ -2737,8 +2737,6 @@ let rplWeekOffset = 0; // deslocamento de semanas na barra de dias da RPL (0 = s
 let blFilterDropdown = null;
 let _autoSaveHandle = null;
 let _arquivoSessaoSelecionado = false; // sessão já salva/carregada, mesmo sem permissão de escrita
-let _backupLocalChave = '';
-let _backupLocalHabilitado = false;
 let _sessaoIniciada = false; // vira true após o 1º salvamento OU carregamento de sessão - libera navegação livre pelas bolinhas (telas 2-10)
 let _capCTFilter = '';
 let _saveHistory = []; // últimos 10 saves para reverter
@@ -13934,88 +13932,15 @@ async function salvarSessao() {
   }
 }
 
-function _chaveBackupLocal(file) {
-  const usuario = typeof window._obterAuth === 'function' ? window._obterAuth()?.usuario : null;
-  return String(usuario?.uid || usuario?.usuario || 'local') + ':' + String(file?.name || 'sessao.json').toLowerCase();
-}
-
-function _abrirBancoBackupLocal() {
-  return new Promise((resolve, reject) => {
-    if (!window.indexedDB) return reject(new Error('Armazenamento local indisponível neste navegador.'));
-    const pedido = window.indexedDB.open('autoprog-copias-locais', 1);
-    pedido.onupgradeneeded = () => pedido.result.createObjectStore('sessoes', { keyPath: 'chave' });
-    pedido.onsuccess = () => resolve(pedido.result);
-    pedido.onerror = () => reject(pedido.error || new Error('Não foi possível abrir o armazenamento local.'));
-  });
-}
-
-async function _lerBackupLocal(chave) {
-  const banco = await _abrirBancoBackupLocal();
-  return new Promise((resolve, reject) => {
-    const transacao = banco.transaction('sessoes', 'readonly');
-    const pedido = transacao.objectStore('sessoes').get(chave);
-    pedido.onsuccess = () => resolve(pedido.result || null);
-    pedido.onerror = () => reject(pedido.error || new Error('Falha ao consultar a cópia local.'));
-    transacao.oncomplete = () => banco.close();
-    transacao.onabort = () => { banco.close(); reject(transacao.error || new Error('Falha ao consultar a cópia local.')); };
-  });
-}
-
-async function _gravarBackupLocal(chave, conteudo) {
-  const banco = await _abrirBancoBackupLocal();
-  return new Promise((resolve, reject) => {
-    const transacao = banco.transaction('sessoes', 'readwrite');
-    transacao.objectStore('sessoes').put({ chave, conteudo, atualizadoEm: Date.now() });
-    transacao.oncomplete = () => { banco.close(); resolve(); };
-    transacao.onerror = () => { banco.close(); reject(transacao.error || new Error('Falha ao gravar a cópia local.')); };
-    transacao.onabort = () => { banco.close(); reject(transacao.error || new Error('Falha ao gravar a cópia local.')); };
-  });
-}
-
-async function _prepararSessaoImportada(texto, file) {
-  const chave = _chaveBackupLocal(file);
-  let recuperada = false;
-  try {
-    const copia = await _lerBackupLocal(chave);
-    if (copia?.conteudo) {
-      const original = JSON.parse(texto);
-      const comparavel = { ...original };
-      delete comparavel._data;
-      const dataArquivo = Math.max(Date.parse(original._data || '') || 0, Number(file?.lastModified) || 0);
-      if (copia.atualizadoEm > dataArquivo + 1000 && copia.conteudo !== JSON.stringify(comparavel)) {
-        recuperada = confirm('Existe uma cópia automática mais recente desta sessão neste navegador.\n\nDeseja recuperar as alterações não gravadas no arquivo JSON?');
-        if (recuperada) texto = copia.conteudo;
-      }
-    }
-  } catch (erro) {
-    console.warn('Cópia local indisponível:', erro);
-  }
-  return { texto, chave, recuperada };
-}
-
-function _oferecerBackupLocal() {
-  if (!window.indexedDB) {
-    alert('Este navegador não permite gravar automaticamente no arquivo nem manter cópia local. Use Salvar após cada alteração para baixar o JSON atualizado.');
-    return false;
-  }
-  return confirm('Este navegador não permite sobrescrever automaticamente o JSON escolhido.\n\nDeseja ativar uma cópia automática neste navegador a cada 10 segundos? O arquivo original não será alterado; ao reimportá-lo, o AutoProg oferecerá a recuperação da cópia. Esta cópia não é sincronizada e pode ser apagada ao limpar os dados do site. Use Salvar para baixar um JSON atualizado.');
-}
-
 function carregarSessao(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = async function(e) {
-    const importacao = await _prepararSessaoImportada(e.target.result, file);
-    if (_processarSessaoJSON(importacao.texto)) {
+  reader.onload = function(e) {
+    if (_processarSessaoJSON(e.target.result)) {
       // FileReader não fornece uma permissão de escrita para o mesmo arquivo.
       _autoSaveHandle = null;
       _arquivoSessaoSelecionado = true;
-      _backupLocalChave = importacao.chave;
-      _backupLocalHabilitado = _oferecerBackupLocal();
-      _ultimoConteudoAutoSave = importacao.recuperada ? null : _buildSessaoJSON(false);
-      _ultimoConteudoBackupLocal = null;
-      _unsavedChanges = importacao.recuperada;
     }
   };
   reader.readAsText(file);
@@ -14034,24 +13959,21 @@ function carregarSessaoFSA() {
       }
       const file = await handle.getFile();
       const text = await file.text();
-      const importacao = await _prepararSessaoImportada(text, file);
-      if (_processarSessaoJSON(importacao.texto)) {
+      if (_processarSessaoJSON(text)) {
         // Preserve o vínculo mesmo se a escrita foi negada; Salvar pode
         // solicitar a permissão novamente sem criar outro arquivo.
         _autoSaveHandle = handle;
         _arquivoSessaoSelecionado = true;
-        _backupLocalChave = importacao.chave;
-        _backupLocalHabilitado = perm !== 'granted' ? _oferecerBackupLocal() : false;
-        _ultimoConteudoAutoSave = importacao.recuperada ? null : _buildSessaoJSON(false);
-        _ultimoConteudoBackupLocal = null;
-        _unsavedChanges = importacao.recuperada;
         if (perm !== 'granted') {
-          _showAutoSaveToast('<i class=icon-alert-triangle></i> Escrita no JSON não autorizada; use Salvar para permitir');
+          _showAutoSaveToast('<i class=icon-alert-triangle></i> Autorize a escrita pelo botão Salvar para ativar o autosave');
+          alert('Sessão carregada, mas o navegador não autorizou a escrita no arquivo.\n\nClique em Salvar para tentar conceder a permissão. Até lá, o autosave não poderá alterar esse arquivo.');
         }
       }
     }).catch(err => { if (err.name !== 'AbortError') console.error(err); });
   } else {
-    // Fallback: classic input
+    // O seletor clássico permite apenas ler o JSON; não pode sobrescrevê-lo.
+    // Avise antes de importar para não prometer autosave no arquivo original.
+    alert('Este navegador não disponibiliza acesso de escrita a arquivos nesta página. A sessão poderá ser carregada, mas não será possível salvar automaticamente no mesmo JSON. Use Salvar para baixar uma nova cópia até que esse recurso esteja disponível.');
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = '.json';
     inp.onchange = () => carregarSessao(inp);
@@ -14345,37 +14267,22 @@ function _updateLastSaveLabel() {
   let _avisoFalhaAutoSave = false;
   let _autoSaveEmAndamento = false;
   let _ultimoConteudoAutoSave = null;
-  let _ultimoConteudoBackupLocal = null;
-  async function _salvarCopiaLocal(conteudo) {
-    if (!_backupLocalHabilitado || !_backupLocalChave) return false;
-    if (conteudo !== _ultimoConteudoBackupLocal) {
-      await _gravarBackupLocal(_backupLocalChave, conteudo);
-      _ultimoConteudoBackupLocal = conteudo;
-    }
-    const el = document.getElementById('last-save-label');
-    if (el) {
-      el.textContent = new Date().toLocaleString('pt-BR') + ' | cópia local';
-      el.title = 'Cópia automática neste navegador; o arquivo JSON original não foi alterado';
-    }
-    return true;
-  }
   async function _autoSave() {
     // Para um arquivo já vinculado, compare o conteúdo real: nem toda edição
     // passa por saveProgState, e movimentos do mouse não devem adiar a gravação.
     if (Object.keys(programacao).length === 0) return;
     if (_autoSaveEmAndamento) return;
-    const conteudo = (_autoSaveHandle || _backupLocalHabilitado) ? _buildSessaoJSON(false) : null;
-    if (!_unsavedChanges && (!conteudo || conteudo === _ultimoConteudoAutoSave)) return;
-    if (!_autoSaveHandle && _backupLocalHabilitado && conteudo === _ultimoConteudoAutoSave) return;
+    const conteudo = _autoSaveHandle ? _buildSessaoJSON(false) : null;
+    if (!_unsavedChanges && (!_autoSaveHandle || conteudo === _ultimoConteudoAutoSave)) return;
     // O aviso da primeira gravação continua aguardando 9s de ociosidade.
-    if (!_autoSaveHandle && !_backupLocalHabilitado && (Date.now() - _lastActivity) / 1000 < 9) return;
+    if (!_autoSaveHandle && (Date.now() - _lastActivity) / 1000 < 9) return;
 
     // Uma sessão aberta por FileReader ou salva como download já tem arquivo,
     // mas o navegador não forneceu acesso de escrita a ele. Não a trate como
     // programação nova nem sugira criar outro arquivo automaticamente.
-    if (!_autoSaveHandle && _arquivoSessaoSelecionado && !_backupLocalHabilitado) {
+    if (!_autoSaveHandle && _arquivoSessaoSelecionado) {
       if (!_avisoSemArquivo) {
-        _showAutoSaveToast('<i class=icon-alert-triangle></i> Arquivo sem acesso de escrita; use Salvar para vincular uma cópia editável');
+        _showAutoSaveToast('<i class=icon-alert-triangle></i> Arquivo sem acesso de escrita; use Salvar para baixar uma cópia');
         _avisoSemArquivo = true;
       }
       return;
@@ -14389,10 +14296,6 @@ function _updateLastSaveLabel() {
         // Sessão importada: salva silenciosamente no mesmo arquivo
         const perm = await _autoSaveHandle.queryPermission({ mode: 'readwrite' });
         if (perm !== 'granted') {
-          if (_backupLocalHabilitado) {
-            await _salvarCopiaLocal(conteudo);
-            _showAutoSaveToast('<i class=icon-save></i> Cópia local atualizada; JSON original inalterado');
-          }
           if (!_avisoFalhaAutoSave) {
             _showAutoSaveToast('<i class=icon-alert-triangle></i> Permissão perdida - clique em Salvar para autorizar o arquivo');
             _avisoFalhaAutoSave = true;
@@ -14406,13 +14309,6 @@ function _updateLastSaveLabel() {
         _ultimoConteudoAutoSave = conteudo;
         _avisoFalhaAutoSave = false;
         _showAutoSaveToast('<i class=icon-save></i> Salvo automaticamente');
-
-      } else if (_backupLocalHabilitado) {
-        await _salvarCopiaLocal(conteudo);
-        _ultimoConteudoAutoSave = conteudo;
-        // O JSON original continua desatualizado: preservar o aviso ao fechar.
-        _unsavedChanges = true;
-        _showAutoSaveToast('<i class=icon-save></i> Cópia local atualizada; JSON original inalterado');
 
       } else {
         // Nova programação: popup bloqueante até salvar
@@ -14464,13 +14360,6 @@ function _updateLastSaveLabel() {
       }
     } catch(e) {
       console.warn('Auto-save error:', e);
-      if (_backupLocalHabilitado && conteudo) {
-        try {
-          await _salvarCopiaLocal(conteudo);
-          _showAutoSaveToast('<i class=icon-save></i> Cópia local atualizada; JSON original inalterado');
-          return;
-        } catch (erroBackup) { console.warn('Falha na cópia local:', erroBackup); }
-      }
       if (!_avisoFalhaAutoSave) {
         _showAutoSaveToast('<i class=icon-alert-triangle></i> Falha ao gravar no arquivo; clique em Salvar para tentar novamente');
         _avisoFalhaAutoSave = true;
