@@ -1,8 +1,10 @@
 {
   "versao": "V2026.27.01.94",
-  "data": "2026-09-26",
+  "data": "2026-09-27",
   "novidades": [
     "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "AJUSTE VISUAL: botão Detalhes da tela 8 revela as colunas da esquerda para a direita com efeito deslizante, sem travar a tabela nem alterar filtros e ordenação",
+    "AJUSTE VISUAL: janela Impressão em Lote SAP (ZOVRM004) repaginada com logomarca, resumo da semana, instruções e listas por dia, preservando a cópia individual e de todas as OMs",
     "MELHORIA: observação rápida limitada a 35 caracteres; a observação detalhada aparece em linha vinculada à ordem na janela Visualizar programação e acompanha sua ordenação manual, sem alterar H/H",
     "AJUSTE VISUAL: marcação automática posicionada acima do rótulo Observação rápida na janela Programar operação",
     "AJUSTE VISUAL: seta no início da linha de observação detalhada indica sua ligação com a ordem imediatamente acima",
