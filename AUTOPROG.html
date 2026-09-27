@@ -1946,9 +1946,15 @@ tbody tr:hover { background: #f4faf8; }
       </div>
       <div class="form-row">
         <div class="form-group" style="flex:2">
-          <label>Observação</label>
           <div id="m-obs-auto" style="display:none;font-size:10px;background:#FEF3C7;color:#92400E;border-radius:3px;padding:3px 7px;margin-bottom:4px;border:1px solid #FCD34D;"></div>
-          <textarea id="m-obs" placeholder="Observação manual (ex: PARADO E LIMPEZA, VEÍCULO...)"></textarea>
+          <label for="m-obs">Observação rápida <span id="m-obs-count" style="float:right;font-size:10px;color:var(--text2);">0/35</span></label>
+          <input id="m-obs" type="text" maxlength="35" placeholder="Até 35 caracteres" oninput="_atualizarContadorObsRapida()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
+          <label for="m-obs-detalhada">Observação detalhada</label>
+          <textarea id="m-obs-detalhada" rows="4" placeholder="Detalhes técnicos da operação (aparecem abaixo da ordem em Visualizar programação)"></textarea>
         </div>
       </div>
       <div id="modal-alert" style="display:none; padding:8px 12px; border-radius:var(--radius-sm); font-size:12px; margin-top:4px;"></div>
@@ -1978,6 +1984,9 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "MELHORIA: observação rápida limitada a 35 caracteres; a observação detalhada aparece em linha vinculada à ordem na janela Visualizar programação e acompanha sua ordenação manual, sem alterar H/H",
+  "AJUSTE VISUAL: marcação automática posicionada acima do rótulo Observação rápida na janela Programar operação",
+  "AJUSTE VISUAL: seta no início da linha de observação detalhada indica sua ligação com a ordem imediatamente acima",
   "RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
   "CORREÇÃO: ao reabrir um JSON com acesso de escrita, o AutoProg solicita autorização e preserva o vínculo para autosave no mesmo arquivo; sem suporte do navegador, informa que a gravação direta não está disponível",
   "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação",
@@ -3558,6 +3567,22 @@ function addDays(dateStr, n) {
 // ============================================================
 let bulkOrdens = null;
 
+const LIMITE_OBS_RAPIDA = 35;
+
+function _separarObsRapida(texto) {
+  const obs = String(texto || '').trim();
+  if (obs.length <= LIMITE_OBS_RAPIDA) return { rapida: obs, excedente: '' };
+  let corte = obs.lastIndexOf(' ', LIMITE_OBS_RAPIDA);
+  if (corte < 20) corte = LIMITE_OBS_RAPIDA;
+  return { rapida: obs.slice(0, corte).trim(), excedente: obs.slice(corte).trim() };
+}
+
+function _atualizarContadorObsRapida() {
+  const campo = document.getElementById('m-obs');
+  const contador = document.getElementById('m-obs-count');
+  if (campo && contador) contador.textContent = campo.value.length + '/' + LIMITE_OBS_RAPIDA;
+}
+
 function abrirModal(ordem, bulk) {
   modalOrdem = ordem;
   bulkOrdens = bulk || null;
@@ -3646,7 +3671,7 @@ function abrirModal(ordem, bulk) {
     } else {
       autoEl.style.display = 'none';
     }
-    // Textarea shows ONLY manual obs
+    // O campo curto mostra apenas a parte manual, sem as etiquetas automáticas.
     // Priority: prog._manualObs (new field) → empty string
     // Never put autoTags in textarea
     let manualObs = '';
@@ -3669,7 +3694,13 @@ function abrirModal(ordem, bulk) {
         manualObs = stripped;
       }
     }
-    document.getElementById('m-obs').value = manualObs;
+    // Sessões antigas podem ter observações maiores que o novo limite.
+    // Migra o excedente para o campo detalhado sem perder texto ao confirmar.
+    const partes = _separarObsRapida(manualObs);
+    const detalheExistente = String(prog?._obsDetalhada || '').trim();
+    document.getElementById('m-obs').value = partes.rapida;
+    document.getElementById('m-obs-detalhada').value = [partes.excedente, detalheExistente].filter(Boolean).join('\n');
+    _atualizarContadorObsRapida();
   })();
 
   // Populate executor datalist
@@ -3842,6 +3873,10 @@ function _mExecutorOnInput(inputEl, event) {
 function _executarConfirmacaoProgramacao() {
   const data = document.getElementById('m-data').value;
   const executor = document.getElementById('m-executor').value.trim();
+  if (document.getElementById('m-obs').value.trim().length > LIMITE_OBS_RAPIDA) {
+    showModalAlert('A observação rápida aceita até 35 caracteres. Use a observação detalhada para o restante.', 'warn');
+    return;
+  }
   const d = dados.find(x => (x._uid||x._ordem) === modalOrdem);
 
   // Legacy date alerts (non-blocking)
@@ -3867,6 +3902,7 @@ function _executarConfirmacaoProgramacao() {
     turno: document.getElementById('m-turno').value,
     recurso: document.getElementById('m-recurso').value,
     _manualObs: document.getElementById('m-obs').value.trim(),
+    _obsDetalhada: document.getElementById('m-obs-detalhada').value.trim(),
     obs: (function() {
       const manual = document.getElementById('m-obs').value.trim();
       const autoEl = document.getElementById('m-obs-auto');
@@ -4491,6 +4527,9 @@ function _attachVizDrag() {
   try {
     const rows = _vizWin.document.querySelectorAll('tr[data-uid]');
     rows.forEach(function(row) {
+      // A janela já possui os handlers de arraste próprios; não registre um
+      // segundo drop que poderia aplicar a ordenação duas vezes.
+      if (row.hasAttribute('ondrop')) return;
       row.addEventListener('dragstart', function(e) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', e.currentTarget.dataset.uid + '|' + e.currentTarget.dataset.day);
@@ -6364,8 +6403,10 @@ function rplQuickObs(event, uid, btn) {
   wrapper.style.cssText = 'display:flex;align-items:center;gap:4px;min-width:160px;';
   const inp = document.createElement('input');
   inp.type = 'text';
-  inp.value = curObs;
-  inp.placeholder = 'Observação...';
+  const partesObs = _separarObsRapida(curObs);
+  inp.value = partesObs.rapida;
+  inp.maxLength = LIMITE_OBS_RAPIDA;
+  inp.placeholder = 'Até 35 caracteres';
   inp.style.cssText = 'flex:1;font-size:11px;padding:2px 6px;border:2px solid #007E7A;border-radius:4px;min-width:120px;';
   const btnSave = document.createElement('button');
   btnSave.innerHTML = '<i class=icon-check></i>';
@@ -6387,7 +6428,7 @@ function rplQuickObs(event, uid, btn) {
   inp.focus();
   inp.select();
 
-  const entry = { uid, inp, cell, origHTML };
+  const entry = { uid, inp, cell, origHTML, excedenteAntigo: partesObs.excedente };
   _rplOpenObsEditors.push(entry);
 
   function cancelObs() {
@@ -6408,6 +6449,10 @@ function rplQuickObs(event, uid, btn) {
 // of them.
 function _rplSaveAllOpenObs() {
   if (!_rplOpenObsEditors.length) return;
+  if (_rplOpenObsEditors.some(entry => entry.inp.value.trim().length > LIMITE_OBS_RAPIDA)) {
+    _showAutoSaveToast('A observação rápida aceita até 35 caracteres.');
+    return;
+  }
   const toSave = _rplOpenObsEditors.slice();
   _rplOpenObsEditors = [];
   let count = 0;
@@ -6415,6 +6460,9 @@ function _rplSaveAllOpenObs() {
     const p = programacao[entry.uid];
     if (!p) return;
     const val = entry.inp.value.trim();
+    if (entry.excedenteAntigo) {
+      p._obsDetalhada = [entry.excedenteAntigo, p._obsDetalhada].filter(Boolean).join('\n');
+    }
     p._manualObs = val;
     // Rebuild combined obs = autoTags + manual
     const d2 = dados.find(x => x._uid===entry.uid||x._ordem===entry.uid);
@@ -10171,7 +10219,7 @@ function buildVisualizacaoHTML() {
   +'function _vDE(e){e.currentTarget.style.opacity="1";e.currentTarget.style.outline="";}'
   +'function _vDO(e){e.preventDefault();e.currentTarget.style.outline="2px solid #007E7A";}'
   +'function _vDL(e){e.currentTarget.style.outline="";}'
-  +'function _vDP(e){e.preventDefault();var r=e.currentTarget;r.style.outline="";var tU=r.dataset.uid,tD=r.dataset.day;if(!_dU||_dU===tU||_dD!==tD){_dU=null;return;}var tb=r.closest("tbody");var rows=[].slice.call(tb.querySelectorAll("tr[data-uid]")).filter(function(x){return x.dataset.day===tD;});var fi=rows.findIndex(function(x){return x.dataset.uid===_dU;});var ti=rows.findIndex(function(x){return x.dataset.uid===tU;});if(fi>-1&&ti>-1){tb.insertBefore(rows[fi],fi<ti?rows[ti].nextSibling:rows[ti]);}var allRows=tb.querySelectorAll("tr[data-uid]"),cnt=1;allRows.forEach(function(row){var td=row.querySelector("td:first-child");if(td)td.textContent=cnt++;});var fullOrder=[].slice.call(tb.querySelectorAll("tr[data-uid]")).filter(function(x){return x.dataset.day===tD;}).map(function(x){return x.dataset.uid;});_checkConflitos();try{window.opener._applyVizSort(tD,fullOrder);}catch(ex){try{localStorage.setItem("_vizSort",JSON.stringify({day:tD,order:fullOrder,ts:Date.now()}));}catch(e2){}}_dU=null;_dD=null;}'
+  +'function _vDP(e){e.preventDefault();var r=e.currentTarget;r.style.outline="";var tU=r.dataset.uid||r.dataset.detailFor,tD=r.dataset.day;if(!_dU||_dU===tU||_dD!==tD){_dU=null;return;}var tb=r.closest("tbody");var rows=[].slice.call(tb.querySelectorAll("tr[data-uid]")).filter(function(x){return x.dataset.day===tD;});var fi=rows.findIndex(function(x){return x.dataset.uid===_dU;});var ti=rows.findIndex(function(x){return x.dataset.uid===tU;});if(fi>-1&&ti>-1){var src=rows[fi],target=rows[ti];var detail=src.nextElementSibling;if(!detail||detail.dataset.detailFor!==_dU)detail=null;var afterTarget=target.nextElementSibling;if(afterTarget&&afterTarget.dataset.detailFor===tU)afterTarget=afterTarget.nextElementSibling;var anchor=fi<ti?afterTarget:target;var block=document.createDocumentFragment();block.appendChild(src);if(detail)block.appendChild(detail);tb.insertBefore(block,anchor);}var allRows=tb.querySelectorAll("tr[data-uid]"),cnt=1;allRows.forEach(function(row){var td=row.querySelector("td:first-child");if(td)td.textContent=cnt++;});var fullOrder=[].slice.call(tb.querySelectorAll("tr[data-uid]")).filter(function(x){return x.dataset.day===tD;}).map(function(x){return x.dataset.uid;});_checkConflitos();try{window.opener._applyVizSort(tD,fullOrder);}catch(ex){try{localStorage.setItem("_vizSort",JSON.stringify({day:tD,order:fullOrder,ts:Date.now()}));}catch(e2){}}_dU=null;_dD=null;}'
   +'function _vEdit(e,field,uid){e.stopPropagation();var cur=e.currentTarget.dataset.val||e.currentTarget.textContent.replace("h","");var td=e.currentTarget;var old=td.textContent;var inp=document.createElement("input");inp.value=cur;inp.style.cssText="width:60px;font-size:inherit;padding:1px 4px;border:2px solid #007E7A;border-radius:3px;text-align:center;";td.textContent="";td.appendChild(inp);inp.focus();inp.select();function save(){var v=inp.value.trim();if(v===""||v===cur){td.textContent=old;return;}try{window.opener._applyVizEdit(field,uid,v);td.textContent=(field==="dur")?(v.replace("h","")+"h"):v;}catch(ex){localStorage.setItem("_vizEdit",JSON.stringify({field:field,uid:uid,val:v,ts:Date.now()}));td.textContent=(field==="dur")?(v.replace("h","")+"h"):v;}}inp.addEventListener("keydown",function(ev){if(ev.key==="Enter")save();if(ev.key==="Escape")td.textContent=old;});inp.addEventListener("blur",save);}'
   +'function _fmtM(m){m=((m%(24*60))+(24*60))%(24*60);var h=Math.floor(m/60),mm=m%60;return(h<10?"0":"")+h+":"+(mm<10?"0":"")+mm;}'
   +'function _isBloqR(r){var tb=r.dataset.tb||"",op=(r.dataset.op||"").replace(/^0+/,"");return(tb.includes("bloqueio e desbloqueio")||tb.includes("bloqueio e desbloq")||tb.includes("bloqueio/desbloqueio"))&&["80","82","84","86","88"].includes(op);}'
@@ -10312,13 +10360,14 @@ function buildVisualizacaoHTML() {
   +'  if(exec){'
   +'    rows.forEach(function(r){'
   +'      var execs=(r.dataset.exec||"").split(/[,;]+/).map(function(n){return n.trim();});'
-  +'      r.style.display=execs.includes(exec)?"":"none";'
+  +'      var visible=execs.includes(exec);r.style.display=visible?"":"none";'
+  +'      var detail=r.nextElementSibling;if(detail&&detail.dataset.detailFor===r.dataset.uid)detail.style.display=visible?"":"none";'
   +'    });'
   +'    var sups=[].slice.call(document.querySelectorAll("tr.day-header-row,tr.sup-row,tr.dss-row"));'
   +'    sups.forEach(function(r){r.style.display="";});'
   +'  }'
   +'  window.print();'
-  +'  rows.forEach(function(r){r.style.display="";});'
+  +'  rows.forEach(function(r){r.style.display="";var detail=r.nextElementSibling;if(detail&&detail.dataset.detailFor===r.dataset.uid)detail.style.display="";});'
   +'}'
   +'function _adequarHH(){'
   +'  var rows=[].slice.call(document.querySelectorAll("tr[data-uid][data-day]"));'
@@ -10550,6 +10599,14 @@ function buildVisualizacaoHTML() {
           <td style="${TDC}background:${bg};color:${dtMaxColor};font-weight:700;${PX}">${fmtD(d._dtMax)||'-'}</td>
           <td style="${TD}background:${bg};color:${fg};${PX}">${obs}</td>
         </tr>`;
+        const obsDetalhada=String(p._obsDetalhada||'').trim();
+        if(obsDetalhada){
+          // Linha subordinada: não recebe data-uid, H/H ou número de sequência.
+          // Assim só a ordem principal participa dos cálculos e do arraste.
+          rows+=`<tr class="viz-detail-row" data-detail-for="${esc(item.uid)}" data-day="${day}" style="background:#eef8f7;${PX}" ondragover="_vDO(event)" ondragleave="_vDL(event)" ondrop="_vDP(event)">
+            <td colspan="16" style="padding:2px 5px 2px 6px;font-size:7px;line-height:1.35;color:#245c60;border-left:3px solid ${edge};border-bottom:0.3px solid rgba(0,100,120,0.2);white-space:pre-wrap;overflow-wrap:anywhere;${PX}"><span aria-hidden="true" style="display:inline-block;margin-right:5px;color:#007E7A;font-size:11px;font-weight:700;vertical-align:-1px;">↳</span><strong>OBS. DETALHADA:</strong> ${esc(obsDetalhada)}</td>
+          </tr>`;
+        }
       });
     }
 

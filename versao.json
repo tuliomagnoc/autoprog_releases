@@ -3,6 +3,9 @@
   "data": "2026-09-26",
   "novidades": [
     "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "MELHORIA: observação rápida limitada a 35 caracteres; a observação detalhada aparece em linha vinculada à ordem na janela Visualizar programação e acompanha sua ordenação manual, sem alterar H/H",
+    "AJUSTE VISUAL: marcação automática posicionada acima do rótulo Observação rápida na janela Programar operação",
+    "AJUSTE VISUAL: seta no início da linha de observação detalhada indica sua ligação com a ordem imediatamente acima",
     "RESTAURAÇÃO: login e consulta à base de materiais reativados para validar o ambiente completo; a versão temporária 94 continua utilizável até a futura atualização 95",
     "CORREÇÃO: ao reabrir um JSON com acesso de escrita, o AutoProg solicita autorização e preserva o vínculo para autosave no mesmo arquivo; sem suporte do navegador, informa que a gravação direta não está disponível",
     "CORREÇÃO: a Azure não encerra mais a sessão segundos após o login por substituir o cabeçalho de autenticação",
