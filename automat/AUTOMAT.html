@@ -112,7 +112,6 @@
   button:disabled { opacity: .5; cursor: default; }
 
   .resumo { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-  .resumo .contexto { flex-basis: 100%; color: var(--text2); font-size: 12px; }
   .resumo .card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 12px 18px; flex: 1; min-width: 140px;
@@ -898,10 +897,11 @@ main { max-width: 1420px; padding: 26px clamp(16px, 3vw, 36px) 42px; }
 <script>
 // ── Configuração ──────────────────────────────────────────────────────
 // Versão e atualização independentes do AUTOPROG e do AutoMat Mobile.
-const AUTOMAT_APP_VERSION = 'V2026.27.01.11';
+const AUTOMAT_APP_VERSION = 'V2026.27.01.12';
 const AUTOMAT_VERSION_CHECK_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automat/versao.json';
 const AUTOMAT_DOWNLOAD_URL = 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automat/AUTOMAT.html';
 const AUTOMAT_NOVIDADES_ATUAL = [
+  'AJUSTE VISUAL: removida a frase acima dos indicadores para manter o painel mais compacto',
   'INDICADORES: todos os perfis visualizam os totais de todos os status conforme todos os filtros aplicados, sem alterar as permissões da lista',
   'SESSÃO: removido o logout automático por inatividade; sair manualmente e validação de credenciais permanecem',
   'SESSÃO: renovação automática das consultas sem leituras periódicas da base',
@@ -1694,7 +1694,6 @@ function renderizarSemanaSelecionada() {
   const semResponsavel = itensIndicadores.filter(i => i.status !== 'ENTREGUE' && !String(i.responsavel || '').trim()).length;
   resumoEl.style.display = 'flex';
   resumoEl.innerHTML = `
-    <div class="contexto">Indicadores de todos os status conforme os filtros aplicados</div>
     <div class="card"><div class="num">${itensIndicadores.length}</div><div class="lbl">Total de itens</div></div>
     <div class="card solicitados"><div class="num">${solicitados}</div><div class="lbl">Solicitados</div></div>
     <div class="card em-preparacao"><div class="num">${emPreparacao}</div><div class="lbl">Em preparação</div></div>

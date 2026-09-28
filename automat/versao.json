@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.11",
+  "versao": "V2026.27.01.12",
   "data": "2026-09-28",
   "novidades": [
+    "V2026.27.01.12 — AJUSTE VISUAL: removida a frase acima dos indicadores para manter o painel mais compacto",
     "V2026.27.01.11 — INDICADORES: todos os perfis visualizam os totais de todos os status conforme todos os filtros aplicados, sem alterar as permissões da lista",
     "AJUSTE VISUAL: login do AutoMat simplificado para logomarca, usuário, senha e botão Entrar, mantendo avisos de erro quando necessários",
     "V2026.27.01.10 — SESSÃO: removido o logout automático por inatividade; sair manualmente e validação de credenciais permanecem",
