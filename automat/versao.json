@@ -1,7 +1,9 @@
 {
-  "versao": "V2026.27.01.10",
-  "data": "2026-09-26",
+  "versao": "V2026.27.01.11",
+  "data": "2026-09-28",
   "novidades": [
+    "V2026.27.01.11 — INDICADORES: todos os perfis visualizam os totais de todos os status conforme todos os filtros aplicados, sem alterar as permissões da lista",
+    "AJUSTE VISUAL: login do AutoMat simplificado para logomarca, usuário, senha e botão Entrar, mantendo avisos de erro quando necessários",
     "V2026.27.01.10 — SESSÃO: removido o logout automático por inatividade; sair manualmente e validação de credenciais permanecem",
     "V2026.27.01.09 — SESSÃO: consultas renovam a credencial automaticamente e o acesso é encerrado após 10 minutos sem uso, sem leituras periódicas da base",
     "V2026.27.01.08 — AJUSTE VISUAL: AutoMat repaginado no padrão do AutoProg, com acesso, filtros, indicadores, lista e painel de tratativa renovados",
