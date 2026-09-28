@@ -2512,6 +2512,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "TELA 6: cada revisão, grupo de planejamento ou tag da grade tem um X para remover só a seleção e sua programação, preservando as demais",
   "AJUSTE VISUAL: login do AutoProg simplificado para logomarca, usuário, senha e botão Entrar, mantendo avisos de erro quando necessários",
   "AJUSTE VISUAL: a observação detalhada em Visualizar programação inicia mais à direita, destacando seu vínculo com a ordem acima",
   "TELA 7: restaurada a tabela completa do backlog com cabeçalhos, filtros por coluna e todos os campos legíveis; a rolagem horizontal fica dentro da tabela",
@@ -10430,7 +10431,7 @@ function renderProjecaoScreen() {
 // ============================================================
 // S6: CALENDÁRIO - PLANNING GRID
 // ============================================================
-// calGrade[row][dayIndex] = {type:'rev'|'gp', value:'...'} | null
+// calGrade[row][dayIndex] = {type:'rev'|'gp'|'tag', value:'...', day, applied} | null
 let calGrade = [];
 const CAL_ROWS = 15;
 const DIAS_GRADE = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
@@ -10490,14 +10491,16 @@ function renderCalGrade() {
           ${badge}
           <input type="text" 
             data-row="${row}" data-col="${col}"
-            value="${val}"
+            value="${escHtml(val)}"
+            ${cell ? 'readonly title="Use o × para remover ou substituir esta seleção"' : ''}
             placeholder="Revisão ou G.Planej..."
             autocomplete="off"
-            style="width:100%;border:none;background:transparent;font-size:11px;color:var(--text);outline:none;padding:3px 2px;"
+            style="min-width:0;flex:1;border:none;background:transparent;font-size:11px;color:var(--text);outline:none;padding:3px 2px;"
             oninput="calCellInput(this,${row},${col},'${days[col]||''}')"
-            onfocus="calShowSuggestions(this,${row},${col})"
+            ${cell ? '' : `onfocus="calShowSuggestions(this,${row},${col})"`}
             onblur="setTimeout(()=>calHideSuggestions(),150)"
           >
+          ${cell ? `<button type="button" onclick="calRemoverItem(${row},${col})" aria-label="Remover ${tag==='rev'?'revisão':tag==='gp'?'grupo de planejamento':'tag'} ${escHtml(val)}" title="Remover esta seleção e sua programação" style="flex:none;width:19px;height:19px;border:1px solid var(--border2);border-radius:50%;background:var(--surface);color:var(--text2);font-size:14px;line-height:15px;cursor:pointer;padding:0;margin-left:2px;">×</button>` : ''}
         </div>
         <div id="cal-sug-${row}-${col}" style="display:none;position:absolute;top:100%;left:0;width:220px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:50;max-height:160px;overflow-y:auto;"></div>
       </td>`;
@@ -10587,9 +10590,62 @@ function calHideSuggestions() {
 }
 
 function calSelectSuggestion(row, col, type, value, day) {
-  calGrade[row][col] = {type, value, day};
+  calGrade[row][col] = {type, value, day, applied:false};
   calHideSuggestions();
+  saveProgState();
   renderCalGrade();
+}
+
+function calItemCorresponde(cell, d) {
+  if (cell.type === 'rev') return d['Revisão'] === cell.value;
+  if (cell.type === 'gp') return String(d['Grp.plnj.PM'] || '') === cell.value;
+  if (cell.type !== 'tag') return false;
+  let locVal = d['Loc.instalação'] || d['Loc.Instalação'] || d['loc.instalação'] || '';
+  if (!locVal) {
+    const locKey = Object.keys(d).find(k => k.toLowerCase().includes('loc.inst') || k.toLowerCase().includes('instalação') || k.toLowerCase().includes('instalacao'));
+    if (locKey) locVal = d[locKey] || '';
+  }
+  return String(locVal).toLowerCase().includes(cell.value.toLowerCase());
+}
+
+function calRemoverItem(row, col) {
+  calInitGrade();
+  const cell = calGrade[row] && calGrade[row][col];
+  if (!cell) return;
+  const days = getWeekDaysByNum(semanaWizard.num, semanaWizard.ano);
+  const day = cell.day || days[col];
+  const source = `${row}:${col}`;
+  const active = dadosFiltradosCT();
+  const toRemove = new Set();
+  const toReassign = new Map();
+  active.forEach(d => {
+    if (!calItemCorresponde(cell, d)) return;
+    const uid = d._uid || d._ordem;
+    const prog = programacao[uid];
+    if (!prog || prog.data !== day) return;
+    // Sessões antigas não tinham origem nem marca de aplicação: nesse caso,
+    // a correspondência por item + dia permite remover a grade já aplicada.
+    if (prog._calGradeCell !== source && (cell.applied !== undefined || prog._calGradeCell)) return;
+    let otherSource = null;
+    calGrade.some((cells, r) => cells.some((other, c) => {
+      if ((r === row && c === col) || !other || other.applied === false || (other.day || days[c]) !== day || !calItemCorresponde(other, d)) return false;
+      otherSource = `${r}:${c}`;
+      return true;
+    }));
+    if (otherSource) toReassign.set(uid, otherSource);
+    else toRemove.add(uid);
+  });
+  const tipo = cell.type === 'rev' ? 'revisão' : cell.type === 'gp' ? 'grupo de planejamento' : 'tag';
+  const pergunta = `Remover ${tipo} ${cell.value} da grade${toRemove.size ? ` e desprogramar ${toRemove.size} operação(ões) vinculada(s)` : ''}?`;
+  if (!confirm(pergunta)) return;
+  toRemove.forEach(uid => { delete programacao[uid]; });
+  toReassign.forEach((nextSource, uid) => { programacao[uid]._calGradeCell = nextSource; });
+  calGrade[row][col] = null;
+  saveProgState();
+  updateCounts();
+  renderCalGrade();
+  const msg = document.getElementById('cal-apply-msg');
+  if (msg) msg.textContent = `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} removido(a)${toRemove.size ? `; ${toRemove.size} operação(ões) desprogramada(s)` : ''}.`;
 }
 
 function calLimparGrade() {
@@ -10631,27 +10687,15 @@ function calAplicarGrade() {
 
   let count = 0;
   let skipped = 0;
-  calGrade.forEach(row => {
+  calGrade.forEach((row, rowIdx) => {
     row.forEach((cell, colIdx) => {
       if (!cell || !cell.value) return;
       const day = cell.day || days[colIdx];
       if (!day) return;
 
       // Find all orders matching this revision or G.PLANEJ
-      const matches = active.filter(d => {
-        if (cell.type === 'rev') return d['Revisão'] === cell.value;
-        if (cell.type === 'gp')  return String(d['Grp.plnj.PM']||'') === cell.value;
-        if (cell.type === 'tag') {
-          // Try exact key first, then any key containing 'loc' or 'instala'
-          var locVal = d['Loc.instalação'] || d['Loc.Instalação'] || d['loc.instalação'] || '';
-          if (!locVal) {
-            var locKey = Object.keys(d).find(k => k.toLowerCase().includes('loc.inst') || k.toLowerCase().includes('instalação') || k.toLowerCase().includes('instalacao'));
-            if (locKey) locVal = d[locKey] || '';
-          }
-          return String(locVal).toLowerCase().includes(cell.value.toLowerCase());
-        }
-        return false;
-      });
+      const matches = active.filter(d => calItemCorresponde(cell, d));
+      cell.applied = true;
 
       // ── REVISÃO: schedule OMs on the exact clicked day only ─────────────
       if (cell.type === 'rev') {
@@ -10724,7 +10768,7 @@ function calAplicarGrade() {
             mosEscolhidos.forEach(mo => chosen.push(mo));
           }
 
-          programacao[uid] = {data: day, executor: chosen.join(', '), turno:'', recurso:'Não', obs:''};
+          programacao[uid] = {data: day, executor: chosen.join(', '), turno:'', recurso:'Não', obs:'', _calGradeCell:`${rowIdx}:${colIdx}`};
           count++;
         });
 
@@ -10746,10 +10790,11 @@ function calAplicarGrade() {
         }
         const uid = d._uid||d._ordem;
         if (!programacao[uid]) {
-          programacao[uid] = {data: day, executor:'', turno:'', recurso:'Não', obs:''};
+          programacao[uid] = {data: day, executor:'', turno:'', recurso:'Não', obs:'', _calGradeCell:`${rowIdx}:${colIdx}`};
           autoFillExecutante(uid, day);
         } else {
           programacao[uid].data = day;
+          programacao[uid]._calGradeCell = `${rowIdx}:${colIdx}`;
           if (!programacao[uid].executor) autoFillExecutante(uid, day);
         }
         count++;

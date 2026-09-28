@@ -1,8 +1,9 @@
 {
   "versao": "V2026.27.01.94",
-  "data": "2026-09-27",
+  "data": "2026-09-28",
   "novidades": [
     "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "TELA 6: cada revisão, grupo de planejamento ou tag da grade tem um X para remover só a seleção e sua programação, preservando as demais",
     "AJUSTE VISUAL: login do AutoProg simplificado para logomarca, usuário, senha e botão Entrar, mantendo avisos de erro quando necessários",
     "AJUSTE VISUAL: a observação detalhada em Visualizar programação inicia mais à direita, destacando seu vínculo com a ordem acima",
     "TELA 7: restaurada a tabela completa do backlog com cabeçalhos, filtros por coluna e todos os campos legíveis; a rolagem horizontal fica dentro da tabela",
