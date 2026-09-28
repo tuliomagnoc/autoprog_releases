@@ -2512,6 +2512,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "CORREÇÃO: o botão Salvar da tela 8 confirma a gravação sem acusar erro por falha na atualização visual do horário; o autosave permanece ativo",
   "TELA 6: cada revisão, grupo de planejamento ou tag da grade tem um X para remover só a seleção e sua programação, preservando as demais",
   "AJUSTE VISUAL: login do AutoProg simplificado para logomarca, usuário, senha e botão Entrar, mantendo avisos de erro quando necessários",
   "AJUSTE VISUAL: a observação detalhada em Visualizar programação inicia mais à direita, destacando seu vínculo com a ordem acima",
@@ -3217,13 +3218,13 @@ let filesLoaded = {1: false, 2: false, 3: false};
 function _vizForceSave() {
   try {
     if (!_autoSaveHandle) return;
-    const json = _buildSessaoJSON();
+    const json = window._buildSessaoJSON();
     _autoSaveHandle.createWritable().then(function(writable) {
       writable.write(json);
       return writable.close();
     }).then(function() {
       _unsavedChanges = false;
-      _updateLastSaveLabel();
+      if (typeof window._updateLastSaveLabel === 'function') window._updateLastSaveLabel();
     }).catch(function(err) { console.warn('vizForceSave error:', err); });
   } catch(e) { console.warn('vizForceSave error:', e); }
 }
@@ -7276,7 +7277,7 @@ async function _autoSaveSilencioso() {
     await writable.write(JSON.stringify(sessao));
     await writable.close();
     _unsavedChanges = false;
-    if (typeof _updateLastSaveLabel === 'function') _updateLastSaveLabel();
+    if (typeof window._updateLastSaveLabel === 'function') window._updateLastSaveLabel();
     if (typeof _showAutoSaveToast === 'function') _showAutoSaveToast('<i class=icon-save></i> Salvo automaticamente');
   } catch (err) {
     console.warn('_autoSaveSilencioso error:', err);
@@ -14466,9 +14467,12 @@ async function salvarSessao() {
 
   const feedback = () => {
     _unsavedChanges = false;
-    _updateLastSaveLabel();
-    const btn = document.querySelector('button[onclick="salvarSessao()"]');
-    if (btn) { const o=btn.innerHTML; btn.innerHTML='<i class=icon-check></i>'; btn.style.color='var(--green)'; setTimeout(()=>{btn.innerHTML=o;btn.style.color='';},1500); }
+    // O arquivo já foi gravado: falhas no indicador visual não são falhas de escrita.
+    try {
+      if (typeof window._updateLastSaveLabel === 'function') window._updateLastSaveLabel();
+      const btn = document.querySelector('button[onclick="salvarSessao()"]');
+      if (btn) { const o=btn.innerHTML; btn.innerHTML='<i class=icon-check></i>'; btn.style.color='var(--green)'; setTimeout(()=>{btn.innerHTML=o;btn.style.color='';},1500); }
+    } catch (err) { console.warn('A sessão foi salva, mas o indicador visual não atualizou:', err); }
   };
 
   try {
@@ -14822,6 +14826,11 @@ function _updateLastSaveLabel() {
     if (_saveHistory.length > 10) _saveHistory.length = 10;
   } catch(e) {}
 }
+
+  // Ações globais do cabeçalho e da janela de visualização usam as mesmas
+  // rotinas da sessão; o autosave permanece dentro deste bloco.
+  window._buildSessaoJSON = _buildSessaoJSON;
+  window._updateLastSaveLabel = _updateLastSaveLabel;
 
   function _showAutoSaveToast(msg) {
     let toast = document.getElementById('autosave-toast');
