@@ -1,8 +1,9 @@
 {
   "versao": "V2026.27.01.94",
-  "data": "2026-09-28",
+  "data": "2026-09-30",
   "novidades": [
     "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "TURNOS: administrativo 08:00–16:00 e cinco jornadas operacionais configuráveis no efetivo e na programação; capacidade, sequenciamento e Adequar HH respeitam o turno escolhido, inclusive após meia-noite",
     "TELA 8: Detalhes troca todas as colunas de uma vez, sem faixas vazias ou sobreposição",
     "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
     "ATA: ordens desprogramadas com justificativa aparecem automaticamente e permanecem ao salvar e reabrir a sessão",

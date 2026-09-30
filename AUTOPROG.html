@@ -1823,10 +1823,12 @@ tbody tr:hover { background: #f4faf8; }
         <div class="form-group" style="min-width:130px;"><label>Turno</label>
           <select id="ef-turno" style="width:100%;height:30px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:12px;padding:0 8px;background:var(--surface);color:var(--text);">
             <option value="">Selecione</option>
-            <option>Turno A (06-14h)</option>
-            <option>Turno B (14-22h)</option>
-            <option>Turno C (22-06h)</option>
-            <option>Administrativo</option>
+            <option value="Administrativo">Administrativo (08:00–16:00)</option>
+            <option value="TURNO">TURNO (16:00–01:00)</option>
+            <option value="TURNO 1">TURNO 1 (06:00–18:00)</option>
+            <option value="TURNO 2">TURNO 2 (07:00–19:00)</option>
+            <option value="TURNO 3">TURNO 3 (18:00–06:00)</option>
+            <option value="TURNO 4">TURNO 4 (19:00–07:00)</option>
           </select>
         </div>
         <button class="btn primary" style="height:30px;white-space:nowrap;" onclick="efAddRow()">+ Adicionar colaborador</button>
@@ -2422,10 +2424,12 @@ tbody tr:hover { background: #f4faf8; }
           <label>Turno / Horário</label>
           <select id="m-turno">
             <option value="">Selecione</option>
-            <option value="Turno A (06-14h)">Turno A (06-14h)</option>
-            <option value="Turno B (14-22h)">Turno B (14-22h)</option>
-            <option value="Turno C (22-06h)">Turno C (22-06h)</option>
-            <option value="Administrativo">Administrativo</option>
+            <option value="Administrativo">Administrativo (08:00–16:00)</option>
+            <option value="TURNO">TURNO (16:00–01:00)</option>
+            <option value="TURNO 1">TURNO 1 (06:00–18:00)</option>
+            <option value="TURNO 2">TURNO 2 (07:00–19:00)</option>
+            <option value="TURNO 3">TURNO 3 (18:00–06:00)</option>
+            <option value="TURNO 4">TURNO 4 (19:00–07:00)</option>
           </select>
         </div>
         <div class="form-group">
@@ -2481,6 +2485,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "TURNOS: administrativo 08:00–16:00 e cinco jornadas operacionais configuráveis no efetivo e na programação; capacidade, sequenciamento e Adequar HH respeitam o turno escolhido, inclusive após meia-noite",
   "TELA 8: Detalhes troca todas as colunas de uma vez, sem faixas vazias ou sobreposição",
   "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
   "ATA: ordens desprogramadas com justificativa aparecem automaticamente e permanecem ao salvar e reabrir a sessão",
@@ -4171,7 +4176,12 @@ function abrirModal(ordem, bulk) {
     } catch (e) { /* sem sugestão disponível, mantém em branco */ }
   }
   document.getElementById('m-executor').value = _execSugerido;
-  document.getElementById('m-turno').value = prog?.turno || '';
+  const _mTurno = document.getElementById('m-turno');
+  const _mTurnoSalvo = prog?.turno || '';
+  if (_mTurnoSalvo && !Array.from(_mTurno.options).some(o => o.value === _mTurnoSalvo)) {
+    _mTurno.add(new Option(_mTurnoSalvo + ' (sessão anterior)', _mTurnoSalvo));
+  }
+  _mTurno.value = _mTurnoSalvo;
   document.getElementById('m-recurso').value = prog?.recurso || 'Não';
   // Build autoTags from status + keyword detection in Ordenação and Texto Breve
   (function() {
@@ -5394,6 +5404,33 @@ function _readStatusUsuario(prefixo) {
 }
 const EF_COLORS = {P:'#007E7A',HE:'#7B2FBE',A:'#FFC000',T:'#C0305E',F:'#3CB5E5',O:'#EE6F16',PAR:'#555555',TUT:'#9B59B6',FER:'#A0522D',SAB:'#546E7A',DOM:'#37474F'};
 const EF_HH = {P:6.4, HE:8.4, A:0, T:6.4, F:0, O:0, PAR:0, TUT:6.4, FER:0, SAB:0, DOM:0};
+// A capacidade administrativa mantém a regra existente (6,4 H/H).
+// Nos turnos, desconta-se a pausa de 1h já usada em Adequar HH.
+const TURNOS_HORARIOS = Object.freeze({
+  'Administrativo': {inicio:8*60, fim:16*60, pausa:60, hh:6.4},
+  'TURNO': {inicio:16*60, fim:25*60, pausa:60, hh:8},
+  'TURNO 1': {inicio:6*60, fim:18*60, pausa:60, hh:11},
+  'TURNO 2': {inicio:7*60, fim:19*60, pausa:60, hh:11},
+  'TURNO 3': {inicio:18*60, fim:30*60, pausa:60, hh:11},
+  'TURNO 4': {inicio:19*60, fim:31*60, pausa:60, hh:11}
+});
+function normalizarTurno(value) {
+  const text = String(value || '').toUpperCase().trim();
+  if (text === 'ADMINISTRATIVO') return 'Administrativo';
+  if (/^TURNO\s+[ABC]\b/.test(text)) return '';
+  const match = text.match(/\bTURNO(?:\s+([1-4]))?\b/);
+  return match ? ('TURNO' + (match[1] ? ' ' + match[1] : '')) : '';
+}
+function turnoDaProgramacao(prog, ef) {
+  return normalizarTurno(prog?.turno) ||
+    normalizarTurno((prog?.obs || '') + ' ' + (prog?._manualObs || '')) ||
+    normalizarTurno(ef?.turno) || 'Administrativo';
+}
+function capacidadeEfetivo(ef, st) {
+  if (!(st in EF_HH) || EF_HH[st] === 0) return 0;
+  const turno = TURNOS_HORARIOS[normalizarTurno(ef?.turno) || 'Administrativo'];
+  return (turno.hh === 6.4 ? EF_HH[st] : turno.hh + (st === 'HE' ? 2 : 0));
+}
 const DIAS_PT_CURTO = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
 
 function efAddRow() {
@@ -10649,7 +10686,7 @@ function calAplicarGrade() {
           const ef = efetivo.find(e => e.nome === nome);
           if (!ef) return 6.4;
           const st = (ef.status||[])[dayIdx]||'A';
-          return EF_HH[st]||6.4;
+          return capacidadeEfetivo(ef, st);
         }
 
         others.forEach(d => {
@@ -10776,11 +10813,16 @@ function buildVisualizacaoHTML() {
     const st   = (ef.status || [])[days.indexOf(day)] || '';
     const he   = st === 'HE' ? '1' : '0';
     const tipo = d._tipo || '';
-    const turnoFlag = ((p.obs||'').toLowerCase().includes('turno') || (p._manualObs||'').toLowerCase().includes('turno')) ? '1' : '0';
-    return 'data-hh="' + escHtml(hh) + '" data-hh-orig="' + escHtml(hhReal) + '" data-exec="' + escHtml(exec) + '" data-tb="' + escHtml(tb) + '" data-op="' + escHtml(op) + '" data-he="' + he + '" data-tipo="' + escHtml(tipo) + '" data-turno="' + turnoFlag + '"';
+    const turnoExplicito = normalizarTurno(p.turno) || normalizarTurno((p.obs||'') + ' ' + (p._manualObs||''));
+    const turno = turnoDaProgramacao(p, ef);
+    const turnoFlag = turno !== 'Administrativo' ? '1' : '0';
+    return 'data-hh="' + escHtml(hh) + '" data-hh-orig="' + escHtml(hhReal) + '" data-exec="' + escHtml(exec) + '" data-tb="' + escHtml(tb) + '" data-op="' + escHtml(op) + '" data-he="' + he + '" data-tipo="' + escHtml(tipo) + '" data-turno="' + turnoFlag + '" data-shift="' + escHtml(turnoExplicito) + '"';
   }
   const _DRAG_SCRIPT = '<scr'+'ipt>'
   +'var _dU=null,_dD=null;'
+  +'var _turnos='+JSON.stringify(TURNOS_HORARIOS)+';'
+  +'var _turnosEf='+JSON.stringify(Object.fromEntries(efetivo.map(function(ef){return [ef.nome,normalizarTurno(ef.turno)||"Administrativo"];}))).replace(/</g,'\\u003c')+';'
+  +'function _turnoGrupo(g){var explicit=g.rows.map(function(e){return e.row.dataset.shift||"";}).find(Boolean);var key=explicit||_turnosEf[g.exec]||"Administrativo";return _turnos[key]||_turnos.Administrativo;}'
   +'function _vDS(e){_dU=e.currentTarget.dataset.uid;_dD=e.currentTarget.dataset.day;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",_dU+"|"+_dD);e.currentTarget.style.opacity="0.4";}'
   +'function _vDE(e){e.currentTarget.style.opacity="1";e.currentTarget.style.outline="";}'
   +'function _vDO(e){e.preventDefault();e.currentTarget.style.outline="2px solid #007E7A";}'
@@ -10813,13 +10855,14 @@ function buildVisualizacaoHTML() {
   +'    });'
   +'  });'
   +'  Object.values(groups).forEach(function(g){'
-  +'    var cap=g.he?CAP_HE:CAP_P;'
+  +'    var shift=_turnoGrupo(g);'
+  +'    var isTurnoG=shift!==_turnos.Administrativo;'
+  +'    var cap=isTurnoG?(shift.hh+(g.he?2:0)):(g.he?CAP_HE:CAP_P);'
   +'    var hasBloq=g.rows.some(function(e){return _isBloqR(e.row)||_isDesbloqR(e.row);});'
-  +'    var isTurnoG=g.rows.some(function(e){return (e.row.dataset.turno||"")==="1";});'
-  +'    var cur=isTurnoG?(16*60):hasBloq?(9*60+30):(8*60+30);'
-  +'    var DB_I=isTurnoG?(25*60):hasBloq?(g.he?17*60:15*60+30):(g.he?17*60+40:16*60);'
-  +'    var lunchStart=isTurnoG?(20*60):hasBloq?(12*60+30):(12*60);'
-  +'    var lunchEnd=isTurnoG?(21*60):hasBloq?(13*60+30):(13*60);'
+  +'    var cur=isTurnoG?shift.inicio:hasBloq?(9*60+30):(8*60);'
+  +'    var DB_I=isTurnoG?shift.fim:hasBloq?(g.he?17*60:15*60+30):(g.he?17*60+40:16*60);'
+  +'    var lunchStart=isTurnoG?(shift.inicio+4*60):hasBloq?(12*60+30):(12*60);'
+  +'    var lunchEnd=lunchStart+shift.pausa;'
   +'    var lunchTaken=false;'
   +'    function _advCursor(durMin){'
   +'      var ini2=cur,fim2;'
@@ -10836,7 +10879,7 @@ function buildVisualizacaoHTML() {
   +'      var r=e.row;'
   +'      var hh=parseFloat(r.dataset.hh||0);'
   +'      var ini,fim;'
-  +'      var _isTurnoRow=(r.dataset.turno||"")==="1";'
+  +'      var _isTurnoRow=isTurnoG;'
   +'      if(_isBloqR(r)&&!_isTurnoRow){ini=_fmtM(8*60+30);fim=_fmtM(9*60+30);}'
   +'      else if(_isDesbloqR(r)&&!_isTurnoRow){ini=_fmtM(DB_I);fim=_fmtM(g.he?(17*60+40):16*60);}'
   +'      else if(_isDSS(r)){ini="";fim="";}'
@@ -10954,16 +10997,17 @@ function buildVisualizacaoHTML() {
   +'  var propByUid={};'
   +'  Object.values(groups).forEach(function(g){'
   +'    var hasBloq=g.rows.some(function(e){return _isBloqR(e.row)||_isDesbloqR(e.row);});'
-  +'    var isTurnoG=g.rows.some(function(e){return (e.row.dataset.turno||"")==="1";});'
-  +'    var flexStart=isTurnoG?(16*60):hasBloq?(9*60+30):(8*60+30);'
-  +'    var flexEnd=isTurnoG?(25*60):hasBloq?(g.he?17*60:15*60+30):(g.he?17*60+40:16*60);'
+  +'    var shift=_turnoGrupo(g);'
+  +'    var isTurnoG=shift!==_turnos.Administrativo;'
+  +'    var flexStart=isTurnoG?shift.inicio:hasBloq?(9*60+30):(8*60);'
+  +'    var flexEnd=isTurnoG?(shift.fim+(g.he?2*60:0)):hasBloq?(g.he?17*60:15*60+30):(g.he?17*60+40:16*60);'
   +'    var obsHH=0;'
   +'    g.rows.forEach(function(e){if(_isOBS(e.row)){var t=_obsParseTime(e.row);var oh=t?(t.fim-t.ini)/60:orig0[e.row.dataset.uid]||0;obsHH=Math.max(obsHH,oh);}});'
-  +'    var target=(isTurnoG?8:((flexEnd-flexStart)/60-1))-obsHH;'
+  +'    var target=(isTurnoG?(shift.hh+(g.he?2:0)):(hasBloq?((flexEnd-flexStart)/60-1):shift.hh+(g.he?2:0)))-obsHH;'
   +'    if(target<=0)return;'
   +'    var flexEntries=g.rows.filter(function(e){'
   +'      if(_isDSS(e.row)||_isOBS(e.row))return false;'
-  +'      var _isTR=(e.row.dataset.turno||"")==="1";'
+  +'      var _isTR=isTurnoG;'
   +'      if(_isTR)return true;'
   +'      return !_isBloqR(e.row)&&!_isDesbloqR(e.row);'
   +'    });'
@@ -11821,7 +11865,7 @@ function getExecutantesAutomatic(uid, data) {
   function capacidade(ef) {
     const st = (ef.status || [])[dayIdx] || (dayIdx < 5 ? 'P' : (dayIdx === 5 ? 'SAB' : 'DOM'));
     const hf = (ef.horasFora && ef.horasFora[dayIdx]) ? (parseFloat(ef.horasFora[dayIdx])||0) : 0;
-    return Math.max(0, (EF_HH[st] || 6.4) - hf);
+    return Math.max(0, capacidadeEfetivo(ef, st) - hf);
   }
 
   function canTake(ef) {
@@ -12125,7 +12169,7 @@ function renderCapacidadeWindow(focusTarget) {
       tbody += '<td class="cap-workcenter">' + escHtml(ef.centrab||'\u2014') + '</td>';
       activeDays.forEach(function(o) {
         var st  = (ef.status||[])[o.di] || 'A';
-        var cap = EF_HH[st] || 0;
+        var cap = capacidadeEfetivo(ef, st);
         var stBg = EF_COLORS[st] || '#888';
         var hfora = horasForaPerson(ef, o.di);
         if (cap === 0) {
@@ -12160,7 +12204,7 @@ function renderCapacidadeWindow(focusTarget) {
     activeDays.forEach(function(o) {
       var dayUsed = 0;
       efetivoFiltrado.forEach(function(ef){dayUsed += usedHHPerson(ef.nome, o.day);});
-      var dispTotal = efetivoFiltrado.reduce(function(s,ef){var st=(ef.status||[])[o.di]||'A'; var hf=(ef.horasFora&&ef.horasFora[o.di])?parseFloat(ef.horasFora[o.di])||0:0; return s+Math.max(0,(EF_HH[st]||0)-hf);},0);
+      var dispTotal = efetivoFiltrado.reduce(function(s,ef){var st=(ef.status||[])[o.di]||'A'; var hf=(ef.horasFora&&ef.horasFora[o.di])?parseFloat(ef.horasFora[o.di])||0:0; return s+Math.max(0,capacidadeEfetivo(ef, st)-hf);},0);
       var pct = dispTotal > 0 ? Math.round((dayUsed/dispTotal)*100) : 0;
       var bg  = pct >= 100 ? '#fde8f0' : pct >= 75 ? '#fff0c0' : '#e0f2ef';
       totalProgramado += dayUsed;
