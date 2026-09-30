@@ -664,38 +664,38 @@ tbody tr:hover { background: #f4faf8; }
 #screen-s8.ap-details-active .table-wrap { overflow-x: auto !important; }
 #screen-s8.ap-details-active .ap-compact-table { width: max-content !important; min-width: 100% !important; table-layout: auto !important; }
 #screen-s8.ap-details-active .ap-compact-table :is(th, td) { min-width: max-content !important; max-width: none !important; white-space: nowrap !important; overflow-wrap: normal !important; }
-/* Detalhes: revelação visual sequencial, sem animar larguras da tabela nem
-   recalcular o layout de todas as ordens a cada quadro. */
+/* Detalhes: a revelação recorta as células no próprio lugar. Deslocar a
+   célula com transform fazia colunas vizinhas se sobreporem durante o slide. */
 @keyframes ap-details-slide-in {
-  from { opacity: 0; transform: translateX(-14px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
 }
 @keyframes ap-details-slide-out {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: 0; transform: translateX(-14px); }
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 100% 0 0); }
 }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(n+2):nth-child(-n+7) {
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(n+2):nth-child(-n+7) {
   animation: ap-details-slide-in 260ms ease-out both;
   animation-delay: var(--ap-details-delay, 0ms);
 }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(n+2):nth-child(-n+7) {
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(n+2):nth-child(-n+7) {
   animation: ap-details-slide-out 260ms ease-in both;
   animation-delay: var(--ap-details-out-delay, 0ms);
 }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(2) { --ap-details-delay: 0ms; }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(3) { --ap-details-delay: 45ms; }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(4) { --ap-details-delay: 90ms; }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(5) { --ap-details-delay: 135ms; }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(6) { --ap-details-delay: 180ms; }
-#screen-s8.ap-details-reveal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(7) { --ap-details-delay: 225ms; }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(2) { --ap-details-out-delay: 225ms; }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(3) { --ap-details-out-delay: 180ms; }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(4) { --ap-details-out-delay: 135ms; }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(5) { --ap-details-out-delay: 90ms; }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(6) { --ap-details-out-delay: 45ms; }
-#screen-s8.ap-details-conceal .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(7) { --ap-details-out-delay: 0ms; }
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(2) { --ap-details-delay: 0ms; }
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(3) { --ap-details-delay: 45ms; }
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(4) { --ap-details-delay: 90ms; }
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(5) { --ap-details-delay: 135ms; }
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(6) { --ap-details-delay: 180ms; }
+#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(7) { --ap-details-delay: 225ms; }
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(2) { --ap-details-out-delay: 225ms; }
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(3) { --ap-details-out-delay: 180ms; }
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(4) { --ap-details-out-delay: 135ms; }
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(5) { --ap-details-out-delay: 90ms; }
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(6) { --ap-details-out-delay: 45ms; }
+#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(7) { --ap-details-out-delay: 0ms; }
 @media (prefers-reduced-motion: reduce) {
-  #screen-s8:is(.ap-details-reveal, .ap-details-conceal) .ap-compact-table :is(thead th, tbody tr.ap-details-animate-row td):nth-child(n+2):nth-child(-n+7) { animation: none; }
+  #screen-s8:is(.ap-details-reveal, .ap-details-conceal) .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(n+2):nth-child(-n+7) { animation: none; }
 }
 :is(#screen-s7, #screen-s8).ap-card-mode .table-wrap { overflow-x: hidden !important; }
 :is(#screen-s7, #screen-s8).ap-card-mode .ap-compact-table,
@@ -2512,6 +2512,8 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
+  "ATA: ordens desprogramadas com justificativa aparecem automaticamente e permanecem ao salvar e reabrir a sessão",
   "CAPACIDADE: a lista de executantes não tem rolagem interna; a página mostra todos os nomes e capacidades",
   "CAPACIDADE: a janela da tela 8 mostra um carregamento breve e só revela a tabela depois que o visual estiver pronto",
   "CORREÇÃO: o botão Salvar da tela 8 confirma a gravação sem acusar erro por falha na atualização visual do horário; o autosave permanece ativo",
@@ -4503,13 +4505,20 @@ function _executarConfirmacaoProgramacao() {
 }
 
 // ── Gestão de Pendências ─────────────────────────────────────────────────
-let _pendencias = []; // [{uid, ordem, textoBreve, tipo, dtMax, data, executor, motivo, registradoEm}]
+let _pendencias = (() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('_pcm_pendencias') || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch(e) { return []; }
+})(); // [{uid, ordem, textoBreve, tipo, dtMax, data, executor, motivo, registradoEm}]
+const _pendenciasLegadasLocal = _pendencias.slice();
 
 function _getPendencias() {
-  try { return JSON.parse(localStorage.getItem('_pcm_pendencias') || '[]'); } catch(e) { return []; }
+  return _pendencias;
 }
 function _savePendencias(list) {
-  try { localStorage.setItem('_pcm_pendencias', JSON.stringify(list)); } catch(e) {}
+  _pendencias = Array.isArray(list) ? list : [];
+  try { localStorage.setItem('_pcm_pendencias', JSON.stringify(_pendencias)); } catch(e) {}
 }
 
 function abrirModalPendencia(ordemUid) {
@@ -4574,6 +4583,7 @@ function confirmarPendencia(ordemUid) {
     motivo:       motivo,
     registradoEm: hojeLocalISO(),
     semana:       (semanaWizard.num||'?') + '/' + (semanaWizard.ano||''),
+    supervisao:   supervisao || '',
   };
 
   const list = _getPendencias();
@@ -7154,7 +7164,7 @@ function toggleCriticidade() {
     if (button) button.disabled = true;
     screen.classList.remove('ap-details-reveal');
     if (_rplAnimateVisibleDetails('conceal')) {
-      const lastColumn = screen.querySelector('.ap-compact-table thead th:nth-child(2)');
+      const lastColumn = screen.querySelector('.ap-compact-table tbody tr.ap-details-animate-row td:nth-child(2)');
       let finished = false;
       let fallback;
       const finish = () => {
@@ -7227,6 +7237,7 @@ function _rplAnimateVisibleDetails(mode = 'reveal') {
     visible.push(rows[i]);
   }
   visible.forEach(row => row.classList.add('ap-details-animate-row'));
+  if (!visible.length) return false;
   screen.classList.add(mode === 'conceal' ? 'ap-details-conceal' : 'ap-details-reveal');
   return true;
 }
@@ -7271,7 +7282,7 @@ async function _autoSaveSilencioso() {
       elaborador: sessaoElaborador, planta: sessaoPlanta, pcm: sessaoPcm,
       supervisao, textoProgramacao, semanaWizard, programacao, naoProgramadas,
       efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
-      rawMateriais, ataParticipantes, _impDados, todosOsCentros,
+      rawMateriais, ataParticipantes: _serializarAtaState(), _impDados, todosOsCentros,
       sortOverrides, _exportChecklist, _pendencias, historicoEncerradas,
       _data: new Date().toISOString()
     };
@@ -11521,25 +11532,67 @@ function refreshVisualizacaoIfOpen() {
 // ============================================================
 // ATA DE REUNIÃO
 // ============================================================
-let ataParticipantes = JSON.parse(localStorage.getItem('pcm_ata_part')||'[]');
+function _restaurarAtaState(saved) {
+  const participantes = Array.isArray(saved) ? saved : (Array.isArray(saved?.participantes) ? saved.participantes : []);
+  const metadata = Array.isArray(saved) ? {} : (saved || {});
+  participantes._desc = typeof metadata._desc === 'string' ? metadata._desc : '';
+  participantes._responsavel = typeof metadata._responsavel === 'string' ? metadata._responsavel : '';
+  participantes._data = typeof metadata._data === 'string' ? metadata._data : '';
+  return participantes;
+}
+
+function _serializarAtaState() {
+  return {
+    participantes: Array.from(ataParticipantes),
+    _desc: ataParticipantes._desc || '',
+    _responsavel: ataParticipantes._responsavel || '',
+    _data: ataParticipantes._data || ''
+  };
+}
+
+let ataParticipantes = (() => {
+  try { return _restaurarAtaState(JSON.parse(localStorage.getItem('pcm_ata_part') || '[]')); }
+  catch(e) { return _restaurarAtaState([]); }
+})();
 
 function saveAtaState() {
-  try { localStorage.setItem('pcm_ata_part', JSON.stringify(ataParticipantes)); } catch(e){}
+  _unsavedChanges = true;
+  try { localStorage.setItem('pcm_ata_part', JSON.stringify(_serializarAtaState())); } catch(e){}
 }
 
 // Appends "OM <ordem> - Não programada: <motivo>" into the ATA's
 // "Desenvolvimento da Reunião" field, keeping any existing text.
 function _appendAtaDesenvolvimento(ordem, motivo) {
   const linha = `OM ${ordem} - Não programada: ${motivo}`;
-  const atual = ataParticipantes._desc || '';
-  ataParticipantes._desc = atual ? (atual + '\n' + linha) : linha;
   const ta = document.getElementById('ata-desc');
+  const atual = ta ? ta.value : (ataParticipantes._desc || '');
+  ataParticipantes._desc = atual;
+  if (!atual.split('\n').includes(linha)) ataParticipantes._desc = atual ? (atual + '\n' + linha) : linha;
   if (ta) ta.value = ataParticipantes._desc;
   saveAtaState();
   _vizForceSave();
 }
 
+function _sincronizarPendenciasNaAta() {
+  const semana = (semanaWizard.num||'?') + '/' + (semanaWizard.ano||'');
+  const uids = new Set(dados.map(d => String(d._uid || d._ordem)));
+  const ordens = new Set(dados.map(d => String(d._ordem)));
+  const linhas = new Set((ataParticipantes._desc || '').split('\n'));
+  let changed = false;
+  _getPendencias().forEach(pend => {
+    if (pend.semana !== semana || (pend.supervisao && pend.supervisao !== supervisao)) return;
+    if ((!uids.has(String(pend.uid)) && !ordens.has(String(pend.ordem))) || !pend.ordem || !pend.motivo) return;
+    const linha = `OM ${pend.ordem} - Não programada: ${pend.motivo}`;
+    if (linhas.has(linha)) return;
+    ataParticipantes._desc = ataParticipantes._desc ? ataParticipantes._desc + '\n' + linha : linha;
+    linhas.add(linha);
+    changed = true;
+  });
+  if (changed) saveAtaState();
+}
+
 function abrirAtaReuniao() {
+  _sincronizarPendenciasNaAta();
   // Remove existing overlay
   document.getElementById('ata-overlay')?.remove();
 
@@ -14478,7 +14531,7 @@ async function salvarSessao() {
       elaborador: sessaoElaborador, planta: sessaoPlanta, pcm: sessaoPcm,
       supervisao, textoProgramacao, semanaWizard, programacao, naoProgramadas,
     efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
-    rawMateriais, ataParticipantes, _impDados, todosOsCentros,
+    rawMateriais, ataParticipantes: _serializarAtaState(), _impDados, todosOsCentros,
     sortOverrides, _exportChecklist, _pendencias, historicoEncerradas,
     _data: new Date().toISOString()
   };
@@ -14649,8 +14702,18 @@ function _processarSessaoJSON(text) {
       rawMateriais     = s.rawMateriais     || {};
       sortOverrides    = s.sortOverrides    || {};
       _exportChecklist = s._exportChecklist || {};
-      if (Array.isArray(s._pendencias)) { _pendencias = s._pendencias; _savePendencias(_pendencias); }
-      ataParticipantes = s.ataParticipantes || [];
+      const pendenciasSalvas = Array.isArray(s._pendencias) ? s._pendencias : [];
+      // Sessões antigas gravavam [] mesmo quando havia pendências no navegador.
+      // Recupera apenas registros da mesma semana e de ordens presentes nesta sessão.
+      const semanaSessao = (semanaWizard.num||'?') + '/' + (semanaWizard.ano||'');
+      const ordensSessao = new Set(dados.map(d => String(d._ordem)));
+      const pendenciasLegadas = !pendenciasSalvas.length
+        ? [..._pendenciasLegadasLocal, ..._getPendencias()].filter(p => p.semana === semanaSessao && (!p.supervisao || p.supervisao === supervisao) && ordensSessao.has(String(p.ordem)))
+        : [];
+      const pendenciasDaSessao = pendenciasSalvas.length ? pendenciasSalvas : pendenciasLegadas;
+      _savePendencias(pendenciasDaSessao.filter((p, i, all) => all.findIndex(q => q.uid === p.uid && q.motivo === p.motivo && q.registradoEm === p.registradoEm) === i));
+      ataParticipantes = _restaurarAtaState(s.ataParticipantes);
+      try { localStorage.setItem('pcm_ata_part', JSON.stringify(_serializarAtaState())); } catch(e) {}
       historicoEncerradas = Array.isArray(s.historicoEncerradas) ? s.historicoEncerradas : [];
       _impDados        = s._impDados        || {};
       { const _obsEl = document.getElementById('ef-observacoes'); if (_obsEl) _obsEl.value = efObservacoes; }
@@ -14794,7 +14857,7 @@ document.addEventListener('DOMContentLoaded', () => {
   programacao = {}; naoProgramadas = {};
   efetivo = []; supervisao = ''; textoProgramacao = 'breve'; semanaWizard = {num:null,ano:null,start:null,end:null};
   calGrade = []; _calRevs = []; _calGps = [];
-  ataParticipantes = []; _impDados = {};
+  ataParticipantes = _restaurarAtaState([]); _pendencias = []; _impDados = {};
   filesLoaded = {1:false,2:false,3:false,4:false};
 
   renderStepIndicator();
@@ -14820,7 +14883,7 @@ document.addEventListener('DOMContentLoaded', () => {
       elaborador: sessaoElaborador, planta: sessaoPlanta, pcm: sessaoPcm,
       supervisao, textoProgramacao, semanaWizard, programacao, naoProgramadas,
       efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
-      rawMateriais, ataParticipantes, _impDados, todosOsCentros,
+      rawMateriais, ataParticipantes: _serializarAtaState(), _impDados, todosOsCentros,
       sortOverrides, _exportChecklist, _pendencias, historicoEncerradas
     };
     if (incluirData) sessao._data = new Date().toISOString();
