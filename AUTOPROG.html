@@ -2484,6 +2484,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "VISUALIZAR PROGRAMAÇÃO: cada dia pode ser agrupado alfabeticamente por coluna, com ajuste manual por arraste depois; a escolha é salva na sessão e pode voltar à ordem automática",
   "TURNOS: administrativo 08:00–16:00 e cinco jornadas operacionais configuráveis no efetivo e na programação; capacidade, sequenciamento e Adequar HH respeitam o turno escolhido, inclusive após meia-noite",
   "TELA 8: Detalhes troca todas as colunas de uma vez, sem faixas vazias ou sobreposição",
   "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
@@ -3180,6 +3181,12 @@ let _sessaoIniciada = false; // vira true após o 1º salvamento OU carregamento
 let _capCTFilter = '';
 let _saveHistory = []; // últimos 10 saves para reverter
 let sortOverrides = {}; // {dayISO: [uid, uid, ...]} manual sort order per day // CT filter for capacity window  // FileSystemFileHandle for auto-save
+let vizGroupByDay = {}; // {dayISO: field} escolha alfabética independente por dia
+const VIZ_GROUP_LABELS = Object.freeze({
+  descricao: 'Descrição A–Z', eqtos: 'EQTOS / Local A–Z', ordem: 'OS número',
+  tipo: 'Tipo OM A–Z', executante: 'Nome dos recursos A–Z',
+  turma: 'Turma / CT A–Z', observacoes: 'Observações A–Z'
+});
 let _lastActivity   = Date.now(); // timestamp of last user interaction // ordemKey -> {data, executor, turno, recurso, obs}
 
 let filteredIdx = [];
@@ -5074,6 +5081,15 @@ window.addEventListener('storage', function(e) {
   } catch(err) {}
 });
 
+window.addEventListener('storage', function(e) {
+  if (e.key !== '_vizGroup' || !e.newValue) return;
+  try {
+    const d = JSON.parse(e.newValue);
+    if (d && d.day && Array.isArray(d.order)) _applyVizGroup(d.day, d.field, d.order);
+    localStorage.removeItem('_vizGroup');
+  } catch(err) {}
+});
+
 function _attachVizDrag() {
   if (!_vizWin || _vizWin.closed) return;
   try {
@@ -6874,6 +6890,21 @@ function _applyVizSort(day, fullOrder) {
   if (typeof refreshVisualizacaoIfOpen === 'function') refreshVisualizacaoIfOpen();
 }
 
+function _applyVizGroup(day, field, fullOrder) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(day))) return;
+  if (field && !Object.prototype.hasOwnProperty.call(VIZ_GROUP_LABELS, field)) return;
+  if (!field) {
+    delete vizGroupByDay[day];
+    delete sortOverrides[day];
+    saveProgState();
+    _vizForceSave();
+    return;
+  }
+  if (!Array.isArray(fullOrder) || !fullOrder.length) return;
+  vizGroupByDay[day] = field;
+  _applyVizSort(day, fullOrder);
+}
+
 
 // ── REMOVER PROGRAMAÇÃO DAS LINHAS SELECIONADAS ──────────────────────
 function rplUpdateDesprogW() {
@@ -7222,7 +7253,7 @@ async function _autoSaveSilencioso() {
       supervisao, textoProgramacao, semanaWizard, programacao, naoProgramadas,
       efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
       rawMateriais, ataParticipantes: _serializarAtaState(), _impDados, todosOsCentros,
-      sortOverrides, _exportChecklist, _pendencias, historicoEncerradas,
+      sortOverrides, vizGroupByDay, _exportChecklist, _pendencias, historicoEncerradas,
       _data: new Date().toISOString()
     };
     const writable = await _autoSaveHandle.createWritable();
@@ -10827,6 +10858,25 @@ function buildVisualizacaoHTML() {
   +'function _vDO(e){e.preventDefault();e.currentTarget.style.outline="2px solid #007E7A";}'
   +'function _vDL(e){e.currentTarget.style.outline="";}'
   +'function _vDP(e){e.preventDefault();var r=e.currentTarget;r.style.outline="";var tU=r.dataset.uid||r.dataset.detailFor,tD=r.dataset.day;if(!_dU||_dU===tU||_dD!==tD){_dU=null;return;}var tb=r.closest("tbody");var rows=[].slice.call(tb.querySelectorAll("tr[data-uid]")).filter(function(x){return x.dataset.day===tD;});var fi=rows.findIndex(function(x){return x.dataset.uid===_dU;});var ti=rows.findIndex(function(x){return x.dataset.uid===tU;});if(fi>-1&&ti>-1){var src=rows[fi],target=rows[ti];var detail=src.nextElementSibling;if(!detail||detail.dataset.detailFor!==_dU)detail=null;var afterTarget=target.nextElementSibling;if(afterTarget&&afterTarget.dataset.detailFor===tU)afterTarget=afterTarget.nextElementSibling;var anchor=fi<ti?afterTarget:target;var block=document.createDocumentFragment();block.appendChild(src);if(detail)block.appendChild(detail);tb.insertBefore(block,anchor);}var allRows=tb.querySelectorAll("tr[data-uid]"),cnt=1;allRows.forEach(function(row){var td=row.querySelector("td:first-child");if(td)td.textContent=cnt++;});var fullOrder=[].slice.call(tb.querySelectorAll("tr[data-uid]")).filter(function(x){return x.dataset.day===tD;}).map(function(x){return x.dataset.uid;});_checkConflitos();try{window.opener._applyVizSort(tD,fullOrder);}catch(ex){try{localStorage.setItem("_vizSort",JSON.stringify({day:tD,order:fullOrder,ts:Date.now()}));}catch(e2){}}_dU=null;_dD=null;}'
+  +'function _vGroupDay(sel){'
+  +'  var day=sel.dataset.day,field=sel.value;'
+  +'  var allowed=["descricao","eqtos","ordem","tipo","executante","turma","observacoes"];'
+  +'  if(field&&!allowed.includes(field))return;'
+  +'  var tbody=sel.closest("tbody");'
+  +'  var rows=[].slice.call(tbody.querySelectorAll("tr[data-uid][data-day]")).filter(function(r){return r.dataset.day===day;});'
+  +'  if(!field){try{window.opener._applyVizGroup(day,"",[]);}catch(ex){try{localStorage.setItem("_vizGroup",JSON.stringify({day:day,field:"",order:[]}));}catch(e2){}}return;}'
+  +'  if(!rows.length)return;'
+  +'  var collator=new Intl.Collator("pt-BR",{sensitivity:"base",numeric:true});'
+  +'  var sorted=rows.map(function(row,index){return {row:row,index:index,value:row.getAttribute("data-group-"+field)||""};});'
+  +'  sorted.sort(function(a,b){if(!a.value)return b.value?1:a.index-b.index;if(!b.value)return -1;return collator.compare(a.value,b.value)||a.index-b.index;});'
+  +'  var first=Math.min.apply(null,rows.map(function(r){return Number(r.cells[0].textContent)||1;}));'
+  +'  var block=document.createDocumentFragment();'
+  +'  sorted.forEach(function(entry,index){var row=entry.row,detail=row.nextElementSibling;row.cells[0].textContent=first+index;block.appendChild(row);if(detail&&detail.dataset.detailFor===row.dataset.uid)block.appendChild(detail);});'
+  +'  tbody.appendChild(block);'
+  +'  var order=sorted.map(function(entry){return entry.row.dataset.uid;});'
+  +'  _recalcTimesAndPerc();_checkConflitos();'
+  +'  try{window.opener._applyVizGroup(day,field,order);}catch(ex){try{localStorage.setItem("_vizGroup",JSON.stringify({day:day,field:field,order:order}));}catch(e2){}}'
+  +'}'
   +'function _vEdit(e,field,uid){e.stopPropagation();var cur=e.currentTarget.dataset.val||e.currentTarget.textContent.replace("h","");var td=e.currentTarget;var old=td.textContent;var inp=document.createElement("input");inp.value=cur;inp.style.cssText="width:60px;font-size:inherit;padding:1px 4px;border:2px solid #007E7A;border-radius:3px;text-align:center;";td.textContent="";td.appendChild(inp);inp.focus();inp.select();function save(){var v=inp.value.trim();if(v===""||v===cur){td.textContent=old;return;}try{window.opener._applyVizEdit(field,uid,v);td.textContent=(field==="dur")?(v.replace("h","")+"h"):v;}catch(ex){localStorage.setItem("_vizEdit",JSON.stringify({field:field,uid:uid,val:v,ts:Date.now()}));td.textContent=(field==="dur")?(v.replace("h","")+"h"):v;}}inp.addEventListener("keydown",function(ev){if(ev.key==="Enter")save();if(ev.key==="Escape")td.textContent=old;});inp.addEventListener("blur",save);}'
   +'function _fmtM(m){m=((m%(24*60))+(24*60))%(24*60);var h=Math.floor(m/60),mm=m%60;return(h<10?"0":"")+h+":"+(mm<10?"0":"")+mm;}'
   +'function _isBloqR(r){var tb=r.dataset.tb||"",op=(r.dataset.op||"").replace(/^0+/,"");return(tb.includes("bloqueio e desbloqueio")||tb.includes("bloqueio e desbloq")||tb.includes("bloqueio/desbloqueio"))&&["80","82","84","86","88"].includes(op);}'
@@ -11154,7 +11204,9 @@ function buildVisualizacaoHTML() {
     const totalHH=ordens.reduce(function(s,o){var n=Number(o.d['Número']??1)||1;return s+n*(o.d._hh||0);},0);
 
     const BDR='0.3px solid rgba(0,100,120,0.2)';
-    const dayRow=`<tr style="background:#005f5b;${PX}"><td colspan="16" style="padding:4px 6px;font-size:8px;font-weight:700;color:#fff;border:${BDR};${PX}">PROGRAMAÇÃO DO DIA ${ds}&nbsp;&nbsp;|&nbsp;&nbsp;${ordens.length} operação(ões)&nbsp;&nbsp;|&nbsp;&nbsp;${totalHH.toFixed(1)} H/H&nbsp;&nbsp;|&nbsp;&nbsp;${DIAS_FULL[idx]}</td></tr>`;
+    const groupField=Object.prototype.hasOwnProperty.call(VIZ_GROUP_LABELS,vizGroupByDay[day])?vizGroupByDay[day]:'';
+    const groupOptions='<option value="">Automática (padrão)</option>'+Object.entries(VIZ_GROUP_LABELS).map(function([field,label]){return `<option value="${field}"${groupField===field?' selected':''}>${esc(label)}</option>`;}).join('');
+    const dayRow=`<tr style="background:#005f5b;${PX}"><td colspan="16" style="padding:4px 6px;font-size:8px;font-weight:700;color:#fff;border:${BDR};${PX}">PROGRAMAÇÃO DO DIA ${ds}&nbsp;&nbsp;|&nbsp;&nbsp;${ordens.length} operação(ões)&nbsp;&nbsp;|&nbsp;&nbsp;${totalHH.toFixed(1)} H/H&nbsp;&nbsp;|&nbsp;&nbsp;${DIAS_FULL[idx]}<label class="no-print" style="float:right;display:inline-flex;align-items:center;gap:5px;font-size:8px;color:#fff;">Agrupar este dia: <select data-day="${esc(day)}" onchange="_vGroupDay(this)" aria-label="Agrupar operações do dia ${ds}" style="font-size:9px;padding:2px 5px;border:1px solid #95c7c3;border-radius:4px;color:#164e4c;background:#fff;">${groupOptions}</select></label></td></tr>`;
     const filRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="15" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">SUPERVISÃO: ${esc(supervisao||'-')}</td></tr>`;
     const dssRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="5" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">DSS - DESLOCAMENTO</td><td style="${TDC}background:#eef2f3;${PX}">0,5 h</td><td style="${TD}background:#eef2f3;${PX}">EQUIPE</td><td style="${TDC}background:#eef2f3;${PX}">0%</td><td style="${TDC}background:#eef2f3;${PX}"></td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:00</td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:30</td><td colspan="4" style="border:${BDR};background:#eef2f3;${PX}"></td></tr>`;
 
@@ -11190,7 +11242,7 @@ function buildVisualizacaoHTML() {
         // Vencimento mantém destaque nas linhas neutras; nas condições já
         // sinalizadas, acompanha o texto escuro do próprio tom suave.
         const dtMaxColor=tomEspecial?fg:'#C0305E';
-        rows+=`<tr draggable="true" data-uid="${esc(item.uid)}" data-day="${esc(day)}" ${_rowAttrs(d,p,day,days)} style="background:${bg};color:${fg};${PX};cursor:grab;" ondragstart="_vDS(event)" ondragend="_vDE(event)" ondragover="_vDO(event)" ondragleave="_vDL(event)" ondrop="_vDP(event)">
+        rows+=`<tr draggable="true" data-uid="${esc(item.uid)}" data-day="${esc(day)}" data-group-descricao="${esc(textoProgramacaoDaOrdem(d))}" data-group-eqtos="${loc}" data-group-ordem="${esc(d._ordem||'')}" data-group-tipo="${esc(d._tipo||'')}" data-group-executante="${exec}" data-group-turma="${ct}" data-group-observacoes="${obs}" ${_rowAttrs(d,p,day,days)} style="background:${bg};color:${fg};${PX};cursor:grab;" ondragstart="_vDS(event)" ondragend="_vDE(event)" ondragover="_vDO(event)" ondragleave="_vDL(event)" ondrop="_vDP(event)">
           <td style="${TDC}background:${bg};color:${fg};border-left:3px solid ${edge};${PX}">${rid}</td>
           <td style="${TD}background:${bg};color:${fg};${PX}">${descWithAbc}</td>
           <td style="${TD}background:${bg};color:${fg};${PX}">${loc}</td>
@@ -14478,7 +14530,7 @@ async function salvarSessao() {
       supervisao, textoProgramacao, semanaWizard, programacao, naoProgramadas,
     efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
     rawMateriais, ataParticipantes: _serializarAtaState(), _impDados, todosOsCentros,
-    sortOverrides, _exportChecklist, _pendencias, historicoEncerradas,
+    sortOverrides, vizGroupByDay, _exportChecklist, _pendencias, historicoEncerradas,
     _data: new Date().toISOString()
   };
   const json    = JSON.stringify(sessao);
@@ -14647,6 +14699,7 @@ function _processarSessaoJSON(text) {
       rawAMS           = s.rawAMS           || {};
       rawMateriais     = s.rawMateriais     || {};
       sortOverrides    = s.sortOverrides    || {};
+      vizGroupByDay    = s.vizGroupByDay    || {};
       _exportChecklist = s._exportChecklist || {};
       const pendenciasSalvas = Array.isArray(s._pendencias) ? s._pendencias : [];
       // Sessões antigas gravavam [] mesmo quando havia pendências no navegador.
@@ -14830,7 +14883,7 @@ document.addEventListener('DOMContentLoaded', () => {
       supervisao, textoProgramacao, semanaWizard, programacao, naoProgramadas,
       efetivo, efObservacoes, calGrade, dados, rawAMC, rawAMS, rawBacklog,
       rawMateriais, ataParticipantes: _serializarAtaState(), _impDados, todosOsCentros,
-      sortOverrides, _exportChecklist, _pendencias, historicoEncerradas
+      sortOverrides, vizGroupByDay, _exportChecklist, _pendencias, historicoEncerradas
     };
     if (incluirData) sessao._data = new Date().toISOString();
     return JSON.stringify(sessao);
