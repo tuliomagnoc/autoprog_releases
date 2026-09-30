@@ -3,6 +3,7 @@
   "data": "2026-09-28",
   "novidades": [
     "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "TELA 8: Detalhes troca todas as colunas de uma vez, sem faixas vazias ou sobreposição",
     "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
     "ATA: ordens desprogramadas com justificativa aparecem automaticamente e permanecem ao salvar e reabrir a sessão",
     "CAPACIDADE: a lista de executantes não tem rolagem interna; a página mostra todos os nomes e capacidades",
@@ -20,7 +21,6 @@
     "CAPACIDADE: ativar ou desativar +HE mantém a janela no mesmo colaborador e dia, sem voltar ao topo da lista",
     "TELAS 2 E 8: a supervisão permite escolher Texto breve ou Texto operação para a coluna da programação; a escolha fica salva na sessão e acompanha filtros e ordenação",
     "PROGRAMAÇÃO: a descrição escolhida na tela 2 também aparece em Visualizar programação, nos dois Excel da tela 10 e no PDF da programação",
-    "AJUSTE VISUAL: o botão Detalhes da tela 8 agora também recolhe as colunas com efeito slide out, da direita para a esquerda",
     "SEGURANÇA: a API de materiais agora limita escrita por módulo, bloqueia exclusões diretas e impede que o AutoMat marque ordens como entregues",
     "SEGURANÇA: dados importados do SAP e da sessão são tratados antes de aparecer nas tabelas, filtros e formulários; bibliotecas externas têm integridade verificada",
     "CORREÇÃO: o autosave grava no JSON vinculado mesmo quando a última operação programada é removida",
@@ -28,7 +28,6 @@
     "MELHORIA: consultas de materiais evitam transferir fotos no carregamento geral; impressão SAP em lote usa busca indexada por ordem",
     "DESEMPENHO: pequenas edições não serializam mais toda a base SAP no armazenamento local; o autosave do JSON permanece ativo",
     "SEGURANÇA: encerrar a sessão invalida credenciais legadas sem identificador de sessão, preservando a compatibilidade dos clientes antigos",
-    "AJUSTE VISUAL: botão Detalhes da tela 8 revela as colunas da esquerda para a direita com efeito deslizante, sem travar a tabela nem alterar filtros e ordenação",
     "AJUSTE VISUAL: janela Impressão em Lote SAP (ZOVRM004) repaginada com logomarca, resumo da semana, instruções e listas por dia, preservando a cópia individual e de todas as OMs",
     "MELHORIA: observação rápida limitada a 35 caracteres; a observação detalhada aparece em linha vinculada à ordem na janela Visualizar programação e acompanha sua ordenação manual, sem alterar H/H",
     "AJUSTE VISUAL: marcação automática posicionada acima do rótulo Observação rápida na janela Programar operação",

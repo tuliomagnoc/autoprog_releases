@@ -664,39 +664,8 @@ tbody tr:hover { background: #f4faf8; }
 #screen-s8.ap-details-active .table-wrap { overflow-x: auto !important; }
 #screen-s8.ap-details-active .ap-compact-table { width: max-content !important; min-width: 100% !important; table-layout: auto !important; }
 #screen-s8.ap-details-active .ap-compact-table :is(th, td) { min-width: max-content !important; max-width: none !important; white-space: nowrap !important; overflow-wrap: normal !important; }
-/* Detalhes: a revelação recorta as células no próprio lugar. Deslocar a
-   célula com transform fazia colunas vizinhas se sobreporem durante o slide. */
-@keyframes ap-details-slide-in {
-  from { clip-path: inset(0 100% 0 0); }
-  to { clip-path: inset(0 0 0 0); }
-}
-@keyframes ap-details-slide-out {
-  from { clip-path: inset(0 0 0 0); }
-  to { clip-path: inset(0 100% 0 0); }
-}
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(n+2):nth-child(-n+7) {
-  animation: ap-details-slide-in 260ms ease-out both;
-  animation-delay: var(--ap-details-delay, 0ms);
-}
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(n+2):nth-child(-n+7) {
-  animation: ap-details-slide-out 260ms ease-in both;
-  animation-delay: var(--ap-details-out-delay, 0ms);
-}
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(2) { --ap-details-delay: 0ms; }
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(3) { --ap-details-delay: 45ms; }
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(4) { --ap-details-delay: 90ms; }
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(5) { --ap-details-delay: 135ms; }
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(6) { --ap-details-delay: 180ms; }
-#screen-s8.ap-details-reveal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(7) { --ap-details-delay: 225ms; }
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(2) { --ap-details-out-delay: 225ms; }
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(3) { --ap-details-out-delay: 180ms; }
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(4) { --ap-details-out-delay: 135ms; }
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(5) { --ap-details-out-delay: 90ms; }
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(6) { --ap-details-out-delay: 45ms; }
-#screen-s8.ap-details-conceal .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(7) { --ap-details-out-delay: 0ms; }
-@media (prefers-reduced-motion: reduce) {
-  #screen-s8:is(.ap-details-reveal, .ap-details-conceal) .ap-compact-table tbody tr.ap-details-animate-row td:nth-child(n+2):nth-child(-n+7) { animation: none; }
-}
+/* Detalhes muda a tabela em uma única renderização, sem animação nas células:
+   recortes ou deslocamentos deixavam faixas vazias sobre as ordens. */
 :is(#screen-s7, #screen-s8).ap-card-mode .table-wrap { overflow-x: hidden !important; }
 :is(#screen-s7, #screen-s8).ap-card-mode .ap-compact-table,
 :is(#screen-s7, #screen-s8).ap-card-mode .ap-compact-table tbody { display: block; width: 100% !important; min-width: 0 !important; }
@@ -2512,6 +2481,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
   "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+  "TELA 8: Detalhes troca todas as colunas de uma vez, sem faixas vazias ou sobreposição",
   "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
   "ATA: ordens desprogramadas com justificativa aparecem automaticamente e permanecem ao salvar e reabrir a sessão",
   "CAPACIDADE: a lista de executantes não tem rolagem interna; a página mostra todos os nomes e capacidades",
@@ -2529,7 +2499,6 @@ const _NOVIDADES_ATUAL = [
   "CAPACIDADE: ativar ou desativar +HE mantém a janela no mesmo colaborador e dia, sem voltar ao topo da lista",
   "TELAS 2 E 8: a supervisão permite escolher Texto breve ou Texto operação para a coluna da programação; a escolha fica salva na sessão e acompanha filtros e ordenação",
   "PROGRAMAÇÃO: a descrição escolhida na tela 2 também aparece em Visualizar programação, nos dois Excel da tela 10 e no PDF da programação",
-  "AJUSTE VISUAL: o botão Detalhes da tela 8 agora também recolhe as colunas com efeito slide out, da direita para a esquerda",
   "SEGURANÇA: a API de materiais agora limita escrita por módulo, bloqueia exclusões diretas e impede que o AutoMat marque ordens como entregues",
   "SEGURANÇA: dados importados do SAP e da sessão são tratados antes de aparecer nas tabelas, filtros e formulários; bibliotecas externas têm integridade verificada",
   "CORREÇÃO: o autosave grava no JSON vinculado mesmo quando a última operação programada é removida",
@@ -2537,7 +2506,6 @@ const _NOVIDADES_ATUAL = [
   "MELHORIA: consultas de materiais evitam transferir fotos no carregamento geral; impressão SAP em lote usa busca indexada por ordem",
   "DESEMPENHO: pequenas edições não serializam mais toda a base SAP no armazenamento local; o autosave do JSON permanece ativo",
   "SEGURANÇA: encerrar a sessão invalida credenciais legadas sem identificador de sessão, preservando a compatibilidade dos clientes antigos",
-  "AJUSTE VISUAL: botão Detalhes da tela 8 revela as colunas da esquerda para a direita com efeito deslizante, sem travar a tabela nem alterar filtros e ordenação",
   "AJUSTE VISUAL: janela Impressão em Lote SAP (ZOVRM004) repaginada com logomarca, resumo da semana, instruções e listas por dia, preservando a cópia individual e de todas as OMs",
   "MELHORIA: observação rápida limitada a 35 caracteres; a observação detalhada aparece em linha vinculada à ordem na janela Visualizar programação e acompanha sua ordenação manual, sem alterar H/H",
   "AJUSTE VISUAL: marcação automática posicionada acima do rótulo Observação rápida na janela Programar operação",
@@ -6141,7 +6109,6 @@ let rplColFiltersW = {};
 let rplAderFilterW = 'todos';
 let rplFilterDropdownW = null;
 let rplCriticidadeAtiva = false;
-let rplDetailsClosing = false;
 // Controla se as ordens ENCERRADAS SAP (sumiram do backlog, preservadas para
 // consulta/auditoria) aparecem na RPL. Ficam ocultas por padrão para não
 // tumultuar a tela; o botão "Encerradas" mostra/esconde.
@@ -7153,43 +7120,9 @@ function toggleEncerradas() {
 }
 
 function toggleCriticidade() {
-  if (rplDetailsClosing) return;
-  const screen = document.getElementById('screen-s8');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (rplCriticidadeAtiva && !reducedMotion && screen) {
-    // Mantém a tabela expandida até a última coluna terminar de sair.
-    // Só depois renderiza o estado compacto, evitando recálculos por quadro.
-    rplDetailsClosing = true;
-    const button = document.getElementById('btn-criticidade');
-    if (button) button.disabled = true;
-    screen.classList.remove('ap-details-reveal');
-    if (_rplAnimateVisibleDetails('conceal')) {
-      const lastColumn = screen.querySelector('.ap-compact-table tbody tr.ap-details-animate-row td:nth-child(2)');
-      let finished = false;
-      let fallback;
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(fallback);
-        screen.classList.remove('ap-details-conceal');
-        rplCriticidadeAtiva = false;
-        rplDetailsClosing = false;
-        if (button) button.disabled = false;
-        _rplApplyCriticidadeState();
-      };
-      lastColumn?.addEventListener('animationend', event => {
-        if (event.target === lastColumn && event.animationName === 'ap-details-slide-out') finish();
-      }, { once: true });
-      fallback = setTimeout(finish, 550);
-      return;
-    }
-    rplDetailsClosing = false;
-    if (button) button.disabled = false;
-  }
   rplCriticidadeAtiva = !rplCriticidadeAtiva;
-  screen?.classList.remove('ap-details-reveal', 'ap-details-conceal');
+  document.getElementById('screen-s8')?.classList.remove('ap-details-reveal', 'ap-details-conceal');
   _rplApplyCriticidadeState();
-  if (rplCriticidadeAtiva && !reducedMotion) requestAnimationFrame(_rplAnimateVisibleDetails);
 }
 
 function _rplApplyCriticidadeState() {
@@ -7213,36 +7146,6 @@ function _rplToggleCritCols() {
     cell.style.display = show ? '' : 'none';
   });
 }
-
-function _rplAnimateVisibleDetails(mode = 'reveal') {
-  const screen = document.getElementById('screen-s8');
-  const wrap = screen?.querySelector('.table-wrap');
-  const rows = document.getElementById('rpl-tbody-w')?.rows;
-  if (!rplCriticidadeAtiva || !wrap || !rows?.length) return false;
-
-  // Só as linhas visíveis recebem animação; o restante da tabela, que pode
-  // conter milhares de ordens, fica pronto imediatamente para rolagem/filtros.
-  const viewport = wrap.getBoundingClientRect();
-  const top = Math.max(viewport.top, 0);
-  const bottom = Math.min(viewport.bottom, window.innerHeight);
-  let low = 0, high = rows.length;
-  while (low < high) {
-    const mid = (low + high) >>> 1;
-    if (rows[mid].getBoundingClientRect().bottom < top) low = mid + 1;
-    else high = mid;
-  }
-  const visible = [];
-  for (let i = low; i < rows.length && visible.length < 36; i++) {
-    if (rows[i].getBoundingClientRect().top > bottom) break;
-    visible.push(rows[i]);
-  }
-  visible.forEach(row => row.classList.add('ap-details-animate-row'));
-  if (!visible.length) return false;
-  screen.classList.add(mode === 'conceal' ? 'ap-details-conceal' : 'ap-details-reveal');
-  return true;
-}
-
-
 
 // ── Keyword autoTags helper ───────────────────────────────────────────────
 function _buildKeywordTags(d) {
