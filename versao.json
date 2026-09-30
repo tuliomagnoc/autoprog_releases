@@ -2,8 +2,11 @@
   "versao": "V2026.27.01.94",
   "data": "2026-09-30",
   "novidades": [
-    "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "V2026.27.01.94 — PROGRAMAÇÃO: cabeçalho Centro de Trabalho abreviado para C. TRABALHO, preservando filtro e vínculos",
+    "EXPORTAÇÃO: o Excel da tela 10 segue a mesma ordem de cada dia em Visualizar programação, inclusive agrupamentos alfabéticos e ajustes manuais",
+    "NOVIDADES: os ajustes mais recentes aparecem primeiro na etiqueta e são consultados também no manifesto da Azure",
     "VISUALIZAR PROGRAMAÇÃO: cada dia pode ser agrupado alfabeticamente por coluna, com ajuste manual por arraste depois; a escolha é salva na sessão e pode voltar à ordem automática",
+    "SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
     "TURNOS: administrativo 08:00–16:00 e cinco jornadas operacionais configuráveis no efetivo e na programação; capacidade, sequenciamento e Adequar HH respeitam o turno escolhido, inclusive após meia-noite",
     "TELA 8: Detalhes troca todas as colunas de uma vez, sem faixas vazias ou sobreposição",
     "TELA 8: Detalhes abre e fecha sem sobrepor colunas nem ocultar temporariamente os cabeçalhos",
