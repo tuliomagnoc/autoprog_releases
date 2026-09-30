@@ -3,6 +3,7 @@
   "data": "2026-09-28",
   "novidades": [
     "V2026.27.01.94 — SESSÃO: removido o logout automático por inatividade; sair manualmente continua disponível e credenciais inválidas ainda exigem novo login",
+    "CAPACIDADE: a lista de executantes não tem rolagem interna; a página mostra todos os nomes e capacidades",
     "CAPACIDADE: a janela da tela 8 mostra um carregamento breve e só revela a tabela depois que o visual estiver pronto",
     "CORREÇÃO: o botão Salvar da tela 8 confirma a gravação sem acusar erro por falha na atualização visual do horário; o autosave permanece ativo",
     "TELA 6: cada revisão, grupo de planejamento ou tag da grade tem um X para remover só a seleção e sua programação, preservando as demais",
