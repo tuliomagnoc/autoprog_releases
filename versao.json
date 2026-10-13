@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.128",
+  "versao": "V2026.27.01.129",
   "data": "2026-10-13",
   "novidades": [
+    "V2026.27.01.129 - CONTROLE (BETA): card exclusivo da BRUCUTU para divulgar a programação da semana; compilado por dia e supervisão, filtros, histórico e consulta sem edição",
     "V2026.27.01.128 - IMPORTAÇÃO: clique no cadeado de AMC ou AMS para tornar a planilha opcional e prosseguir sem ela; clique novamente para voltar à obrigatoriedade. BACKLOG permanece obrigatório",
     "SESSÃO: escolha de obrigatoriedade de AMC e AMS preservada ao salvar e carregar a sessão, com compatibilidade para arquivos anteriores",
     "V2026.27.01.127 - MODO FOCO: programação ampliada com ícone ao lado de Backlog; ajuste do preenchimento da tela durante a entrada em tela cheia",
