@@ -8285,7 +8285,9 @@ function renderIntervalosProgramacao(doc, turnos, turnosEf) {
       }
     });
   });
-  const enabled = (typeof _intervalosVisiveis !== 'undefined' && _intervalosVisiveis) || rows.some(r => r.dataset.intervalo === '1');
+  // Pausado a pedido: limpar segmentos antigos, sem gerar linhas de intervalo.
+  // Manter os cálculos de horários e Adequar H/H independentes desta exibição.
+  const enabled = false;
   if (!enabled) return;
   const groups = new Map();
   rows.forEach(r => {
