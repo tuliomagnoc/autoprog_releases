@@ -3310,6 +3310,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "V2026.27.01.130 - VISUALIZAÇÃO: oportunidades aderentes e vencidas agora incluem condicionais YCM, seguindo os mesmos critérios de prazo, aderência, ordens não programadas e filtros das sistemáticas",
   "V2026.27.01.130 - SESSÃO: bloqueio entre guias para arquivos JSON com o mesmo nome; a segunda guia avisa e não carrega nem grava uma sessão já em uso",
   "V2026.27.01.129 - CONTROLE (BETA): card exclusivo da BRUCUTU para divulgar a programação da semana; compilado por dia e supervisão, filtros, histórico e consulta sem edição",
   "V2026.27.01.128 - IMPORTAÇÃO: clique no cadeado de AMC ou AMS para tornar a planilha opcional e prosseguir sem ela; clique novamente para voltar à obrigatoriedade. BACKLOG permanece obrigatório",
@@ -13107,7 +13108,7 @@ function buildVisualizacaoHTML(opcoes = {}) {
     </div>`;
   });
 
-  // ── OPORTUNIDADES: sistemáticas (YPM/YCA) não programadas na semana ──────
+  // ── OPORTUNIDADES: sistemáticas (YPM/YCA) e condicionais (YCM) não programadas na semana ──
   // Aderentes = vencem (Data Máx) nos próximos 30 dias a partir de hoje.
   // Vencidas  = venceram nos últimos 30 dias a partir de hoje.
   // Somente exibição na visualização e no PDF - NÃO entram em export nem cockpit.
@@ -13147,7 +13148,7 @@ function buildVisualizacaoHTML(opcoes = {}) {
 
     // Base: mesmos filtros da RPL (CT do efetivo, exclusões de status, executadas)
     const _baseOp = dadosFiltradosCT().filter(function(d){
-      if (d._tipo !== 'YPM' && d._tipo !== 'YCA') return false;   // só sistemáticas
+      if (d._tipo !== 'YPM' && d._tipo !== 'YCA' && d._tipo !== 'YCM') return false; // sistemáticas e condicionais
       if (_progOrdens.has(d._ordem)) return false;                 // não programada na semana
       if (!_dtMinPermite(d)) return false;                         // Data Mínima liberada (regra de aderência)
       if (_opCTF && !_opCTF.has(rplGetValW(d,'CenTrabOperação'))) return false; // respeita o filtro de CT da tela (mesma comparação da tabela)
@@ -13217,8 +13218,8 @@ function buildVisualizacaoHTML(opcoes = {}) {
     }
 
     // Oportunidades preservam a distinção verde/rosa, com a mesma leveza da grade.
-    sections += _caixaOp('OPORTUNIDADES ADERENTES - Sistemáticas a vencer nos próximos 30 dias (não programadas na semana)', aderentes, '#e1f5ea', '#f4fbf7', '#25634e', '#e4f3e9', '#61ac8f');
-    sections += _caixaOp('OPORTUNIDADES VENCIDAS - Sistemáticas vencidas nos últimos 30 dias (não programadas na semana)', vencidas, '#fae5e9', '#fff5f7', '#8e3851', '#fbe8ec', '#c86b83');
+    sections += _caixaOp('OPORTUNIDADES ADERENTES - Sistemáticas (YPM/YCA) e condicionais (YCM) a vencer nos próximos 30 dias (não programadas na semana)', aderentes, '#e1f5ea', '#f4fbf7', '#25634e', '#e4f3e9', '#61ac8f');
+    sections += _caixaOp('OPORTUNIDADES VENCIDAS - Sistemáticas (YPM/YCA) e condicionais (YCM) vencidas nos últimos 30 dias (não programadas na semana)', vencidas, '#fae5e9', '#fff5f7', '#8e3851', '#fbe8ec', '#c86b83');
   })();
 
   // Apply CT filter to indicators (same as viz table)
