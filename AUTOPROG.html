@@ -416,6 +416,9 @@ td:has(.rpl-direct-date-group) { white-space:nowrap !important;vertical-align:mi
 #screen-s7 table { font-size:10px !important; white-space:nowrap; }
 #screen-s7 table th { padding:3px 4px !important; font-size:10px !important; white-space:nowrap; }
 #screen-s7 table td { padding:2px 4px !important; font-size:10px !important; white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis; }
+.rpl-copy-order{border:0;background:transparent;color:var(--text2);padding:1px 2px;margin-left:2px;cursor:pointer;display:inline-flex;align-items:center;vertical-align:middle;font-size:inherit;line-height:1;opacity:.72;}
+.rpl-copy-order:hover{color:var(--accent);opacity:1;}
+.rpl-copy-order:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:3px;}
 
 /* ===== Ícones modernos (substituem emojis) - outline style, herdam currentColor ===== */
 i[class^='icon-']{display:inline-block;width:1em;height:1em;vertical-align:-0.15em;background-color:currentColor;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;flex-shrink:0;}
@@ -3310,6 +3313,7 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "V2026.27.01.130 - ORDENS: ícone compacto para copiar o número nas telas 7 e 8; observações exibem um único prefixo OBS, sem alterar identificadores internos",
   "V2026.27.01.130 - VISUALIZAÇÃO: oportunidades aderentes e vencidas agora incluem condicionais YCM, seguindo os mesmos critérios de prazo, aderência, ordens não programadas e filtros das sistemáticas",
   "V2026.27.01.130 - SESSÃO: bloqueio entre guias para arquivos JSON com o mesmo nome; a segunda guia avisa e não carrega nem grava uma sessão já em uso",
   "V2026.27.01.129 - CONTROLE (BETA): card exclusivo da BRUCUTU para divulgar a programação da semana; compilado por dia e supervisão, filtros, histórico e consulta sem edição",
@@ -7514,6 +7518,53 @@ function blUpdateFilterIndicators(tbody) {
   if (button) button.style.display = active ? 'inline-flex' : 'none';
 }
 
+function rplOrdemExibida(d) {
+  const ordem = String(d && d._ordem || '');
+  const isOBS = d && (d._tipo === 'OBS' || d._isOBS || ordem.startsWith('OBS_'));
+  if (!isOBS) return ordem;
+  const operacao = String(d['Operação'] || '').trim();
+  if (/^OBS/i.test(operacao)) return operacao;
+  return ordem.replace(/^OBS_OBS/i, 'OBS');
+}
+
+async function copiarNumeroOrdem(event, numero) {
+  if (event) { event.preventDefault(); event.stopPropagation(); }
+  const button = event && event.currentTarget;
+  const originalTitle = button && button.title || 'Copiar número da ordem';
+  const fallback = () => {
+    const campo = document.createElement('textarea');
+    campo.value = String(numero || '');
+    campo.setAttribute('readonly', '');
+    campo.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+    document.body.appendChild(campo);
+    campo.select();
+    let copiado = false;
+    try { copiado = document.execCommand('copy'); } finally { campo.remove(); }
+    if (!copiado) throw new Error('clipboard indisponível');
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(String(numero || ''));
+    else fallback();
+    if (button) {
+      button.innerHTML = '<i class=icon-check></i>';
+      button.title = 'Ordem copiada';
+      setTimeout(() => { button.innerHTML = '<i class=icon-clipboard></i>'; button.title = originalTitle; }, 1200);
+    }
+  } catch (_) {
+    try {
+      fallback();
+      if (button) { button.innerHTML = '<i class=icon-check></i>'; button.title = 'Ordem copiada'; setTimeout(() => { button.innerHTML = '<i class=icon-clipboard></i>'; button.title = originalTitle; }, 1200); }
+    } catch (__) {
+      if (button) button.title = 'Não foi possível copiar a ordem';
+    }
+  }
+}
+
+function rplBotaoCopiarOrdem(d) {
+  const ordem = rplOrdemExibida(d);
+  return `<button type="button" class="rpl-copy-order" aria-label="Copiar ordem ${escHtml(ordem)}" title="Copiar número da ordem" onclick="copiarNumeroOrdem(event,${escJsArg(ordem)})"><i class=icon-clipboard></i></button>`;
+}
+
 function renderBacklogWizard() {
   const tbody = document.getElementById('bl-tbody');
   if (!tbody) return;
@@ -7607,7 +7658,7 @@ function renderBacklogWizard() {
       <td style="text-align:center;"><span class="badge badge-${escHtml(d._abc)}">${escHtml(d._abc)}</span></td>
       <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(d['Texto breve'])}">${escHtml(d['Texto breve'])}</td>
       <td style="white-space:normal;font-size:11px;color:var(--text2);" title="${escHtml(d['Loc.instalação'])}">${escHtml(d['Loc.instalação'])}</td>
-      <td style="font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;" title="Duplo clique para editar" ondblclick="abrirEditarOperacao(${escJsArg(d._uid)})">${escHtml(d._ordem)}${_novaAlteradaBadge(d)}${_isStatusNaoApto(d['Status usuário']) ? ` <button class="btn s7-prog-btn" onclick="event.stopPropagation();_liberarParaProgramacao(${escJsArg(d._ordem)})" title="Liberar esta ordem para programação (RPL)">PROG</button>` : ''}</td>
+      <td style="font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;" title="Duplo clique para editar" ondblclick="abrirEditarOperacao(${escJsArg(d._uid)})">${escHtml(rplOrdemExibida(d))}${rplBotaoCopiarOrdem(d)}${_novaAlteradaBadge(d)}${_isStatusNaoApto(d['Status usuário']) ? ` <button class="btn s7-prog-btn" onclick="event.stopPropagation();_liberarParaProgramacao(${escJsArg(d._ordem)})" title="Liberar esta ordem para programação (RPL)">PROG</button>` : ''}</td>
       <td style="text-align:center;"><span class="badge badge-${escHtml(d._tipo)}">${escHtml(d._tipo)}</span></td>
       <td style="font-size:11px;text-align:center;${d['Operação']==='0000'?'color:#C0305E;font-weight:700;background:#fff0f0;':''}">${escHtml(d['Operação'])}</td>
       <td style="font-size:11px;">${escHtml(d._centrab)}</td>
@@ -9324,7 +9375,7 @@ function renderRPLWizard() {
       <td class="rpl-crit-col" data-cc="4" style="text-align:center;${rplCriticidadeAtiva?'':'display:none;'}"><span class="badge badge-${escHtml(d._abc)}">${escHtml(d._abc)}</span></td>
       <td style="white-space:normal;font-weight:500;font-size:11px;" title="${escHtml(textoProgramacaoDaOrdem(d))}">${escHtml(textoProgramacaoDaOrdem(d))}</td>
       <td style="white-space:normal;font-size:11px;color:${_rowTxtCor};" title="${escHtml(d['Loc.instalação'])}">${escHtml(d['Loc.instalação'])}</td>
-      <td style="font-size:11px;font-weight:500;cursor:pointer;" title="Duplo clique para editar" ondblclick="abrirEditarOperacao(${escJsArg(d._uid)})">${escHtml(d._ordem)}${_novaAlteradaBadge(d)}</td>
+      <td style="font-size:11px;font-weight:500;cursor:pointer;" title="Duplo clique para editar" ondblclick="abrirEditarOperacao(${escJsArg(d._uid)})">${escHtml(rplOrdemExibida(d))}${rplBotaoCopiarOrdem(d)}${_novaAlteradaBadge(d)}</td>
       <td style="text-align:center;"><span class="badge badge-${escHtml(d._tipo)}">${escHtml(d._tipo)}</span></td>
       <td style="font-size:11px;text-align:center;">${d._tipo === 'OBS' ? '' : escHtml(d['Operação'])}</td>
       <td style="font-size:11px;">${escHtml(d._centrab)}</td>
