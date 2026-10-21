@@ -1,7 +1,12 @@
 {
-  "versao": "V2026.27.01.133",
-  "data": "2026-10-20",
+  "versao": "V2026.27.01.134",
+  "data": "2026-10-21",
   "novidades": [
+    "V2026.27.01.134 - CONSUMO: consultas de materiais compartilham leituras sincronizadas e verificam revisões para evitar transferir novamente dados sem alterações; compatibilidade com os clientes anteriores preservada",
+    "NOTIFICAÇÕES: mantidos os avisos individuais de Materiais e Recursos, o intervalo de atualização e as marcações de leitura e limpeza; permissões verificadas a cada consulta",
+    "SEGURANÇA E SINCRONIZAÇÃO: cache separado por usuário e sessão, invalidação após gravações e entre guias, limites de memória e descarte de retratos desconectados; entregas, conflitos e evidências preservados",
+    "PADRONIZAÇÃO: nomes de usuários apresentados em maiúsculas nos módulos e relatórios, sem alterar cadastro, login ou autoria gravada",
+    "CARD RECURSOS: três botões alinhados verticalmente, com tamanhos uniformes e adaptação a telas menores, mantendo todas as ações e a restrição à planta BRUCUTU",
     "V2026.27.01.133 - RECURSOS: cadastro de recursos na Gestão de Usuários, com inclusão, exclusão e restauração; catálogo compartilhado com o módulo Recursos e o dropdown em Ação, preservando pedidos, permissões e histórico",
     "NOTIFICAÇÕES: correção dos retornos de Materiais e Recursos, exclusivos do solicitante logado; avisos limpos não reaparecem ao trocar JSON ou guia no mesmo navegador, mantendo leitura e limpeza sincronizadas entre guias",
     "AJUSTES DA TELA 8: controles de ordens encerradas e em execução sempre visíveis, esmaecidos e desabilitados quando não houver registros elegíveis; preferências independentes por usuário",

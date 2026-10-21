@@ -1,8 +1,12 @@
 {
-  "versao": "V2026.27.01.10",
-  "data": "2026-09-30",
+  "versao": "V2026.27.01.13",
+  "data": "2026-10-21",
   "novidades": [
-    "V2026.27.01.10 — Páginas Entregar e Consultar repaginadas com a identidade visual do AutoProg, preservando os filtros e os fluxos existentes.",
-    "Login e boas-vindas mantidos sem alterações de visual. O aplicativo Android continua na versão 09."
+    "V2026.27.01.13 - CONSUMO: revisões leves e leituras compartilhadas sem alterar a fila, as entregas, ocorrências, fotos e sincronização offline. APK permanece inalterado.",
+    "PADRONIZAÇÃO: nomes apresentados em maiúsculas, preservando os valores originais de autoria.",
+    "V2026.27.01.12 - Tela de atualização web padronizada com a identidade AutoProg. APK permanece inalterado.",
+    "V2026.27.01.11 - Campos de usuário e senha redesenhados com ícones, divisórias e cantos arredondados. Demais elementos do login preservados.",
+    "V2026.27.01.10 - Páginas Entregar e Consultar repaginadas com a identidade visual do AutoProg, preservando os filtros e os fluxos existentes.",
+    "O aplicativo Android continua na versão 09."
   ]
 }
