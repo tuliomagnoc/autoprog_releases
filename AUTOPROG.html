@@ -9381,8 +9381,8 @@ function rplToggleAllW(chk) { document.querySelectorAll('.rpl-chk-os-w').forEach
 // selecionadas"), open the bulk modal for all of them - same behavior as
 // the footer button, just triggered from the row action button too.
 function rplVisualPrefs() {
-  try { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:false,...JSON.parse(localStorage.getItem(rplModoKey()+':visual')||'{}')}; }
-  catch (_) { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:false}; }
+  try { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,colunasSequenciamentoVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:false,...JSON.parse(localStorage.getItem(rplModoKey()+':visual')||'{}')}; }
+  catch (_) { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,colunasSequenciamentoVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:false}; }
 }
 // Preferências somente de exibição: não desprogramam nem alteram o histórico SAP.
 function rplOrdemVisivelPorStatus(d, prefs=rplVisualPrefs()) {
@@ -9413,7 +9413,7 @@ function rplSalvarVisualPref(key, value) {
   }
   try { localStorage.setItem(rplModoKey()+':visual', JSON.stringify(prefs)); } catch (_) {}
   renderRPLWizard();
-  if (key === 'colunaObsVisualizacao' && typeof refreshVisualizacaoIfOpen === 'function') refreshVisualizacaoIfOpen();
+  if (['colunaObsVisualizacao','colunasSequenciamentoVisualizacao'].includes(key) && typeof refreshVisualizacaoIfOpen === 'function') refreshVisualizacaoIfOpen();
 }
 function rplRestaurarPreferencias() {
   try { [rplModoKey(),rplModoKey()+':visual',rplModoKey()+':data-amc'].forEach(key=>localStorage.removeItem(key)); } catch (_) {}
@@ -9434,7 +9434,7 @@ function rplOrganizarAjustes() {
     const dates=popup.querySelector('[name="data-amc-visual"]').closest('fieldset');
     const visual=document.createElement('div');
     visual.innerHTML=`<label class="ap-setting-switch"><span>Mostrar colunas de detalhes</span><input type="checkbox" role="switch" data-setting="colunas" onchange="rplSalvarVisualPref('colunas',this.checked)"></label>`+
-      [['prazos','Destacar prazos'],['observacoes','Observações automáticas'],['colunaObsVisualizacao','Coluna Observação em Visualizar'],['programadas','Somente programadas'],['compactas','Linhas compactas'],['encerradas','Mostrar ordens encerradas'],['emExecucao','Mostrar ordens em execução']].map(([key,label])=>`<label class="ap-setting-switch"><span>${label}</span><input type="checkbox" role="switch" data-setting="${key}" onchange="rplSalvarVisualPref('${key}',this.checked)"></label>`).join('');
+      [['prazos','Destacar prazos'],['observacoes','Observações automáticas'],['colunaObsVisualizacao','Coluna Observação em Visualizar'],['colunasSequenciamentoVisualizacao','Colunas sequenciamento em Visualizar'],['programadas','Somente programadas'],['compactas','Linhas compactas'],['encerradas','Mostrar ordens encerradas'],['emExecucao','Mostrar ordens em execução']].map(([key,label])=>`<label class="ap-setting-switch"><span>${label}</span><input type="checkbox" role="switch" data-setting="${key}" onchange="rplSalvarVisualPref('${key}',this.checked)"></label>`).join('');
     const grid=document.createElement('div');grid.className='ap-settings-grid';
     const group=(title,...children)=>{const box=document.createElement('section');box.className='ap-settings-group';box.append(section(title),...children);grid.append(box);};
     group('Programação',mode,text);
@@ -13542,6 +13542,9 @@ function buildVisualizacaoHTML(opcoes = {}) {
   const authNome = escHtml(String(sessaoElaborador || '').toLocaleUpperCase('pt-BR'));
   const authPcm = escHtml(sessaoPcm);
   const mostrarColunaObs = opcoes.colunaObservacao !== undefined ? opcoes.colunaObservacao !== false : (typeof rplVisualPrefs === 'function' ? rplVisualPrefs().colunaObsVisualizacao !== false : true);
+  // Só apresentação. A divulgação completa ao Escopo nunca perde %/PRED.
+  const mostrarColunasSequenciamento = opcoes.completa === true || (opcoes.colunasSequenciamento !== undefined ? opcoes.colunasSequenciamento !== false : (typeof rplVisualPrefs === 'function' ? rplVisualPrefs().colunasSequenciamentoVisualizacao !== false : true));
+  const sequenciamentoAttrs = mostrarColunasSequenciamento ? '' : 'data-viz-sequenciamento="oculto" hidden';
   // A proteção é da ordem inteira, mesmo quando o status veio em uma só operação.
   const statusHHProtegidos = ['SAUD', 'SEGU', 'OMVE', 'ATCR'];
   const temStatusHHProtegido = d => statusHHProtegidos.some(status => String(d['Status usuário'] || '').toUpperCase().includes(status));
@@ -13864,10 +13867,10 @@ function buildVisualizacaoHTML(opcoes = {}) {
     {l:'%',w:'2%',h:TH,d:TDC},{l:'PRED.',w:'3%',h:TH,d:TDC},{l:'INÍCIO',w:'6%',h:TH,d:TDC},
     {l:'TÉRMINO',w:'6%',h:TH,d:TDC},{l:'TURMA',w:'5%',h:TH,d:TDC},
     {l:'DATA MIN',w:'6%',h:TH,d:TDC},{l:'VENCIMENTO',w:'6%',h:TH,d:TDC},{l:'OBSERVAÇÕES',w:'12%',h:THL,d:TD}
-  ].filter(col=>mostrarColunaObs || col.l!=='OBSERVAÇÕES');
+  ].filter(col=>(mostrarColunaObs || col.l!=='OBSERVAÇÕES') && (mostrarColunasSequenciamento || !['%','PRED.'].includes(col.l)));
   const totalColunas = COLS.length;
   const somaLarguras = COLS.reduce((sum,col)=>sum+parseFloat(col.w),0);
-  const larguraColuna = col => mostrarColunaObs ? col.w : (parseFloat(col.w)*100/somaLarguras).toFixed(4)+'%';
+  const larguraColuna = col => mostrarColunaObs && mostrarColunasSequenciamento ? col.w : (parseFloat(col.w)*100/somaLarguras).toFixed(4)+'%';
   const colgroup = COLS.map((col,i)=>`<col class="c${i}" style="width:${larguraColuna(col)}">`).join('');
   const thead    = COLS.map(col=>`<th style="${col.h}">${col.l}</th>`).join('');
 
@@ -13902,7 +13905,7 @@ function buildVisualizacaoHTML(opcoes = {}) {
     const groupOptions='<option value="">AUTOMÁTICA</option>'+Object.entries(VIZ_GROUP_LABELS).map(function([field,label]){return `<option value="${field}"${groupField===field?' selected':''}>${esc(label)}</option>`;}).join('');
     const dayRow=`<tr style="background:#005f5b;${PX}"><td colspan="${totalColunas}" style="padding:4px 6px;font-size:8px;font-weight:700;color:#fff;border:${BDR};${PX}">PROGRAMAÇÃO DO DIA ${ds}&nbsp;&nbsp;|&nbsp;&nbsp;${ordens.length} operação(ões)&nbsp;&nbsp;|&nbsp;&nbsp;<span data-hh-day="${esc(day)}">${totalHH.toFixed(1)}</span> H/H&nbsp;&nbsp;|&nbsp;&nbsp;${DIAS_FULL[idx]}<label class="no-print" style="float:right;display:inline-flex;align-items:center;gap:5px;font-size:8px;color:#fff;">Agrupar este dia: <select data-day="${esc(day)}" onchange="_vGroupDay(this)" aria-label="Agrupar operações do dia ${ds}" style="font-size:9px;padding:2px 5px;border:1px solid #95c7c3;border-radius:4px;color:#164e4c;background:#fff;">${groupOptions}</select></label></td></tr>`;
     const filRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="${totalColunas-1}" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">SUPERVISÃO: ${esc(supervisao||'-')}</td></tr>`;
-    const dssRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="6" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">DSS - DESLOCAMENTO</td><td style="${TDC}background:#eef2f3;${PX}">0,5 h</td><td style="${TD}background:#eef2f3;${PX}">EQUIPE</td><td style="${TDC}background:#eef2f3;${PX}">0%</td><td style="${TDC}background:#eef2f3;${PX}"></td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:00</td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:30</td><td colspan="${totalColunas-13}" style="border:${BDR};background:#eef2f3;${PX}"></td></tr>`;
+    const dssRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="6" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">DSS - DESLOCAMENTO</td><td style="${TDC}background:#eef2f3;${PX}">0,5 h</td><td style="${TD}background:#eef2f3;${PX}">EQUIPE</td><td ${sequenciamentoAttrs} style="${TDC}background:#eef2f3;${PX}${mostrarColunasSequenciamento?'':'display:none;'}">0%</td><td ${sequenciamentoAttrs} style="${TDC}background:#eef2f3;${PX}${mostrarColunasSequenciamento?'':'display:none;'}"></td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:00</td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:30</td><td colspan="${totalColunas-(mostrarColunasSequenciamento?13:11)}" style="border:${BDR};background:#eef2f3;${PX}"></td></tr>`;
 
     var rows='';
     if(ordens.length===0){
@@ -13951,8 +13954,8 @@ function buildVisualizacaoHTML(opcoes = {}) {
           <td style="${TDC}background:${bg};color:${fg};${PX};cursor:pointer;" title="Duplo clique para editar" ondblclick="_vEdit(event,'nexec',${escJsArg(item.uid)})" data-val="${esc(n)}" data-field="nexec">${esc(n)}</td>
           <td style="${TDC}background:${bg};color:${fg};${PX};cursor:pointer;" title="Duplo clique para editar" ondblclick="_vEdit(event,'dur',${escJsArg(item.uid)})" data-val="${esc(_hhMostrado||'')}" data-field="dur">${esc(dur)}</td>
           <td style="${TD}background:${bg};color:${fg};${PX}">${exec}</td>
-          <td style="${TDC}background:${bg};color:${fg};${PX}" data-field="perc">${esc(savedPerc)}</td>
-          <td style="${TDC}background:${bg};color:${fg};${PX}" data-field="pred">${esc(savedPred)}</td>
+      <td ${sequenciamentoAttrs} style="${TDC}background:${bg};color:${fg};${PX}${mostrarColunasSequenciamento?'':'display:none;'}" data-field="perc">${esc(savedPerc)}</td>
+      <td ${sequenciamentoAttrs} style="${TDC}background:${bg};color:${fg};${PX}${mostrarColunasSequenciamento?'':'display:none;'}" data-field="pred">${esc(savedPred)}</td>
           <td style="${TDC}background:${bg};color:${fg};${PX}" data-field="inicio">${esc(savedIni)}</td>
           <td style="${TDC}background:${bg};color:${fg};${PX}" data-field="fim">${esc(savedFim)}</td>
           <td style="${TDC}background:${bg};color:${fg};${PX}">${ct}</td>
@@ -14063,8 +14066,8 @@ function buildVisualizacaoHTML(opcoes = {}) {
         <td style="${TDC}color:${corTxt};${PX}">${n}</td>
         <td style="${TDC}color:${corTxt};${PX}">${dur}</td>
         <td style="${TD}color:${corTxt};${PX}"></td>
-        <td style="${TDC}color:${corTxt};${PX}"></td>
-        <td style="${TDC}color:${corTxt};${PX}"></td>
+        <td ${sequenciamentoAttrs} style="${TDC}color:${corTxt};${PX}${mostrarColunasSequenciamento?'':'display:none;'}"></td>
+        <td ${sequenciamentoAttrs} style="${TDC}color:${corTxt};${PX}${mostrarColunasSequenciamento?'':'display:none;'}"></td>
         <td style="${TDC}color:${corTxt};${PX}"></td>
         <td style="${TDC}color:${corTxt};${PX}"></td>
         <td style="${TDC}color:${corTxt};${PX}">${ct}</td>
@@ -16888,6 +16891,8 @@ async function exportarVisualizacaoExcel() {
   const letraColuna = n => String.fromCharCode(64+n);
   renderIntervalosProgramacao(doc, TURNOS_HORARIOS, Object.fromEntries(efetivo.map(ef=>[ef.nome,normalizarTurno(ef.turno)||'Administrativo'])));
   doc.querySelectorAll('.no-print,script,button,select').forEach(el => el.remove());
+  // As células ocultas continuam na janela para os cálculos, mas não no Excel.
+  doc.querySelectorAll('[data-viz-sequenciamento="oculto"]').forEach(el => el.remove());
   // Excel: ABC em célula própria; nunca concatenar o indicador à descrição.
   for (const tr of doc.querySelectorAll('table.ap-viz-grid tr')) {
     if (tr.cells.length === colunasVisualizacao) {
@@ -16915,10 +16920,14 @@ async function exportarVisualizacaoExcel() {
   wb.creator = 'AUTOPROG';
   const ws = wb.addWorksheet(`Sem${semNum||'?'}_${semAno||''}`);
   let widths = [2,2,13,12,6,2,3,2,4,10,2,3,6,6,5,6,6,12];
-  if (colunasVisualizacao === 16) {
-    const retirada = widths.pop(), total = widths.reduce((sum,w)=>sum+w,0);
-    widths = widths.map(w=>w*(total+retirada)/total);
+  const colgroupExcel = Array.from(doc.querySelector('table.ap-viz-grid')?.querySelectorAll('colgroup col') || []);
+  if (colgroupExcel.length === colunasVisualizacao) widths = [2,...colgroupExcel.map(col=>parseFloat(col.style.width))];
+  else {
+    if (colunasVisualizacao <= 15) widths.splice(10,2);
+    if (colunasVisualizacao === 16 || colunasVisualizacao === 14) widths.pop();
   }
+  const somaLargurasExcel=widths.reduce((sum,w)=>sum+w,0);
+  widths=widths.map(w=>w*102/somaLargurasExcel);
   ws.columns = widths.map(width => ({width:width*2.2}));
   const argb = (color, fallback='005F5B') => {
     if (!color) return 'FF'+fallback;
