@@ -1,8 +1,12 @@
 {
-  "versao": "V2026.27.01.136",
-  "semNovidades": true,
+  "versao": "V2026.27.01.137",
   "data": "2026-10-21",
   "novidades": [
+    "V2026.27.01.137 - COCKPIT CAPACIDADE: novo botão no card Cockpit SAP exporta o modelo de ajuste de capacidade com o efetivo e a semana da sessão; pop-up solicita o CENTRO/PLANTA com até seis dígitos",
+    "JORNADAS: administrativo de 07:30 a 16:30; demais turnos seguem os horários definidos no efetivo, com intervalo no meio da jornada e acréscimo de 2h ao fim nos dias HE; utilização fixa de 80%",
+    "DISPONIBILIDADE: capacidade agrupada por centro de trabalho, dia e jornada; A, F, O, PAR, FER, SAB e DOM não contabilizam pessoas; horas fora da programação não são descontadas e exceções podem ser ajustadas na planilha antes de enviar ao SAP",
+    "MODELO SAP: instruções, imagens de exemplo, estilos, larguras, validações, proteção e guia oculta preservados; nome COCKPIT CAPAC SUPERVISÃO SEMANA N.xlsx; geração local, sem envio ao Firebase ou ao SAP",
+    "COCKPIT PROGRAMAÇÃO: arquivo CSV mantém o conteúdo SAP e recebe o nome COCKPIT PROG SUPERVISÃO SEMANA N.csv; tutorial atualizado com a exportação de capacidade",
     "V2026.27.01.135 - UI/UX: navegação, filtros, ações e espaçamentos padronizados nos módulos, respeitando o visual claro do AutoProg e a adaptação a celular e tablet",
     "DESEMPENHO: tabelas preservam linhas sem alterações e atualizam apenas as modificadas; etapas ocultas guardam os mesmos elementos e seleções fora do documento ativo, sem limitar a carteira",
     "JANELAS: atualizações de Visualizar e Capacidade agrupadas, com cálculos de capacidade indexados e sem atualização duplicada de horas extras; autosave e sequenciamento preservados",
