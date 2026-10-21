@@ -1,7 +1,13 @@
 {
-  "versao": "V2026.27.01.134",
+  "versao": "V2026.27.01.135",
   "data": "2026-10-21",
   "novidades": [
+    "V2026.27.01.135 - UI/UX: navegação, filtros, ações e espaçamentos padronizados nos módulos, respeitando o visual claro do AutoProg e a adaptação a celular e tablet",
+    "DESEMPENHO: tabelas preservam linhas sem alterações e atualizam apenas as modificadas; etapas ocultas guardam os mesmos elementos e seleções fora do documento ativo, sem limitar a carteira",
+    "JANELAS: atualizações de Visualizar e Capacidade agrupadas, com cálculos de capacidade indexados e sem atualização duplicada de horas extras; autosave e sequenciamento preservados",
+    "CONFIABILIDADE: falhas de exportação recebem mensagem e liberam o botão; PDF com prazos de recuperação e texto selecionável otimizado; ExcelJS local com versão e integridade preservadas",
+    "ACESSIBILIDADE: atalhos das etapas respondem a Enter e Espaço; foco visível, recuperação de rolagem e dropdown Recursos posicionado antes de aparecer",
+    "COMPATIBILIDADE: mantidos filtros, seleções em massa, turnos, relevância, HH protegido, observações, notificações, solicitações, JSON, planilhas e impressão; aplicativo Android inalterado",
     "V2026.27.01.134 - CONSUMO: consultas de materiais compartilham leituras sincronizadas e verificam revisões para evitar transferir novamente dados sem alterações; compatibilidade com os clientes anteriores preservada",
     "NOTIFICAÇÕES: mantidos os avisos individuais de Materiais e Recursos, o intervalo de atualização e as marcações de leitura e limpeza; permissões verificadas a cada consulta",
     "SEGURANÇA E SINCRONIZAÇÃO: cache separado por usuário e sessão, invalidação após gravações e entre guias, limites de memória e descarte de retratos desconectados; entregas, conflitos e evidências preservados",

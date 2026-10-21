@@ -1010,8 +1010,204 @@
 }
 
 </style>
+<style data-html-autonomo="experience">
+/* Experiência compartilhada, baseada na opção clara do AutoProg.
+ * Somente apresentação em tela: sem alterar impressão, dados ou interações.
+ * O escopo explícito impede interferência em relatórios e janelas exportadas. */
+@media screen {
+  body[data-ap-ux] {
+    --ap-ux-ink:#214952;
+    --ap-ux-muted:#526f79;
+    --ap-ux-line:#d6e5e7;
+    --ap-ux-accent:#007e7a;
+    --ap-ux-soft:#e6f5f2;
+    --ap-ux-shadow:0 3px 12px rgb(30 67 76 / 5%);
+  }
+
+  /* Teclado e leitura: foco visível sem aumentar os controles da tabela. */
+  body[data-ap-ux] :is(button,a,input,select,textarea,summary,[tabindex]):focus-visible {
+    outline:2px solid var(--ap-ux-accent);
+    outline-offset:3px;
+  }
+  body[data-ap-ux] :is(button,input,select,textarea):disabled { cursor:not-allowed; }
+  body[data-ap-ux] :is(input,textarea)::placeholder { color:#617983;opacity:1; }
+  body[data-ap-ux] :is(input[type=checkbox],input[type=radio]) { accent-color:var(--ap-ux-accent); }
+  body[data-ap-ux] .ap-skip-link {
+    position:fixed;top:8px;left:12px;z-index:100010;
+    padding:12px 16px;border:2px solid var(--ap-ux-accent);border-radius:6px;
+    background:#fff;color:var(--ap-ux-accent);font:600 13px/1.3 Arial,sans-serif;
+    text-decoration:underline;transform:translateY(calc(-100% - 16px));
+  }
+  body[data-ap-ux] .ap-skip-link:focus { transform:none; }
+  body[data-ap-ux] #ap-main-content { scroll-margin-top:16px; }
+
+  /* Mesma hierarquia em todos os módulos; não redesenha a tela de login. */
+  body[data-ap-ux] :is(.page-heading,.dashboard-head,.screen-heading) :is(h1,h2) {
+    color:var(--ap-ux-ink);line-height:1.25;letter-spacing:-.025em;
+  }
+  body[data-ap-ux] :is(.page-heading,.dashboard-head,.screen-heading) p {
+    color:var(--ap-ux-muted);line-height:1.55;
+  }
+  body[data-ap-ux] :is(.heading-actions,.exports,.session-actions,.topbar-actions) {
+    flex-wrap:wrap;gap:8px;
+  }
+  body[data-ap-ux] :is(.page-heading,.panel-head,.dashboard-head) { gap:16px; }
+
+  /* O item ativo não depende apenas de uma mudança sutil de cor. */
+  body[data-ap-ux] :is(nav.tabs,.toolbar>.tabs,#screen-dashboard>.tabs) {
+    display:flex;flex-wrap:wrap;gap:4px;padding:6px;
+    background:#fff;border:1px solid var(--ap-ux-line);border-radius:8px;
+  }
+  body[data-ap-ux] :is(nav.tabs,.toolbar>.tabs,#screen-dashboard>.tabs)>button {
+    position:relative;min-height:38px;padding:9px 13px;
+    border:1px solid transparent;border-radius:5px;background:transparent;
+    font-size:12px;line-height:1.35;font-weight:600;color:var(--ap-ux-muted);
+  }
+  body[data-ap-ux] :is(nav.tabs,.toolbar>.tabs,#screen-dashboard>.tabs)>button:is([aria-current=page],.active) {
+    background:var(--ap-ux-soft);color:#006661;border-color:#c5e2dd;
+    box-shadow:inset 0 -2px 0 var(--ap-ux-accent);
+  }
+  body[data-ap-ux] :is(nav.tabs,.toolbar>.tabs,#screen-dashboard>.tabs)>button:hover:not(:disabled) {
+    background:#f0f7f6;color:#006661;
+  }
+
+  /* Filtros fora das tabelas: rótulos legíveis, campos alinhados e espaço útil. */
+  body[data-ap-ux] :is(.filters,.scopebar,.barra-controles) {
+    border-color:var(--ap-ux-line);border-radius:8px;box-shadow:none;
+  }
+  body[data-ap-ux] :is(.filters,.scopebar,.barra-controles) :is(label,summary) {
+    color:var(--ap-ux-muted);line-height:1.4;font-weight:600;
+  }
+  body[data-ap-ux] :is(.filters,.scopebar) :is(input:not([type=checkbox]),select) {
+    min-height:38px;border-color:#bdd3d8;border-radius:6px;
+    background:#fff;color:var(--ap-ux-ink);
+  }
+  body[data-ap-ux] :is(.filters,.scopebar) :is(input,select):disabled { background:#f2f6f7; }
+  body[data-ap-ux] :is(.metrics,.stats) strong { font-variant-numeric:tabular-nums; }
+  body[data-ap-ux] :is(.metrics article,.stat,.supplier-card,.upload-panel) {
+    border-color:var(--ap-ux-line);border-radius:8px;box-shadow:var(--ap-ux-shadow);
+  }
+  body[data-ap-ux] :is(.metrics article,.stat)>span { color:var(--ap-ux-muted);line-height:1.45; }
+
+  /* Recursos: separa navegação, consulta e ações sem esconder os retornos. */
+  body[data-ap-ux=recursos] .page-heading { align-items:center;margin-bottom:20px; }
+  body[data-ap-ux=recursos] nav.tabs { margin:16px 0; }
+  body[data-ap-ux=recursos] .scopebar { align-items:end;gap:12px; }
+  body[data-ap-ux=recursos] .status-tabs { gap:4px;flex-wrap:wrap; }
+  body[data-ap-ux=recursos] .status-tabs button {
+    min-height:34px;padding:7px 12px;font-size:12px;
+  }
+  body[data-ap-ux=recursos] .status-tabs button[aria-pressed=true] {
+    color:#006661;background:var(--ap-ux-soft);border-color:#c5e2dd;font-weight:600;
+  }
+  body[data-ap-ux=recursos] .home-resource-actions button {
+    min-height:120px;padding:22px;border-radius:8px;box-shadow:var(--ap-ux-shadow);gap:8px;
+  }
+  body[data-ap-ux=recursos] :is(.home-resource-actions button,.resource-catalog-card):hover:not(:disabled) {
+    border-color:#7db8b0;box-shadow:0 4px 12px rgb(30 67 76 / 8%);
+  }
+  body[data-ap-ux=recursos] .request-catalog-search { max-width:520px; }
+  body[data-ap-ux=recursos] #view-pedidos :is(th,td) { line-height:1.45; }
+  body[data-ap-ux=recursos] .dialog-footer { flex-wrap:wrap; }
+
+  /* Controle: grade de filtros estável, mantendo semana e navegação por dias. */
+  body[data-ap-ux=controle] .filters {
+    display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px 16px;padding:16px;
+  }
+  body[data-ap-ux=controle] .filters label { min-width:0;font-size:12px; }
+  body[data-ap-ux=controle] .filters :is(input,select) { width:100%;max-width:none;min-width:0; }
+  body[data-ap-ux=controle] .filters .search { grid-column:span 2; }
+  body[data-ap-ux=controle] .filters #clear { min-height:38px; }
+  body[data-ap-ux=controle] .summary { box-shadow:var(--ap-ux-shadow); }
+  body[data-ap-ux=controle] .summary>div { padding:14px 20px; }
+  body[data-ap-ux=controle] .summary span { font-size:11px;color:var(--ap-ux-muted); }
+  body[data-ap-ux=controle] .summary strong { font-variant-numeric:tabular-nums; }
+  body[data-ap-ux=controle] .view-toolbar { flex-wrap:wrap;gap:12px;margin:18px 0 10px; }
+  body[data-ap-ux=controle] #days button { min-height:36px; }
+  body[data-ap-ux=controle] #days button[aria-pressed=true] { box-shadow:inset 0 -2px 0 #fff8; }
+  body[data-ap-ux=controle] .supervision-heading { flex-wrap:wrap;gap:6px 12px;line-height:1.5; }
+
+  /* AutoAprov: ações de sessão e importação com a mesma escala do AutoProg. */
+  body[data-ap-ux=autoaprov] .toolbar { flex-wrap:wrap;align-items:center;gap:14px; }
+  body[data-ap-ux=autoaprov] .session-actions { justify-content:flex-end; }
+  body[data-ap-ux=autoaprov] .page-heading { align-items:center; }
+  body[data-ap-ux=autoaprov] .filters { gap:12px; }
+  body[data-ap-ux=autoaprov] .filters label { font-size:12px; }
+  body[data-ap-ux=autoaprov] :is(.file-list,.import-preview,.notice) { max-width:100%; }
+  body[data-ap-ux=autoaprov] .file-item { border-radius:8px; }
+  body[data-ap-ux=autoaprov] .file-button:focus-within { outline:2px solid var(--ap-ux-accent);outline-offset:3px; }
+  body[data-ap-ux=autoaprov] .import-mode { display:flex;flex-wrap:wrap;gap:6px; }
+  body[data-ap-ux=autoaprov] .import-mode button.active { color:#006661;border-color:#99cfc6;background:var(--ap-ux-soft); }
+  body[data-ap-ux=autoaprov] .table-caption { min-height:44px;height:auto;padding:12px 16px;gap:12px;flex-wrap:wrap; }
+
+  /* Materiais: menos espaço de vitrine, mais espaço para operar. */
+  body[data-ap-ux=automat] .automat-intro { min-height:0;padding:20px 24px;margin-bottom:16px;border-radius:8px; }
+  body[data-ap-ux=automat] .automat-intro h1 { font-size:clamp(20px,1.8vw,26px);line-height:1.25; }
+  body[data-ap-ux=automat] .automat-intro-mark { display:none; }
+  body[data-ap-ux=automat] .barra-controles { gap:12px;padding:16px; }
+  body[data-ap-ux=automat] .automat-filtro-campo>label { font-size:11px;letter-spacing:0;text-transform:none;font-weight:600; }
+  body[data-ap-ux=automat] .barra-controles :is(select,.busca-ordem-campo input) { border-radius:6px; }
+  body[data-ap-ux=automat] .automat-filter-heading h2 { font-size:16px; }
+  body[data-ap-ux=automat] .resumo .card { min-height:84px;padding:14px 16px;border-radius:8px; }
+  body[data-ap-ux=automat] .btn-limpar-filtros { background:#fff;color:var(--ap-ux-muted);border-color:#bdd3d8;border-radius:6px; }
+  body[data-ap-ux=automat] .btn-limpar-filtros:hover { background:#edf6f5;color:#006661; }
+
+  /* Gestão, Dashboard e AutoProg: sem inflar tabelas nem alterar o modo foco. */
+  body[data-ap-ux=usuarios] :is(.panel-head,.resource-catalog-entry,.dashboard-head) { flex-wrap:wrap; }
+  body[data-ap-ux=usuarios] .module-options { gap:8px; }
+  body[data-ap-ux=usuarios] .check-pill span { line-height:1.4; }
+  body[data-ap-ux=dashboard] :is(.filter-bar,.filters,.upload-actions) { flex-wrap:wrap;gap:12px; }
+  body[data-ap-ux=dashboard] .dropzone:hover { border-color:var(--ap-ux-accent);box-shadow:var(--ap-ux-shadow); }
+  body[data-ap-ux=autoprog] :is(#screen-s7,#screen-s8) .toolbar input::placeholder { color:#526f79; }
+  body[data-ap-ux=autoprog] .s10-card:is(:hover,:focus-within) { border-color:#a8cfc9; }
+  body[data-ap-ux=automatmobile] .tela-mobile-flow :is(input,select,textarea) { border-radius:7px; }
+  body[data-ap-ux=automatmobile] :is(.erro-msg,.mensagem-erro) { line-height:1.5; }
+
+  @media(max-width:1050px) {
+    body[data-ap-ux=controle] .filters { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    body[data-ap-ux=controle] .filters .search { grid-column:auto; }
+  }
+  @media(max-width:700px) {
+    body[data-ap-ux] :is(.page-heading,.dashboard-head,.screen-heading) { align-items:flex-start;flex-wrap:wrap; }
+    body[data-ap-ux] :is(.heading-actions,.session-actions) { justify-content:flex-start; }
+    body[data-ap-ux] :is(nav.tabs,.toolbar>.tabs,#screen-dashboard>.tabs)>button { min-height:44px;flex:1 0 auto; }
+    body[data-ap-ux=controle] .filters { grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;gap:12px; }
+    body[data-ap-ux=controle] .filters .search { grid-column:1/-1;min-width:0; }
+    body[data-ap-ux=controle] .summary .sync { flex:1 1 100%;justify-content:space-between; }
+    body[data-ap-ux=controle] .summary>div { flex:1;padding:12px; }
+    body[data-ap-ux=controle] :is(#days,.exports) { width:100%; }
+    body[data-ap-ux=controle] #days button { flex:1 0 auto; }
+    body[data-ap-ux=autoaprov] .file-item { grid-template-columns:36px minmax(0,1fr); }
+    body[data-ap-ux=autoaprov] .file-item .file-button { grid-column:2;justify-self:start; }
+    body[data-ap-ux=autoaprov] .import-preview>div:first-child { flex-wrap:wrap; }
+    body[data-ap-ux=autoaprov] .session-actions #save-state { flex-basis:100%; }
+    body[data-ap-ux=automat] .barra-controles { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    body[data-ap-ux=automat] :is(.busca-ordem-filtro,.automat-filter-actions) { grid-column:1/-1; }
+    body[data-ap-ux=automat] .barra-controles :is(select,.busca-ordem-campo input) { min-height:44px;font-size:16px; }
+    body[data-ap-ux=usuarios] .resource-catalog-item { flex-wrap:wrap; }
+    body[data-ap-ux=usuarios] .resource-catalog-item>div { flex-basis:70%; }
+    body[data-ap-ux=recursos] .scopebar :is(input,select) { max-width:100%; }
+    body[data-ap-ux=recursos] .scopebar #week-range { flex-basis:100%; }
+    /* Alvos confortáveis só fora das grades densas de programação. */
+    body:is([data-ap-ux=recursos],[data-ap-ux=controle],[data-ap-ux=autoaprov],[data-ap-ux=usuarios],[data-ap-ux=dashboard])
+      :is(.filters,.scopebar,.heading-actions,.exports,.session-actions,.dialog-footer,.create-actions,.upload-actions) button { min-height:44px; }
+    body:is([data-ap-ux=recursos],[data-ap-ux=controle],[data-ap-ux=autoaprov],[data-ap-ux=usuarios])
+      :is(.filters,.scopebar) :is(input:not([type=checkbox]),select) { min-height:44px;font-size:16px; }
+  }
+  @media(prefers-reduced-motion:reduce) {
+    body[data-ap-ux] *,body[data-ap-ux] *::before,body[data-ap-ux] *::after {
+      animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;
+    }
+  }
+}
+/* O atalho é navegação da interface, nunca conteúdo de um relatório. */
+@media print {
+  .ap-skip-link { display:none!important; }
+}
+
+</style>
 </head>
-<body class="ap-footer-mobile">
+<body class="ap-footer-mobile" data-ap-ux="automatmobile">
 <!-- ── Tela de Login Centralizada Mobile ── -->
 <!-- ── AUTOPROG Standard Login (AUTOMATMOBILE) ── -->
 <div id="login-screen" style="position:fixed;inset:0;height:100%;height:100dvh;z-index:99999;background:#007F7B;display:flex;flex-direction:column;overflow:hidden;font-family:'Montserrat', sans-serif; touch-action: none;">
@@ -1393,7 +1589,7 @@
 </main>
 
 <footer class="app-assinatura ap-system-footer" aria-label="Assinatura e versão do aplicativo">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" rel="noopener">Desenvolvido por TULIO CARMO</a><span id="mobile-versao-rodape" class="app-assinatura-versao">V2026.27.01.11</span>
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" rel="noopener">Desenvolvido por TULIO CARMO</a><span id="mobile-versao-rodape" class="app-assinatura-versao">V2026.27.01.14</span>
 </footer>
 
 <div id="modal-confirmacao" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" aria-describedby="modal-descricao modal-resumo modal-erro" hidden>
@@ -1718,12 +1914,13 @@ async function _fetchFbDireto(path, options = {}) {
     return window._sessaoMobile.buscar(url, options);
   }
 
-const MOBILE_APP_VERSION = 'V2026.27.01.13';
+const MOBILE_APP_VERSION = 'V2026.27.01.14';
 // Versão da página web separada do manifesto do APK: este ajuste visual não força atualização do Android.
 const MOBILE_VERSION_CHECK_URL = location.protocol === 'file:'
   ? 'https://raw.githubusercontent.com/tuliomagnoc/autoprog_releases/refs/heads/main/automatmobile/web-versao.json'
   : '/automatmobile-web-versao.json';
 const MOBILE_NOVIDADES_ATUAL = [
+  'V2026.27.01.14 - UI/UX: foco e campos padronizados, com atualização visual restrita às áreas alteradas; consultas, entregas, ocorrências e notificações preservadas. APK inalterado.',
   'V2026.27.01.13 - CONSUMO: revisões leves e leituras compartilhadas sem alterar a fila, as entregas, ocorrências, fotos e sincronização offline. APK permanece inalterado.',
   'PADRONIZAÇÃO: nomes apresentados em maiúsculas, preservando os valores originais de autoria.',
   'SESSÃO: removido o logout automático por inatividade no site; sair manualmente e validação de credenciais permanecem',
@@ -3610,10 +3807,19 @@ if (typeof Notification !== 'undefined' && Notification.permission === 'granted'
   body.classList.add('ui-ux');
   if(document.getElementById('modal-confirmacao'))body.classList.add('ui-ux-mobile');
   let scheduled=false;
+  const pendingRoots=new Set();
   const summaries=new Map();
   const actionClicks=new WeakMap();
   const enhancedRows=new WeakMap();
-  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;refresh();});}
+  function schedule(root=body){
+    if(!root?.querySelectorAll)root=root?.parentElement||body;
+    root=root.closest?.('button')||root;
+    if([...pendingRoots].some(parent=>parent===root||parent.contains(root)))return;
+    for(const child of pendingRoots)if(root.contains(child))pendingRoots.delete(child);
+    pendingRoots.add(root);
+    if(scheduled)return;scheduled=true;
+    requestAnimationFrame(()=>{scheduled=false;const roots=[...pendingRoots];pendingRoots.clear();roots.forEach(refresh);});
+  }
   function chip(label,remove){
     const button=document.createElement('button');button.type='button';button.className='ux-filter-chip';
     const text=document.createElement('span');text.textContent=label;button.append(text);
@@ -3644,8 +3850,8 @@ if (typeof Notification !== 'undefined' && Notification.permission === 'granted'
       summary(key,parent,items);
     });
   }
-  function enhanceTable(table){
-    if(table.closest('.screen:not(.active)'))return;
+  function enhanceTable(table,force=false){
+    if(!force&&table.closest('.screen:not(.active)'))return;
     if(table.closest('#ata-content'))return;
     const header=table.tHead?.rows[table.tHead.rows.length-1];if(!header)return;
     const types=[...header.cells].map(cell=>{const text=cell.textContent.trim().toUpperCase();return /DURAÇÃO|TOTAL HH|H\/H|QUANTIDADE|QTD|^MO$|^N[°º]$/.test(text)?'ux-numeric':/DATA|INÍCIO|TÉRMINO|VENCIMENTO/.test(text)?'ux-date':/ORDEM|OPERAÇÃO|^OP\.?$|^TIPO$/.test(text)?'ux-code':/DESCRIÇÃO|TEXTO BREVE|LOC\.INSTALAÇÃO/.test(text)?'ux-description':null;});
@@ -3659,8 +3865,10 @@ if (typeof Notification !== 'undefined' && Notification.permission === 'granted'
       enhancedRows.set(row,{signature,count:row.cells.length,first:row.cells[0],last:row.cells[row.cells.length-1]});
     });
   }
-  function refresh(){
-    document.querySelectorAll('button').forEach(button=>{
+  function refresh(root=body){
+    if(!root.isConnected||root.closest?.('.screen:not(.active)'))return;
+    const select=selector=>[...(root.matches?.(selector)?[root]:[]),...root.querySelectorAll(selector)];
+    select('button').forEach(button=>{
       if(button.closest('.screen:not(.active)'))return;
       const text=button.textContent.trim();
       if(/^(Cancelar|Fechar|Voltar|← Voltar)$/.test(text))button.classList.add('ux-secondary');
@@ -3668,15 +3876,19 @@ if (typeof Notification !== 'undefined' && Notification.permission === 'granted'
       const busy=button.disabled&&/salvando|carregando|enviando|processando|gerando|importando/i.test(text);
       if(busy)button.setAttribute('aria-busy','true');else if(button.hasAttribute('aria-busy'))button.removeAttribute('aria-busy');
     });
-    document.querySelectorAll('table').forEach(enhanceTable);
-    document.querySelectorAll('#status-salvamento,#s10-export-status,#busca-ajuda,#entregas-status,#scanner-status,.modal-erro').forEach(node=>{
+    select('table').forEach(table=>enhanceTable(table));
+    select('#status-salvamento,#s10-export-status,#busca-ajuda,#entregas-status,#scanner-status,.modal-erro').forEach(node=>{
       node.classList.add('ux-feedback');node.classList.toggle('ux-error',/erro|falha|não foi possível/i.test(node.textContent)||node.classList.contains('modal-erro'));
       if(!node.hasAttribute('role'))node.setAttribute('role',node.classList.contains('modal-erro')?'alert':'status');
       if(!node.hasAttribute('aria-live'))node.setAttribute('aria-live','polite');
     });
     materialFilters();
   }
-  document.addEventListener('click',schedule);document.addEventListener('input',schedule);document.addEventListener('change',schedule);
+  ['click','input','change'].forEach(type=>document.addEventListener(type,event=>schedule(event.target)));
+  window.addEventListener('autoprog-step-change',event=>schedule(document.getElementById('screen-s'+event.detail)||body));
+  // O renderizador prepara as células antes de memorizar o DOM. A aplicação
+  // posterior de classes não pode invalidar uma tabela que continua idêntica.
+  window.AutoProgUIUX={enhanceTable};
   // Evita duplo clique acidental sem substituir a proteção assíncrona original.
   document.addEventListener('click',event=>{
     const button=event.target.closest?.('button');
@@ -3698,7 +3910,18 @@ if (typeof Notification !== 'undefined' && Notification.permission === 'granted'
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
   });
   // Somente mudanças de conteúdo/disponibilidade: evita observação circular de classes.
-  new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.ux-filter-summary')&&!(r.type==='childList'&&[...r.addedNodes,...r.removedNodes].every(n=>n.nodeType===1&&n.classList?.contains('ux-filter-summary')))))schedule();}).observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['disabled']});
+  new MutationObserver(records=>{
+    for(const record of records){
+      const target=record.target.nodeType===1?record.target:record.target.parentElement;
+      if(!target||target.closest('.ux-filter-summary,.screen:not(.active)'))continue;
+      if(target.closest('tbody')?._apManagedRows){if(record.type==='attributes')schedule(target);continue;}
+      if(record.type==='childList'){
+        const added=[...record.addedNodes].filter(node=>node.nodeType===1&&!node.classList.contains('ux-filter-summary'));
+        if(added.length){added.forEach(node=>schedule(node.closest('table')||node));continue;}
+      }
+      schedule(target.closest('table')||target);
+    }
+  }).observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['disabled']});
   refresh();
 })();
 

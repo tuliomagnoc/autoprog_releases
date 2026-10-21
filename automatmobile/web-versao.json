@@ -1,7 +1,8 @@
 {
-  "versao": "V2026.27.01.13",
+  "versao": "V2026.27.01.14",
   "data": "2026-10-21",
   "novidades": [
+    "V2026.27.01.14 - UI/UX: foco e campos padronizados, com atualização visual restrita às áreas alteradas; consultas, entregas, ocorrências e notificações preservadas. APK inalterado.",
     "V2026.27.01.13 - CONSUMO: revisões leves e leituras compartilhadas sem alterar a fila, as entregas, ocorrências, fotos e sincronização offline. APK permanece inalterado.",
     "PADRONIZAÇÃO: nomes apresentados em maiúsculas, preservando os valores originais de autoria.",
     "V2026.27.01.12 - Tela de atualização web padronizada com a identidade AutoProg. APK permanece inalterado.",
