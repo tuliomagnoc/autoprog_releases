@@ -1508,6 +1508,10 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
 .cockpit-capacidade-tabela table { width: 100%; min-width: 750px; border-collapse: collapse; font-size: 11px; }
 .cockpit-capacidade-tabela :is(th, td) { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e0ebed; overflow-wrap: anywhere; }
 .cockpit-capacidade-tabela th { background: #eef6f7; font-size: 11px; line-height: 1.5; color: #214952; }
+.cockpit-capacidade-tabela :is(th, td):last-child { min-width: 260px; }
+.cockpit-capacidade-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; min-width: 236px; width: 100%; font-variant-numeric: tabular-nums; }
+.cockpit-capacidade-dias > span { display: block; min-width: 0; text-align: center; white-space: nowrap; }
+.cockpit-capacidade-dias-cabecalho { margin-top: 3px; }
 .cockpit-capacidade-tabela tr:last-child td { border-bottom: 0; }
 .cockpit-capacidade-erro { color: #b42345; font-size: 12px; line-height: 1.5; margin: 8px 0 0; }
 .cockpit-capacidade-form footer { justify-content: flex-end; border-top: 1px solid #d9e8ea; background: #f8fbfb; }
@@ -18284,6 +18288,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
   const DIAS = ['1 - Segunda', '2 - Terça', '3 - Quarta', '4 - Quinta', '5 - Sexta', '6 - Sábado', '7 - Domingo'];
+  const DIAS_CURTOS = ['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
   const STATUS = new Set(['P', 'HE', 'A', 'T', 'F', 'O', 'PAR', 'TUT', 'FER', 'SAB', 'DOM']);
   const INDISPONIVEIS = new Set(['A', 'F', 'O', 'PAR', 'FER', 'SAB', 'DOM']);
   const ORDEM_TURNOS = ['Administrativo', 'TURNO', 'TURNO 1', 'TURNO 2', 'TURNO 3', 'TURNO 4'];
@@ -18468,7 +18473,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     dialog.setAttribute('aria-labelledby', 'ap-cockpit-capacidade-titulo');
     dialog.innerHTML = '<form class="cockpit-capacidade-form"><header><div><h2 id="ap-cockpit-capacidade-titulo">Exportar capacidade</h2><p class="cockpit-capacidade-contexto"></p></div><button type="button" class="btn cockpit-capacidade-fechar" aria-label="Fechar">×</button></header>'
       +'<div class="cockpit-capacidade-corpo"><label for="ap-cockpit-capacidade-centro">CENTRO / PLANTA</label><input id="ap-cockpit-capacidade-centro" name="centro" type="text" inputmode="numeric" pattern="[0-9]{1,6}" maxlength="6" required autocomplete="off" placeholder="Informe o código SAP" aria-describedby="ap-cockpit-capacidade-ajuda"><p id="ap-cockpit-capacidade-ajuda">Código da supervisão que está sendo exportada. Aceita de 1 a 6 dígitos.</p>'
-      +'<div class="cockpit-capacidade-resumo"></div><div class="cockpit-capacidade-tabela"><table><thead><tr><th>Centro de trabalho</th><th>Jornada / turno SAP</th><th>Horário</th><th>Intervalo no meio da jornada</th><th>Pessoas por dia<br>SEG · TER · QUA · QUI · SEX · SÁB · DOM</th></tr></thead><tbody></tbody></table></div>'
+      +'<div class="cockpit-capacidade-resumo"></div><div class="cockpit-capacidade-tabela"><table><thead><tr><th>Centro de trabalho</th><th>Jornada / turno SAP</th><th>Horário</th><th>Intervalo no meio da jornada</th><th>Pessoas por dia<div class="cockpit-capacidade-dias cockpit-capacidade-dias-cabecalho">'+DIAS_CURTOS.map((dia,index)=>'<span data-dia="'+index+'">'+dia+'</span>').join('')+'</div></th></tr></thead><tbody></tbody></table></div>'
       +'<p class="cockpit-capacidade-regras">Utilização fixa de 80%. A, F, O, PAR, FER, SAB e DOM não abrem capacidade. Por enquanto, HE é exportada como jornada normal, sem as 2h extras. A configuração da tela 5 não é alterada. Horas fora da programação não são descontadas.</p><p class="cockpit-capacidade-regras">Uma linha por data e centro de trabalho. Centros com mais de um turno são consolidados no administrativo, das 07:30 às 16:30, com 1h de intervalo. Centros com um único turno seguem o horário da tela 5. Confira as exceções na planilha antes de enviar ao SAP; mantenha a classificação Pública.</p><p class="cockpit-capacidade-erro" role="alert"></p></div>'
       +'<footer><button type="button" class="btn cockpit-capacidade-cancelar">Cancelar</button><button type="submit" class="btn primary" id="ap-cockpit-capacidade-exportar">Exportar capacidade</button></footer></form>';
     const contexto = dialog.querySelector('.cockpit-capacidade-contexto'), resumo = dialog.querySelector('.cockpit-capacidade-resumo');
@@ -18477,7 +18482,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     const tbody = dialog.querySelector('tbody');
     inicial.grupos.forEach(g => {
       const tr = d.createElement('tr');
-      [g.ct, g.turno+(g.consolidado?' (consolidado)':'')+' / '+g.turnoSAP, hora(g.inicio)+'–'+hora(g.fim)+(g.fim>=1440?' (+1 dia)':''), hora(g.pausaInicio)+'–'+hora(g.pausaFim)+' ('+(g.pausa/60)+'h)', g.quantidades.join(' · ')].forEach(value => {const td=d.createElement('td');td.textContent=value;tr.append(td);});
+      [g.ct, g.turno+(g.consolidado?' (consolidado)':'')+' / '+g.turnoSAP, hora(g.inicio)+'–'+hora(g.fim)+(g.fim>=1440?' (+1 dia)':''), hora(g.pausaInicio)+'–'+hora(g.pausaFim)+' ('+(g.pausa/60)+'h)'].forEach(value => {const td=d.createElement('td');td.textContent=value;tr.append(td);});
+      const td = d.createElement('td'), grade = d.createElement('div');
+      grade.className = 'cockpit-capacidade-dias';
+      g.quantidades.forEach((quantidade,index) => {
+        const value = d.createElement('span');value.dataset.dia=String(index);
+        value.textContent=String(quantidade);value.title=DIAS[index]+': '+quantidade+' pessoa(s)';grade.append(value);
+      });
+      td.append(grade);tr.append(td);
       tbody.append(tr);
     });
     d.body.append(dialog); ativo = dialog; dialog.showModal();
