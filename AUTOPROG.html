@@ -18817,6 +18817,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 (function (global) {
   'use strict';
   const normal = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  const ordenarRecursos = entries => [...entries].sort((a, b) => String(a.nome || a.id || '').localeCompare(String(b.nome || b.id || ''), 'pt-BR', { sensitivity: 'base', numeric: true }));
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function identificar(value, catalogo) {
     const name = normal(value);
@@ -18899,7 +18900,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     return { semana: semanaChave, linhas };
   }
   // Funções puras também são utilizadas pelos testes de compatibilidade.
-  if (typeof module === 'object' && module.exports) { module.exports = { selecionados, montar, horario, paraExportacao, posicaoLista, observacaoRapida }; return; }
+  if (typeof module === 'object' && module.exports) { module.exports = { selecionados, montar, horario, paraExportacao, posicaoLista, observacaoRapida, ordenarRecursos }; return; }
 
   let catalogo = [], catalogPlant = '', catalogAt = 0, loadingCatalog = null;
   let selection = new Set(), selectionVersion = 0, pickerError = '';
@@ -18967,7 +18968,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const help = document.createElement('p'); help.className = 'ap-recursos-ajuda';
     help.textContent = pickerError || (catalogo.length ? (disponivel() ? 'Selecione recursos para as planilhas ou confirme o envio online na tela 10.' : 'Selecione um ou mais recursos para exportar pelas planilhas da tela 10.') : catalogAt ? 'Nenhum recurso disponível no cadastro. Consulte o administrador.' : 'Carregando o cadastro de Recursos...');
     target.append(help);
-    const entries = [...catalogo, ...selected.filter(id => !catalogo.some(r => r.id === id)).map(id => ({ id, nome: `${id} (sessão anterior)` }))];
+    const entries = ordenarRecursos([...catalogo, ...selected.filter(id => !catalogo.some(r => r.id === id)).map(id => ({ id, nome: `${id} (sessão anterior)` }))]);
     for (const resource of entries) {
       const label = document.createElement('label'), checkbox = document.createElement('input'), text = document.createElement('span');
       checkbox.type = 'checkbox'; checkbox.value = resource.id; checkbox.checked = selection.has(resource.id);
