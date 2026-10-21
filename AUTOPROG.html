@@ -310,7 +310,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .stat-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); white-space: nowrap; }
 .stat-pill span { color: var(--text); font-weight: 600; }
 .rpl-footer-w { display:grid; grid-template-columns:minmax(0,1fr) max-content minmax(0,1fr); align-items:center; gap:12px; padding:12px 16px; border-top:1px solid var(--border); flex-shrink:0; }
-.rpl-footer-w > .btn:first-child { justify-self:start; }
+.rpl-footer-left-w { display:flex; align-items:center; gap:8px; min-width:0; justify-self:stretch; }
+.rpl-footer-left-w > .btn { flex:0 0 auto; }
+.rpl-footer-bulk-w { display:flex; align-items:center; flex-wrap:wrap; gap:4px 6px; min-width:0; flex:1 1 180px; }
+.rpl-footer-bulk-w > .btn { font-size:10px; padding:5px 8px; min-height:26px; }
+.rpl-footer-bulk-w > span { font-size:10px!important; line-height:1.3; }
 .rpl-footer-w > .btn:last-child { justify-self:end; }
 .rpl-footer-main-w { display:flex; align-items:center; justify-content:center; gap:clamp(24px,3vw,48px); }
 .rpl-footer-stats-w, .rpl-footer-hh-w { display:flex; gap:6px; align-items:center; white-space:nowrap; }
@@ -318,6 +322,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 @media (max-width:1400px) {
   .rpl-footer-w { grid-template-columns:1fr 1fr; }
   .rpl-footer-main-w { grid-column:1 / -1; grid-row:2; }
+}
+@media (min-width:1401px) and (max-width:1800px) {
+  #screen-s8:has(.rpl-chk-os-w:checked, .rpl-chk-desprog:checked) .rpl-footer-w { grid-template-columns:1fr 1fr; }
+  #screen-s8:has(.rpl-chk-os-w:checked, .rpl-chk-desprog:checked) .rpl-footer-main-w { grid-column:1 / -1; grid-row:2; }
 }
 @media (max-width:1000px) {
   .rpl-footer-main-w { flex-wrap:wrap; gap:10px 24px; }
@@ -3363,18 +3371,18 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
     <table class="ap-compact-table" style="width:100%;table-layout:auto;border-collapse:collapse;font-size:10px;white-space:nowrap;">
       <thead>
         <tr>
-          <th class="sortable" id="bl-th-criticidade" onclick="blSortBy('Campo ordenação')">Campo ordenação <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Campo ordenação')">▾</span></th>
+          <th class="sortable" id="bl-th-criticidade" onclick="blSortBy('Campo ordenação')">ORDENAÇÃO <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Campo ordenação')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Revisão')">Revisão <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Revisão')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Grp.plnj.PM')">Grp.plnj.PM <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Grp.plnj.PM')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Código ABC')">Código ABC <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Código ABC')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Grp.plnj.PM')">G.PLAN <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Grp.plnj.PM')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Código ABC')">ABC <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Código ABC')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Texto breve')">Texto breve <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Texto breve')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Loc.instalação')">Loc.instalação <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Loc.instalação')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Loc.instalação')">LOCAL <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Loc.instalação')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Ordem')">Ordem <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Ordem')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Tipo de ordem')">Tipo de ordem <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Tipo de ordem')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Operação')">Operação <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Operação')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('CenTrabOperação')">CenTrabOperação <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'CenTrabOperação')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Número')">Número <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Número')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('Duração normal')">Duração normal <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Duração normal')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Tipo de ordem')">TIPO <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Tipo de ordem')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Operação')">OPR. <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Operação')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('CenTrabOperação')">CT <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'CenTrabOperação')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Número')">Nº <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Número')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('Duração normal')">TEMPO <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Duração normal')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Data-base iníc.')">Data-base iníc. <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Data-base iníc.')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Status usuário')">Status usuário <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Status usuário')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Data de entrada')">Data de entrada <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Data de entrada')">▾</span></th>
@@ -3382,8 +3390,8 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
           <th class="sortable" onclick="blSortBy('Plano manut.')">Plano manut. <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Plano manut.')">▾</span></th>
           <th class="sortable" onclick="blSortBy('TxtDesc.Oper.')">TxtDesc.Oper. <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'TxtDesc.Oper.')">▾</span></th>
           <th class="sortable" onclick="blSortBy('Status sistema')">Status sistema <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'Status sistema')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('_dtMin')">Dt Mín <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'_dtMin')">▾</span></th>
-          <th class="sortable" onclick="blSortBy('_dtMax')">Dt Máx <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'_dtMax')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('_dtMin')">MÍNIMA <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'_dtMin')">▾</span></th>
+          <th class="sortable" onclick="blSortBy('_dtMax')">MÁXIMA <span class="col-filter-icon" onclick="event.stopPropagation();blOpenFilter(event,'_dtMax')">▾</span></th>
           <th>Parada</th>
         </tr>
       </thead>
@@ -3429,23 +3437,23 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
       <thead>
         <tr>
           <th style="width:36px;"><input type="checkbox" id="rpl-chk-all-w" onchange="rplToggleAllW(this)"></th>
-          <th id="th-criticidade" style="display:none;width:100px;text-align:center;font-size:10px;font-weight:700;padding:4px 6px;white-space:nowrap;"><i class=icon-target></i> CRITI.</th>
+          <th id="th-criticidade" title="Criticidade" aria-label="Criticidade" style="display:none;width:100px;text-align:center;font-size:10px;font-weight:700;padding:4px 6px;white-space:nowrap;"><i class=icon-target aria-hidden="true"></i></th>
           <th class="rpl-detail-col sortable" style="display:none;" onclick="rplSortByW('_diasAberto')" data-col="_diasAberto">IMOS <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-IMOS" onclick="event.stopPropagation();rplOpenFilterW(event,'_diasAberto')">▾</span></th>
           <th class="sortable rpl-crit-col" data-cc="1" style="display:none;" onclick="rplSortByW('Campo ordenação')" data-col="Campo ordenação">ORDENAÇÃO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Campo ordenação" onclick="event.stopPropagation();rplOpenFilterW(event,'Campo ordenação')">▾</span></th>
           <th class="sortable rpl-crit-col" data-cc="2" style="display:none;" onclick="rplSortByW('Revisão')" data-col="Revisão">REVISÃO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Revisão" onclick="event.stopPropagation();rplOpenFilterW(event,'Revisão')">▾</span></th>
-          <th class="sortable rpl-crit-col" data-cc="3" style="display:none;" onclick="rplSortByW('Grp.plnj.PM')" data-col="Grp.plnj.PM">G.PLANEJ <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Grp.plnj.PM" onclick="event.stopPropagation();rplOpenFilterW(event,'Grp.plnj.PM')">▾</span></th>
-          <th class="sortable rpl-crit-col" data-cc="4" style="display:none;" onclick="rplSortByW('Código ABC')" data-col="Código ABC">CODIGO ABC <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Código ABC" onclick="event.stopPropagation();rplOpenFilterW(event,'Código ABC')">▾</span></th>
+          <th class="sortable rpl-crit-col" data-cc="3" style="display:none;" onclick="rplSortByW('Grp.plnj.PM')" data-col="Grp.plnj.PM">G.PLAN <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Grp.plnj.PM" onclick="event.stopPropagation();rplOpenFilterW(event,'Grp.plnj.PM')">▾</span></th>
+          <th class="sortable rpl-crit-col" data-cc="4" style="display:none;" onclick="rplSortByW('Código ABC')" data-col="Código ABC">ABC <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Código ABC" onclick="event.stopPropagation();rplOpenFilterW(event,'Código ABC')">▾</span></th>
           <th class="sortable" onclick="rplSortByW('Texto breve')" data-col="Texto breve" style="min-width:220px;"><span id="rpl-texto-header-label">TEXTO BREVE</span> <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Texto breve" onclick="event.stopPropagation();rplOpenFilterW(event,'Texto breve')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('Loc.instalação')" data-col="Loc.instalação" style="min-width:200px;">LOC.INSTALAÇÃO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Loc.instalação" onclick="event.stopPropagation();rplOpenFilterW(event,'Loc.instalação')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('Loc.instalação')" data-col="Loc.instalação" style="min-width:200px;">LOCAL <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Loc.instalação" onclick="event.stopPropagation();rplOpenFilterW(event,'Loc.instalação')">▾</span></th>
           <th class="sortable" onclick="rplSortByW('Ordem')" data-col="Ordem">ORDEM <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Ordem" onclick="event.stopPropagation();rplOpenFilterW(event,'Ordem')">▾</span></th>
           <th class="sortable" onclick="rplSortByW('Tipo de ordem')" data-col="Tipo de ordem">TIPO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Tipo de ordem" onclick="event.stopPropagation();rplOpenFilterW(event,'Tipo de ordem')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('Operação')" data-col="Operação">OPERAÇÃO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Operação" onclick="event.stopPropagation();rplOpenFilterW(event,'Operação')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('CenTrabOperação')" data-col="CenTrabOperação">C. TRABALHO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-CenTrabOperação" onclick="event.stopPropagation();rplOpenFilterW(event,'CenTrabOperação')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('Operação')" data-col="Operação">OPR. <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Operação" onclick="event.stopPropagation();rplOpenFilterW(event,'Operação')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('CenTrabOperação')" data-col="CenTrabOperação">CT <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-CenTrabOperação" onclick="event.stopPropagation();rplOpenFilterW(event,'CenTrabOperação')">▾</span></th>
           <th class="sortable" onclick="rplSortByW('Número')" data-col="Número">N° <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Número" onclick="event.stopPropagation();rplOpenFilterW(event,'Número')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('Duração normal')" data-col="Duração normal">DURAÇÃO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Duração" onclick="event.stopPropagation();rplOpenFilterW(event,'Duração normal')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('_totalHH')" data-col="_totalHH">TOTAL HH <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-_totalHH" onclick="event.stopPropagation();rplOpenFilterW(event,'_totalHH')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('_dtMin')" data-col="_dtMin">DATA MÍNIMA <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-_dtMin" onclick="event.stopPropagation();rplOpenFilterW(event,'_dtMin')">▾</span></th>
-          <th class="sortable" onclick="rplSortByW('_dtMax')" data-col="_dtMax">DATA MÁXIMA <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-_dtMax" onclick="event.stopPropagation();rplOpenFilterW(event,'_dtMax')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('Duração normal')" data-col="Duração normal">TEMPO <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-Duração" onclick="event.stopPropagation();rplOpenFilterW(event,'Duração normal')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('_totalHH')" data-col="_totalHH">TOTAL <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-_totalHH" onclick="event.stopPropagation();rplOpenFilterW(event,'_totalHH')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('_dtMin')" data-col="_dtMin">MÍNIMA <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-_dtMin" onclick="event.stopPropagation();rplOpenFilterW(event,'_dtMin')">▾</span></th>
+          <th class="sortable" onclick="rplSortByW('_dtMax')" data-col="_dtMax">MÁXIMA <span class="sort-icon" style="color:#FFC107;font-size:9px;"></span><span class="col-filter-icon" id="fiw-_dtMax" onclick="event.stopPropagation();rplOpenFilterW(event,'_dtMax')">▾</span></th>
           <th style="text-align:center;min-width:100px;">OBS. RÁPIDA <span class="col-filter-icon" id="fiw-obs_mat" onclick="event.stopPropagation();rplOpenFilterW(event,'obs_mat')">▾</span></th>
           <th style="min-width:140px;">EXECUTANTE <span class="col-filter-icon" id="fiw-executor" onclick="event.stopPropagation();rplOpenFilterW(event,'executor')">▾</span></th>
           <th style="width:150px;"><input type="checkbox" id="rpl-select-programadas-w" aria-label="Selecionar todas as operações programadas visíveis" onchange="rplToggleProgramadasW(this)"> <span id="rpl-action-label">AÇÃO</span></th>
@@ -3454,15 +3462,17 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
       <tbody id="rpl-tbody-w"></tbody>
     </table>
   </div>
-  <div style="padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;">
-    <span id="rpl-bulk-count-w" style="font-size:12px;color:var(--text2);"></span>
-    <button class="btn primary" onclick="rplProgramarSelecionadasW()" id="rpl-btn-bulk-w" style="display:none;">▶ Programar selecionadas</button>
-    <button class="btn" onclick="rplEditarProgramacaoSelecionadasW()" id="rpl-btn-desprog-w" style="display:none;"><i class=icon-edit></i> AÇÃO - EDITAR</button>
-    <button type="button" class="btn" onclick="rplJustificarDesprogramacaoW()" id="rpl-btn-desprogramar-rapido-w" title="Justificar a desprogramação das operações selecionadas" style="display:none;min-height:26px;padding:4px 9px;font-size:11px;background:#fae5e9;color:#963950;border:1px solid #e7c6ce;">DESPROGRAMAR</button>
-    <span id="rpl-bulk-desprog-count" style="font-size:11px;color:var(--text2);"></span>
-  </div>
   <div class="rpl-footer-w">
-    <button class="btn" onclick="goStep(7)">← Voltar</button>
+    <div class="rpl-footer-left-w">
+      <button class="btn" onclick="goStep(7)">← Voltar</button>
+      <div class="rpl-footer-bulk-w">
+        <span id="rpl-bulk-count-w" style="font-size:12px;color:var(--text2);"></span>
+        <button class="btn primary" onclick="rplProgramarSelecionadasW()" id="rpl-btn-bulk-w" style="display:none;">▶ Programar selecionadas</button>
+        <button class="btn" onclick="rplEditarProgramacaoSelecionadasW()" id="rpl-btn-desprog-w" title="Editar as operações programadas selecionadas" style="display:none;"><i class=icon-edit></i> Editar</button>
+        <button type="button" class="btn" onclick="rplJustificarDesprogramacaoW()" id="rpl-btn-desprogramar-rapido-w" title="Justificar a desprogramação das operações selecionadas" style="display:none;min-height:26px;padding:4px 9px;font-size:11px;background:#fae5e9;color:#963950;border:1px solid #e7c6ce;">DESPROGRAMAR</button>
+        <span id="rpl-bulk-desprog-count" style="font-size:11px;color:var(--text2);"></span>
+      </div>
+    </div>
     <div class="rpl-footer-main-w">
       <div class="rpl-footer-stats-w">
         <div class="stat-pill" id="rpl-pill-showing-w">- operações</div>
@@ -10146,15 +10156,15 @@ function renderRPLWizard() {
     }
 
     const _criResultado = rplCriticidadeAtiva ? calcCriticidadeDetalhada(d, _scoreContexto) : null;
-    const _criBadge = _criResultado ? getCriticidadeBadge(_criResultado) : null;
+    const _criBadge = _criResultado?.aplicavel ? getCriticidadeBadge(_criResultado) : null;
     _rplRows.push(`<tr${_trClass} data-ap-row-key="${escHtml(d._uid||d._ordem)}">
       <td style="text-align:center;vertical-align:middle;">
         ${isProg
           ? '<span style="font-size:16px;color:#1a7a3a;font-weight:900;line-height:1;"><i class=icon-check></i></span><div style="font-size:9px;color:#1a7a3a;font-weight:600;line-height:1.2;margin-top:2px;">'+(()=>{const p=programacao[d._uid];if(!p||!p.data)return'';const dt=p.data.split('-');return dt[2]+'/'+dt[1];})()+'</div>'
           : (d._executada ? '' : '<input type="checkbox" class="rpl-chk-os-w" data-ordem="'+escHtml(d._ordem)+'" data-uid="'+escHtml(d._uid)+'" onchange="rplUpdateBulkW()">')}
       </td>
-      ${rplCriticidadeAtiva ? `<td style="text-align:center;padding:2px 4px;vertical-align:middle;">
-        <div style="display:inline-flex;flex-direction:column;align-items:center;background:${_criBadge.cor};color:${_criBadge.text};border:1px solid ${_criBadge.borda};font-size:10px;font-weight:700;padding:3px 6px;border-radius:5px;min-width:48px;line-height:1.35;" title="${escHtml(AutoProgScore.descrever(_criResultado))}">${_criBadge.label}<span style="font-size:9px;font-weight:500;white-space:nowrap;">${AutoProgScore.formatar(_criResultado.score)}</span></div>
+      ${rplCriticidadeAtiva ? `<td data-rpl-criticidade style="text-align:center;padding:2px 4px;vertical-align:middle;">
+        ${_criBadge ? `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${_criBadge.cor};color:${_criBadge.text};border:1px solid ${_criBadge.borda};font-size:10px;font-weight:700;padding:3px 6px;border-radius:5px;min-width:48px;line-height:1.35;" title="${escHtml(AutoProgScore.descrever(_criResultado))}">${_criBadge.label}<span style="font-size:9px;font-weight:500;white-space:nowrap;">${AutoProgScore.formatar(_criResultado.score)}</span></div>` : ''}
       </td>` : '<td style="display:none;"></td>'}
       <td class="rpl-detail-col" style="text-align:center;${rplCriticidadeAtiva?'':'display:none;'}">${imosBadge}</td>
       <td class="rpl-crit-col" data-cc="1" style="font-size:11px;white-space:nowrap;${rplCriticidadeAtiva?'':'display:none;'}">${escHtml(d['Campo ordenação'])}</td>
