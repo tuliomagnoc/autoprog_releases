@@ -879,14 +879,35 @@ tbody tr:hover { background: #f4faf8; }
 #screen-s8:not(.ap-details-active):not(.ap-card-mode) .ap-compact-table thead th:nth-child(19) { width: 9.5% !important; }
 #screen-s8:not(.ap-details-active):not(.ap-card-mode) .ap-compact-table thead th:nth-child(20) { width: 7% !important; }
 #screen-s8:not(.ap-details-active):not(.ap-card-mode) .ap-compact-table thead th:nth-child(21) { width: 7% !important; }
-/* Backlog: o mesmo espaçamento compacto da tela 8, preservando os 21 campos e
-   filtros; quando necessário, a rolagem horizontal continua só na tabela. */
+/* Backlog: todos os 22 campos, com pesos próprios para texto e números.
+   A largura mínima protege a leitura; a rolagem fica restrita à tabela. */
 #screen-s7 .table-wrap { overflow-x: auto !important; }
-#screen-s7:not(.ap-card-mode) .ap-compact-table { width: max-content !important; min-width: 100% !important; table-layout: auto !important; }
-#screen-s7:not(.ap-card-mode) .ap-compact-table :is(th, td) { min-width: 64px !important; max-width: 160px !important; overflow: visible !important; text-overflow: clip !important; padding: 7px 5px !important; font-size: 11px !important; line-height: 1.3; vertical-align: middle; }
-#screen-s7:not(.ap-card-mode) .ap-compact-table thead th { font-size: 11px !important; font-weight: 700; text-transform: uppercase; white-space: nowrap !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table { width: 100% !important; min-width: 2000px !important; table-layout: fixed !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table :is(th, td) { min-width: 0 !important; max-width: none !important; overflow: visible !important; text-overflow: clip !important; padding: 7px 5px !important; font-size: 11px !important; line-height: 1.3; vertical-align: middle; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th { font-size: 11px !important; font-weight: 700; text-transform: uppercase; white-space: normal !important; }
 #screen-s7:not(.ap-card-mode) .ap-compact-table tbody td { white-space: normal !important; overflow-wrap: anywhere !important; }
-#screen-s7:not(.ap-card-mode) .ap-compact-table :is(th, td):is(:nth-child(5), :nth-child(6), :nth-child(14), :nth-child(18), :nth-child(19)) { min-width: 160px !important; max-width: 260px !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(1) { width: 3.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(2) { width: 3.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(3) { width: 3% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(4) { width: 2% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(5) { width: 9.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(6) { width: 8.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(7) { width: 5.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(8) { width: 2.75% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(9) { width: 3.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(10) { width: 4.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(11) { width: 2% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(12) { width: 3.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(13) { width: 4.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(14) { width: 5.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(15) { width: 4.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(16) { width: 4.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(17) { width: 4% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(18) { width: 9.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(19) { width: 5.5% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(20) { width: 4.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(21) { width: 4.25% !important; }
+#screen-s7:not(.ap-card-mode) .ap-compact-table thead th:nth-child(22) { width: 3.25% !important; }
 #screen-s8.ap-details-active .table-wrap { overflow-x:hidden !important; }
 /* Detalhes muda a tabela em uma única renderização, sem animação nas células:
    recortes ou deslocamentos deixavam faixas vazias sobre as ordens. */
@@ -1138,18 +1159,18 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
   .toolbar { flex-wrap:wrap; gap:.5rem; }
   .toolbar > div { min-width:0; max-width:100%; }
   .wizard-body, .table-wrap { overflow-x:hidden !important; }
-  :is(#screen-s7, #screen-s8.ap-details-active) .ap-compact-table {
+  #screen-s8.ap-details-active .ap-compact-table {
     width:100% !important; min-width:0 !important; table-layout:fixed !important;
   }
-  :is(#screen-s7, #screen-s8.ap-details-active):not(.ap-card-mode) .ap-compact-table :is(th,td) {
+  #screen-s8.ap-details-active:not(.ap-card-mode) .ap-compact-table :is(th,td) {
     min-width:0 !important; max-width:none !important; width:auto !important;
     white-space:normal !important; overflow-wrap:anywhere !important;
     padding:.4rem .2rem !important;
   }
-  :is(#screen-s7, #screen-s8.ap-details-active):not(.ap-card-mode) .ap-compact-table thead th {
+  #screen-s8.ap-details-active:not(.ap-card-mode) .ap-compact-table thead th {
     white-space:normal !important; overflow-wrap:anywhere !important;
   }
-  :is(#screen-s7, #screen-s8.ap-details-active) .ap-compact-table th {
+  #screen-s8.ap-details-active .ap-compact-table th {
     font-size:clamp(.625rem,.75vw,.6875rem) !important;
   }
   #screen-s10 [style*="grid-template-columns:repeat(6,1fr)"] {
@@ -9172,13 +9193,13 @@ function rplToggleAllW(chk) { document.querySelectorAll('.rpl-chk-os-w').forEach
 // selecionadas"), open the bulk modal for all of them - same behavior as
 // the footer button, just triggered from the row action button too.
 function rplVisualPrefs() {
-  try { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:true,...JSON.parse(localStorage.getItem(rplModoKey()+':visual')||'{}')}; }
-  catch (_) { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:true}; }
+  try { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:false,...JSON.parse(localStorage.getItem(rplModoKey()+':visual')||'{}')}; }
+  catch (_) { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:false}; }
 }
 // Preferências somente de exibição: não desprogramam nem alteram o histórico SAP.
 function rplOrdemVisivelPorStatus(d, prefs=rplVisualPrefs()) {
   if (d._preservadaProg) return prefs.encerradas === true;
-  return !_isExecComHistorico(d) || prefs.emExecucao !== false;
+  return !_isExecComHistorico(d) || prefs.emExecucao === true;
 }
 function rplAtualizarOpcoesStatus(linhas=dadosRPLComExecutadas()) {
   const prefs=rplVisualPrefs();
@@ -12350,9 +12371,10 @@ function exportarCockpit() {
   const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  const semStr = semanaWizard.num ? '_Sem'+semanaWizard.num+'_'+semanaWizard.ano : '';
+  const cockpitSup = String(supervisao || 'SEM SUPERVISÃO').trim().toLocaleUpperCase('pt-BR');
+  const cockpitSemana = semanaWizard && semanaWizard.num ? 'SEMANA ' + semanaWizard.num : 'SEMANA NÃO DEFINIDA';
   a.href = url;
-  a.download = 'Cockpit_Programacao' + semStr + '.csv';
+  a.download = ('COCKPIT PROG ' + cockpitSup + ' ' + cockpitSemana).replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim() + '.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -18194,7 +18216,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Modo foco', 'O ícone ao lado de Backlog amplia a área da programação e solicita tela cheia. Use-o novamente ou pressione Esc para voltar.', '#rpl-focus-toggle'),
       cap('Ajustes da programação', 'A engrenagem reúne visualização, programação direta, datas AMC, Desfazer, Substituir executante, Agenda e Reorganizar.', '#btn-ajustes-programacao'),
       cap('Salvar sessão', 'O ícone de disquete grava a programação no arquivo de sessão autorizado.', '#btn-salvar-sessao'),
-      cap('Ordens encerradas e em execução', 'Em Ajustes, ative ou desative a exibição de cada situação. As opções aparecem quando existem casos, são independentes e não apagam programação nem histórico.', '#btn-ajustes-programacao'),
+      cap('Ordens encerradas e em execução', 'Em Ajustes, ative ou desative a exibição de cada situação. Ambas começam desativadas por padrão. As opções são independentes e não apagam programação nem histórico.', '#btn-ajustes-programacao'),
       cap('Copiar número da ordem', 'O pequeno ícone junto ao número copia a ordem para colar em outro destino. Está disponível nas telas 7 e 8.', '#screen-s8 tbody')
     ] },
     { name: 'Projeção', steps: [
@@ -18425,7 +18447,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         cap('Preferências por usuário','As opções da engrenagem ficam salvas por usuário. Alterar a visualização não apaga ordens, programação nem histórico.','#ap-settings-popup'),
         cap('Coluna Observação em Visualizar','Mostra ou oculta a coluna na visualização, PDF, impressão e Excel da programação, redistribuindo o espaço. Não altera a OBS rápida da tela 8 nem as observações enviadas ao Escopo.','#ap-settings-popup [data-setting="colunaObsVisualizacao"]'),
       cap('Ordens encerradas','Ative para consultar encerradas preservadas do backlog. Desative para ocultar. A opção fica sempre visível, mas esmaecida e desabilitada quando não existem esses registros.','#ap-settings-popup [data-setting="encerradas"]'),
-      cap('Ordens em execução','Controle separadamente a exibição das ordens identificadas como Em execução. A opção fica sempre visível e só é habilitada quando existem casos elegíveis. Operações apenas apropriadas não são confundidas com esse grupo.','#ap-settings-popup [data-setting="emExecucao"]'),
+      cap('Ordens em execução','Desativada por padrão, como Encerradas. Ative para exibir as ordens identificadas como Em execução. A opção fica sempre visível e só é habilitada quando existem casos elegíveis. A escolha fica salva por usuário e não altera a programação. Operações apenas apropriadas não são confundidas com esse grupo.','#ap-settings-popup [data-setting="emExecucao"]'),
       cap('Desfazer última ação','Desfaz a última alteração compatível, inclusive ajustes em massa. Confira a descrição e a disponibilidade da ação antes de usar.','#workflow-undo'),
       cap('Substituir executante','Troca uma pessoa em várias operações, preservando os outros executantes e recalculando a capacidade.','#ap-settings-popup button[onclick*="abrirSubstituicaoExecutante"]'),
       cap('Agenda do executante','A opção Agenda permite escolher uma pessoa e conferir as atividades e horas disponíveis na semana.','#ap-settings-popup .ap-settings-actions'),
