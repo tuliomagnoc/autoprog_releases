@@ -32,7 +32,8 @@ if (!Array.isArray(manifesto.novidades) || !manifesto.novidades.length) {
 if (!Array.isArray(novidadesInstaladas) || !novidadesInstaladas.length) {
   falhar('a etiqueta vibratória precisa conter ao menos uma novidade.');
 }
-if (!String(manifesto.novidades[0]).startsWith(manifesto.versao)) {
+const semNovidades = manifesto.semNovidades === true;
+if (!semNovidades && !String(manifesto.novidades[0]).startsWith(manifesto.versao)) {
   falhar(`a primeira novidade do manifesto deve começar com ${manifesto.versao}.`);
 }
 const notasDaVersao = lista => {
@@ -44,7 +45,7 @@ if (JSON.stringify(notasDaVersao(novidadesInstaladas)) !== JSON.stringify(notasD
 }
 
 const ocorrenciasVersao = html.split(manifesto.versao).length - 1;
-if (ocorrenciasVersao < 3) {
+if (ocorrenciasVersao < (semNovidades ? 2 : 3)) {
   falhar('a versão deve aparecer no código e nos rodapés do AutoProg.');
 }
 

@@ -13,7 +13,7 @@ Cada módulo consulta seu manifesto no GitHub. Uma publicação deve atualizar, 
 
 Cada módulo mantém sua própria sequência e incrementa o último número a cada ajuste publicado:
 
-- AutoProg: `V2026.27.01.135`.
+- AutoProg: `V2026.27.01.136`.
 - AutoMat: `V2026.27.01.18`.
 - AutoMat Mobile web: `V2026.27.01.14`.
 - AutoMat Mobile Android: `V2026.27.01.09`, inalterado nesta publicação web.
@@ -21,5 +21,7 @@ Cada módulo mantém sua própria sequência e incrementa o último número a ca
 Uma publicação somente está concluída depois que a mesma versão estiver alinhada no código-fonte, no manifesto do GitHub e na cópia hospedada na Azure. O APK tem sequência e publicação próprias, independentes da versão web. O número de um módulo não deve ser copiado para outro módulo.
 
 No AutoProg, **cada ajuste publicado precisa constar na etiqueta de novidades**. Todas as notas da versão atual, até a primeira entrada de uma versão anterior, devem ser idênticas entre `versao.json` e `_NOVIDADES_ATUAL` no HTML. A validação automática do GitHub bloqueia divergências.
+
+Exceção expressamente solicitada para a publicação 136: nenhuma novidade acrescentada. O manifesto identifica `semNovidades: true`, mantendo as listas anteriores e a validação de alinhamento entre código, rodapé e manifesto.
 
 As APIs autenticadas e a base de dados não são hospedadas pelo GitHub; este repositório contém somente arquivos públicos de distribuição e controle de versão.

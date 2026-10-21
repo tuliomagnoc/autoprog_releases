@@ -1,5 +1,6 @@
 {
-  "versao": "V2026.27.01.135",
+  "versao": "V2026.27.01.136",
+  "semNovidades": true,
   "data": "2026-10-21",
   "novidades": [
     "V2026.27.01.135 - UI/UX: navegação, filtros, ações e espaçamentos padronizados nos módulos, respeitando o visual claro do AutoProg e a adaptação a celular e tablet",
