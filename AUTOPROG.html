@@ -357,6 +357,9 @@ td:has(.rpl-direct-date-group) { white-space:nowrap !important;vertical-align:mi
 .ap-settings-popup fieldset { margin:12px 0;padding-top:12px;border-top:1px solid var(--border); }
 .ap-settings-section { margin:14px 0 6px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em; }
 .ap-setting-switch { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;font-size:12px;cursor:pointer; }
+.ap-setting-switch[hidden] { display:none !important; }
+.ap-setting-switch.is-disabled { opacity:.5;cursor:not-allowed; }
+.ap-setting-switch.is-disabled input { cursor:not-allowed;filter:grayscale(1); }
 .ap-setting-switch input { appearance:none;position:relative;flex:0 0 34px;width:34px;height:20px;margin:0;border:0;border-radius:20px;background:#BAC7CB;cursor:pointer; }
 .ap-setting-switch input:before { content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:white;transition:transform .15s; }
 .ap-setting-switch input:checked { background:var(--accent); }
@@ -1951,8 +1954,60 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
 }
 
 </style>
+<style data-html-autonomo="autoprog-footer">
+/* Rodapé principal compartilhado. Não altera rodapés de diálogos ou relatórios. */
+@media screen {
+  :root { --ap-footer-height:32px; --ap-footer-space:calc(var(--ap-footer-height) + env(safe-area-inset-bottom, 0px)); }
+  footer.ap-system-footer {
+    position:fixed;inset:auto 0 0;z-index:30;
+    box-sizing:border-box;width:100%;height:var(--ap-footer-space);min-height:0;
+    display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    align-items:center;gap:8px;margin:0!important;
+    padding:6px 16px calc(6px + env(safe-area-inset-bottom, 0px))!important;
+    background:#f3f7f8!important;color:#617983!important;
+    border:0;border-top:1px solid #d6e5e7;box-shadow:none!important;
+    font-family:Arial,Helvetica,sans-serif;font-size:11px!important;
+    font-weight:400;line-height:18px!important;letter-spacing:0!important;text-align:center;
+  }
+  footer.ap-system-footer > :first-child {
+    grid-column:2;min-width:0;color:#617983!important;
+    font-size:11px!important;font-weight:400!important;white-space:nowrap;text-decoration:none;
+  }
+  footer.ap-system-footer > :last-child {
+    grid-column:3;justify-self:end;min-width:0;color:#617983!important;
+    font-size:10px!important;font-weight:400!important;white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+  footer.ap-system-footer a:hover { color:#007e7a!important;text-decoration:underline; }
+  footer.ap-system-footer a:focus-visible { outline:2px solid #007e7a;outline-offset:2px;border-radius:2px; }
+  /* Páginas com rolagem: o último conteúdo continua acessível acima da assinatura. */
+  body.ap-footer-page { box-sizing:border-box;min-height:100dvh;padding-bottom:var(--ap-footer-space); }
+  body.ap-footer-page .shell,body.ap-footer-page .app-automat { min-height:calc(100dvh - var(--ap-footer-space))!important; }
+  body.ap-footer-page #app-view main { min-height:0; }
+  /* AutoProg já possui rolagem interna. Reserva a faixa sem aumentar a página. */
+  body.ap-footer-viewport > .app { height:calc(100dvh - var(--ap-footer-space)); }
+  body.ap-programming-focus { --ap-footer-space:0px; }
+  body.ap-programming-focus footer.ap-system-footer { display:none!important; }
+  /* Mobile utiliza telas fixas próprias, e não a rolagem do documento. */
+  body.ap-footer-mobile .tela { bottom:var(--ap-footer-space);height:auto!important;min-height:0;padding-bottom:24px; }
+  body.ap-footer-mobile .inicio-conteudo,body.ap-footer-mobile .sucesso-conteudo { min-height:100%; }
+  body.ap-footer-mobile .app { height:calc(100dvh - var(--ap-footer-space));min-height:0; }
+  body.ap-footer-page :is(#toast,.toast) { bottom:calc(var(--ap-footer-space) + 12px); }
+  @media(max-width:600px) {
+    :root { --ap-footer-height:44px; }
+    footer.ap-system-footer {
+      grid-template-columns:minmax(0,1fr);grid-template-rows:16px 14px;gap:0;
+      padding:6px 12px calc(6px + env(safe-area-inset-bottom, 0px))!important;
+    }
+    footer.ap-system-footer > :first-child,footer.ap-system-footer > :last-child { grid-column:1;justify-self:center;line-height:14px; }
+  }
+}
+@media print {
+  footer.ap-system-footer { position:static!important; }
+}
+
+</style>
 </head>
-<body class="ap-design-light">
+<body class="ap-design-light ap-footer-viewport">
 
 <!-- ── AUTOPROG Login ── -->
 <div id="login-screen" style="position:fixed;inset:0;z-index:99999;background:#f0f2f4;display:flex;align-items:center;justify-content:center;">
@@ -1997,20 +2052,23 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
   // Nenhum módulo encerra a sessão por tempo de inatividade.
   const LIMITS = Object.freeze({});
 
-  async function fetchComPrazo(url, options = {}) {
+  async function fetchComPrazo(url, options = {}, prazo = 30000) {
     if (!global.AbortController || !global.setTimeout) return fetch(url,options);
     const controller = new global.AbortController();
     const cancelar = () => controller.abort(options.signal?.reason);
     if (options.signal?.aborted) cancelar();
     else options.signal?.addEventListener('abort',cancelar,{once:true});
-    const timer = global.setTimeout(() => controller.abort(),30000);
+    const timer = global.setTimeout(() => controller.abort(),prazo);
     try { return await fetch(url,{...options,signal:controller.signal}); }
     finally {global.clearTimeout(timer);options.signal?.removeEventListener('abort',cancelar);}
   }
 
   function criar(config) {
     const modulo = String(config.modulo || '').toUpperCase();
+    // Opt-in: os módulos web e os clientes locais antigos mantêm seu transporte.
+    const tunelLocal = config.tunelLocal === true && global.location?.protocol === 'file:';
     let renovacao = null;
+    let falhasLeitura=0,circuitoAte=0;
     let ativo = false;
     let presencaTimer = null, enviandoPresenca = false, ultimaAtividade = Date.now();
     async function sinalPresenca() {
@@ -2077,7 +2135,7 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
         try {
           resposta = await fetchComPrazo(config.apiBase + '/api/auth/refresh', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Facilita-Client': modulo },
+            headers: tunelLocal ? { 'Content-Type': 'text/plain;charset=UTF-8' } : { 'Content-Type': 'application/json', 'X-Facilita-Client': modulo },
             body: JSON.stringify({ ...(auth.autenticacao.cookie ? {cookie:true} : {refreshToken:auth.autenticacao.refreshToken}), sessaoId: auth.autenticacao.sessaoId, modulo })
           });
         } catch (_) {
@@ -2098,17 +2156,53 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
       if (!ativo) throw erroSessao();
       const { facilitaBackground, ...fetchOptions } = options;
       let auth = await renovar(false);
-      const enviar = dados => fetchComPrazo(url, {
-        ...fetchOptions,
-        headers: {
-          ...(fetchOptions.headers || {}),
-          ...(dados.autenticacao.cookie ? {} : {Authorization:'Bearer '+dados.autenticacao.token,'X-Facilita-Token':'Bearer '+dados.autenticacao.token}),
-          'X-Facilita-Client': modulo,
-          'X-Facilita-Session': dados.autenticacao.sessaoId,
-          ...(facilitaBackground ? { 'X-Facilita-Background': '1' } : {})
+      const enviar = (dados,prazo=30000) => {
+        if (tunelLocal) {
+          const target = new URL(url, config.apiBase);
+          if (target.origin !== new URL(config.apiBase).origin) throw new Error('Destino de consulta inválido.');
+          return fetchComPrazo(target.href, {
+            ...fetchOptions, method: 'POST', credentials: 'omit',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({ _facilitaTunnel: true, method: fetchOptions.method || 'GET',
+              path: target.pathname.replace(/^\/api/, ''), token: dados.autenticacao.token,
+              sessionId: dados.autenticacao.sessaoId, module: modulo,
+              body: fetchOptions.body ? JSON.parse(fetchOptions.body) : undefined })
+          },prazo);
         }
-      });
-      let resposta = await enviar(auth);
+        return fetchComPrazo(url, {
+          ...fetchOptions,
+          headers: {
+            ...(fetchOptions.headers || {}),
+            ...(dados.autenticacao.cookie ? {} : {Authorization:'Bearer '+dados.autenticacao.token,'X-Facilita-Token':'Bearer '+dados.autenticacao.token}),
+            'X-Facilita-Client': modulo,
+            'X-Facilita-Session': dados.autenticacao.sessaoId,
+            ...(facilitaBackground ? { 'X-Facilita-Background': '1' } : {})
+          }
+        },prazo);
+      };
+      const consulta=String(fetchOptions.method||'GET').toUpperCase()==='GET';
+      if(consulta&&facilitaBackground&&Date.now()<circuitoAte)throw Object.assign(new Error('Consulta temporariamente indisponível. Tente atualizar novamente em alguns segundos.'),{status:503});
+      const inicio=Date.now();
+      let resposta;
+      for(let tentativa=0;;tentativa++){
+        try{resposta=await enviar(auth,Math.max(1,30000-(Date.now()-inicio)));}
+        catch(error){
+          if(!consulta||tentativa>=2||options.signal?.aborted||error.name==='AbortError'||Date.now()-inicio>25000||!global.AbortController)throw error;
+          resposta=null;
+        }
+        if(!consulta||tentativa>=2||options.signal?.aborted||Date.now()-inicio>25000||!global.AbortController||resposta&&![429,502,503,504].includes(resposta.status))break;
+        const retryAfter=resposta?.headers?.get?.('Retry-After');
+        const seconds=retryAfter?(Number.isFinite(Number(retryAfter))?Math.max(0,Number(retryAfter)):Math.max(0,(Date.parse(retryAfter)-Date.now())/1000)||0):0;
+        if(seconds>5)break;
+        const espera=Math.max(seconds*1000,250*2**tentativa+Math.floor(Math.random()*150));
+        if(Date.now()-inicio+espera>=30000)break;
+        await new Promise((resolve,reject)=>{
+          const cancel=()=>{global.clearTimeout(timer);reject(options.signal.reason||new DOMException('Consulta cancelada','AbortError'));};
+          const timer=global.setTimeout(()=>{options.signal?.removeEventListener('abort',cancel);resolve();},espera);
+          if(options.signal?.aborted)cancel();else options.signal?.addEventListener('abort',cancel,{once:true});
+        });
+      }
+      if(consulta){if(resposta&&[429,502,503,504].includes(resposta.status)){if(++falhasLeitura>=5)circuitoAte=Date.now()+15000;}else {falhasLeitura=0;circuitoAte=0;}}
       if (resposta.status === 401) {
         const dados = await resposta.clone().json().catch(() => ({}));
         if (dados.codigo === 'SESSAO_EXPIRADA') { expirar(); throw erroSessao(); }
@@ -2129,13 +2223,14 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
         try {
           await fetchComPrazo(config.apiBase + '/api/auth/logout', {
             method: 'POST',
-            headers: {
+            headers: tunelLocal ? { 'Content-Type': 'text/plain;charset=UTF-8' } : {
               ...(auth.autenticacao.cookie ? {} : {Authorization:'Bearer '+auth.autenticacao.token,'X-Facilita-Token':'Bearer '+auth.autenticacao.token}),
               'X-Facilita-Client': modulo,
               'X-Facilita-Session': auth.autenticacao.sessaoId,
               'Content-Type': 'application/json'
             },
-            body: '{}'
+            body: JSON.stringify(tunelLocal ? { _facilitaTunnel: true, method: 'POST', path: '/logout',
+              token: auth.autenticacao.token, sessionId: auth.autenticacao.sessaoId, module: modulo, body: {} } : {})
           });
         } catch (_) {}
       }
@@ -2792,7 +2887,6 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
     </div>
     <button class="btn" onclick="rplClearFiltersW()" id="rpl-btn-clear-w" style="display:none;background:#C0305E;color:#fff;border-color:#C0305E;"><i class=icon-x></i> Limpar filtros</button>
     <button class="btn" id="btn-criticidade" onclick="toggleCriticidade()" title="Mostrar IMOS e os campos de criticidade" style="font-size:11px;">DETALHE</button>
-    <button class="btn" id="btn-encerradas" onclick="toggleEncerradas()" title="Mostrar ordens encerradas no SAP (não vieram mais no backlog, mantidas para consulta)" style="font-size:11px;display:none;"><i class=icon-folder-clock></i> Encerradas</button>
     <button class="btn" id="btn-limpar-badges" onclick="limparBadgesNovaAlterada()" style="display:none;font-size:11px;" title="Remover todos os badges NOVA/ALTERADA do backlog"><i class=icon-tag></i> Badges</button>
 
     <!-- nav-moved-to-footer -->
@@ -2985,14 +3079,14 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;">
         <div style="font-size:24px;"><i class=icon-truck></i></div>
         <div style="font-weight:600;font-size:12px;">Solicitar Veículos</div>
-        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">OMs com "Veiculo" no campo de observações</p>
+        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Recursos Munck, Plataforma e Veículos PK, ou "Veiculo" nas observações</p>
         <button class="btn primary" style="width:100%;justify-content:center;font-size:11px;" onclick="_execExport(exportarVeiculos)">Exportar Veículos</button>
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;">
         <div style="font-size:24px;"><i class=icon-tool></i></div>
         <div style="font-weight:600;font-size:12px;">Solicitar Andaimes</div>
-        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">OMs com "ANDAIME" no campo de observações</p>
+        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Recursos de andaime selecionados ou "ANDAIME" nas observações</p>
         <button class="btn primary" style="width:100%;justify-content:center;font-size:11px;" onclick="_execExport(exportarAndaimes)">Exportar Andaimes</button>
       </div>
 
@@ -3042,7 +3136,7 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
         <span style="position:absolute;top:6px;left:8px;background:#EE6F16;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:10px;">BETA</span>
         <div style="font-size:24px;"><i class="icon-calendar"></i></div>
         <div style="font-weight:600;font-size:12px;">Controle de Programação</div>
-        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Divulga a programação da semana para o compilado por dia e supervisão.</p>
+        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Consulta as programações divulgadas, organizadas por semana, dia e supervisão.</p>
         <button id="btn-divulgar-controle" class="btn primary" style="width:100%;justify-content:center;font-size:11px;" onclick="divulgarProgramacaoControle()">Divulgar Programação</button>
         <button class="btn" style="width:100%;justify-content:center;font-size:11px;" onclick="abrirModuloControle()">Abrir Controle</button>
       </div>
@@ -3053,6 +3147,22 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
         <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Envia a solicitação de materiais da semana para a base de dados da preparação.</p>
         <button class="btn primary" style="width:100%;justify-content:center;font-size:11px;" onclick="solicitarMaterialBrucutu()">Solicitar Material</button>
         <button class="btn" style="width:100%;justify-content:center;font-size:11px;margin-top:2px;" onclick="abrirConsultaEntregas()">Consultar Entregas</button>
+      </div>
+      <div id="card-autoaprov" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;flex-direction:column;align-items:center;gap:7px;text-align:center;position:relative;">
+        <span style="position:absolute;top:6px;left:8px;background:#EE6F16;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:10px;letter-spacing:0.3px;">BETA</span>
+        <div style="font-size:24px;"><i class=icon-package></i></div>
+        <div style="font-weight:600;font-size:12px;">AutoAprov</div>
+        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Carteira de ordens e materiais, fornecedores, responsáveis, prazos e aprovações.</p>
+        <button class="btn primary" style="width:100%;justify-content:center;font-size:11px;" onclick="abrirAutoAprov()">Abrir AutoAprov</button>
+      </div>
+      <div id="card-recursos" hidden style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;position:relative;">
+        <span style="position:absolute;top:6px;left:8px;background:#EE6F16;color:#fff;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:10px;">BETA</span>
+        <div style="font-size:24px;"><i class="icon-truck"></i></div>
+        <div style="font-weight:600;font-size:12px;">Recursos</div>
+        <p style="font-size:10px;color:var(--text2);margin:0;flex:1;">Solicite apoios, acompanhe os atendimentos e gerencie os recursos atribuídos ao seu usuário.</p>
+        <button class="btn primary" style="width:100%;justify-content:center;font-size:11px;" onclick="abrirRecursos()">Abrir Recursos</button>
+        <button class="btn" style="width:100%;justify-content:center;font-size:11px;" onclick="AutoprogRecursos.abrir()">Solicitar recursos</button>
+        <button class="btn" style="width:100%;justify-content:center;font-size:11px;" onclick="AutoprogRecursos.acompanhar()">Acompanhar solicitações</button>
       </div>
 
     </div>
@@ -3139,8 +3249,8 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
     </div>
   </div>
 </div>
-<footer style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;background:#555555;color:#fff;text-align:center;padding:8px 16px;font-size:12px;letter-spacing:0.04em;flex-shrink:0;">
-  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" style="grid-column:2;color:#aaa;text-decoration:none;" title="Falar com Tulio no Teams">Desenvolvido por TULIO.CARMO</a> <span style="grid-column:3;justify-self:end;color:#aaa;font-size:10px;">V2026.27.01.130</span>
+<footer class="ap-system-footer" aria-label="Assinatura e versão do sistema">
+  <a href="https://teams.microsoft.com/l/chat/0/0?users=tulio.carmo@vale.com" target="_blank" rel="noopener" title="Falar com Tulio no Teams">Desenvolvido por TULIO CARMO</a><span>V2026.27.01.133</span>
 </footer>
 </div><!-- app -->
 
@@ -3261,16 +3371,12 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
           </select>
         </div>
         <div class="form-group">
-          <label>Recurso necessário?</label>
-          <select id="m-recurso">
-            <option value="Não">Não</option>
-            <option value="Andaime">Andaime</option>
-            <option value="Guincho">Guincho</option>
-            <option value="Empilhadeira">Empilhadeira</option>
-            <option value="Caminhão munck">Caminhão munck</option>
-            <option value="Plataforma aérea">Plataforma aérea</option>
-            <option value="Outro">Outro</option>
-          </select>
+          <label id="m-recursos-label">Recursos necessários</label>
+          <input id="m-recurso" type="hidden" value="Não">
+          <details id="m-recursos-dropdown" class="ap-recursos-picker" aria-labelledby="m-recursos-label">
+            <summary id="m-recursos-resumo">Selecionar recursos</summary>
+            <div id="m-recursos-opcoes" class="ap-recursos-opcoes"></div>
+          </details>
         </div>
       </div>
       <div class="form-row">
@@ -3305,7 +3411,7 @@ body:has(#screen-s1.active) .topbar :is(.sep,#last-save-label,#btn-hist-sessoes)
 // ============================================================
 // _APP_VERSION deve ser atualizado junto com o rodapé a cada entrega
 // (mesmo valor de "V2026.27.01.X" mostrado nas telas de login/rodapé).
-const _APP_VERSION = 'V2026.27.01.130';
+const _APP_VERSION = 'V2026.27.01.133';
 const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI2IiBmaWxsPSIjZmZmIi8+PHJlY3QgeD0iNDgiIHk9IjE2IiB3aWR0aD0iNjgiIGhlaWdodD0iNDAiIHJ4PSIyMCIgZmlsbD0iIzAwQTlFMCIgdHJhbnNmb3JtPSJyb3RhdGUoMjggODIgMzYpIi8+PHJlY3QgeD0iMTAiIHk9IjQ1IiB3aWR0aD0iNzYiIGhlaWdodD0iNDMiIHJ4PSIyMSIgZmlsbD0iI0ZGMUY1QiIgdHJhbnNmb3JtPSJyb3RhdGUoLTI3IDQ4IDY2KSIvPjxyZWN0IHg9IjUzIiB5PSI3MCIgd2lkdGg9IjY3IiBoZWlnaHQ9IjQzIiByeD0iMTkiIGZpbGw9IiNGRkJEMTIiIHRyYW5zZm9ybT0icm90YXRlKC0xOCA4NiA5MSkiLz48L3N2Zz4K" type="image/svg+xml"><link rel="icon" data-autoprog-favicon-png href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKsAAACrCAYAAAAZ6GwZAAARFklEQVR4nO2de5QVxZ3HPz0MDwEZaEVAhWEAp3kIIjAzDEFF4YhXG1fRoIajx9A+ghuMiasLbNxsNFESz/EYdY9hcyYm7upuNNGog1dBTTIGRYyAi0QuAiIO6wO8giIvman9o2aYyzBzn91dfbvrcw5/3DvV1V+mv1NdXf2r388QQqDxFyOeLAVOByYBY4DTgIFAGdCn5V8PYDewF9gFfAhsAjYAr4uYudF34YoxtFn9wYgnTwRmAxcB05CGLISdQAOwDHhGxMxkgf0FHm1WDzHiSQO4AJgPXAh08ehUB4HngAdEzHzVo3MoR5vVA4x4sgS4EliEvN37yWvAz0TMfNbn83qONqvLGPHkLOCnwFjFUpYDC0TM3KRYh2tos7qEEU+eA9wD1KrWksIh4MfAPSJmFv2F1mYtECOenAjcDZyvWksalgFXi5j5uWohhaDNmidGPDkSuBO4HDAUy8mGLcD5ImZuVS0kX7RZc8SIJ4cAPwKuAUoVy8mVHcA0ETM3qxaSD9qsWWLEk/2BxchlqO6K5RTCZmCKiJk7VQvJFW3WDBjxZB/gVuAHQG/FctziDeA8ETP3qRaSC9qsnWDEk8cB/wj8M3CiYjle8CwwW8TMJtVCsqXY5lye0/Lefh5wB3CqYjlecjHwIHCTaiHZokfWFlreOs1BPuGfpliOnywSMXOJahHZoM0KGPHkRcBPgPGKpahAINdgH1MtJBORNqsRT05FvnWaqlqLYg4BMREzX1EtJB2RNKsRT44G7kVGQmkke4CzRMxcr1pIZ0TKrEY8WYa83X8H/XDZEY1ArYiZjaqFdERkzGrEk7XAE4T7Cd8N1iNH2D2qhbSnRLUAPzDiyVuAv6CNmg1jgd8b8aRXgeJ5E+pbYcsv/JfAdaq1FBkzCOAabGhH1pYtJY+gjZov8414cqFqEamE1qzAz4GrVYsocu424sm5qkW0EsoHLCOevAp4XLWOkBCYNdjQmdWIJ09B7q0vU60lRARiDTaM04D70EZ1mzLgeSOeVLqaEqqR1Ygnq5CxmsWwzaQYUboGG7aR9Z/QRvWSscBTRjzZTcXJQzOyGvGkCXwEKPlFRozHkJFavponTCPrhWij+sVc5PZzXwmTWc9VLSBiLDTiyfl+njBMZj1TtYAIcr8RT57n18nCZNbBqgVEkG7IBy5f8nqFyawnqBYQUXxbgw2TWQ+rFhBhTkUa1tOXMWEya+CChSOG52uwYTJr0SYcCxHnAb9uCc90nTCZ9W3VAjSAh2uwYTKr8hA2zRE8WYMNk1mXAUWVaCzkPGjEkxe72WFozCpi5pfAk6p1aI7QBfhvI56scavD0Ji1hSVAs2oRmiP0BJ4z4skRbnQW/KgryzGBamAishpfBXAKsuhZ67rebmA/sG1z5Yj+D48ZNeK+8nIYfCp0CdyO4iiSAGoKjYMNplktZxwyV/8FSJPmdwfo0YMXzhhD7MzxUFkJJWG7kRQVryD3ch3Kt4PgmNVy+iLz9F+PF4XO+pZx7+Rqbq+pgn79XO9ekxUFxcGqN6vlDERG+N8AHO/5+QyDDSMruaq2mvVjxuhpgv8sETFzUT4HqjOr5XQDbkZWPlGTq//43vxH9URurKmGk05SIiGi3CRi5sO5HqTGrJYzC7kL1ZWnRDfYNmIY351czbIzxkHXrqrlhJ0mZD2DnOrL+mtWy+mDzKF0jX8nzZEePfifqglcVVMFp+o8bh6yD1kx5o1sD/DPrJYzFniKAI2mmdg1ZDC31VbxmwlnQvcequWEkZ3ImlxZFZHzx6zytv84xVpHqmtX6ieOZ1ZNNVQMVa0mbGRdRM57s1rOt4FfIV+/FT0HB57Ewik13D9xAvQqzr+9AJJVETlvzWo5DtKo4Us8UVpKw9gxnFNbA6eNACN8/0WfyVhEzjuzWs6VyFt/+K+i2Y+7plTzr9VV0Een2SqAB0XMvLmzH3pjVsupQb5e6+l+5wGmpIS1o0cytbaafSNH6hcO+TFPxMxHOvqB+2a1nP7AWmSwSXQp68OD1ZO4eXI1nKA33ubAfmCCiJkb2//AXbNajgHUo+tLtWEYbKocwfWTq2gYNxa6hLqMg1u8KmLm2e2/dNus30Uu+ms6oldPHqmeyLzqahg0ULWaoHOpiJl/TP3CPbNazunAauA4dzoMNzsqhnJLbRW/Hz8euul8ch2wSsTM2tQv3DGr5XRHGnVc4Z1FjO7d+MOkCVxeUwVDhqhWEzRGpc5d3YpGvhtt1Pw4eIjLVq5C3PcgX9x7HzeuXAn79b7HFi5J/VD4yGo504EVRGE91S9KS1k+YRwza6ph2LAov3BYJmKm3fqhMLPK/VH/S9SXqTyk+aQT+GHtZO6pmgi9vY9NDxjvi5g5rPVDoWZ9ErlXSuM1XbrwxumjmFxbE6X9ZAdFzDwS7pa/WS3nWmS5SY3f9OvLvTVV3F5bDWV9VavxFBEzj8yB8jOr5QwD1uHHnilN5xgG74yqZOw5Z8nRNnxz2y9FzOzT+iF3s1pOKdAA1GZqqvGPT8qHMHD2P0B5qJa/toqYObz1Qz4TnzvQRg0cAz7Yjrj/If69/nloDk1SmqN2EORmVsupBf7FTTUaFxGCm176Ext+VQeHDqpW4warUj9kb1bLOR74L0IS8R9mRr+7ie1L6+Drr1VLKZT61A+5jKwPAMMyttIEgsFb3ucvj/9OtYxC2CRi5pupX2RnVsu5HLjWA0EaDzl77dtc8NZbqmXkywPtv8hsVss5BVjqhRqN98SfWQaH8s6Fpor3kHv3jiK9WWUw9W8B0xtNGs/54kvubGhQrSJXbu8o22CmkfX7wHRv9Gj84o7XVoPqBHzZ87v2QdetdG5WyxmPgsrHGg9Ifg5bi6Ly0kbgxs5+2LFZLec4ZC7N7t5o0vjNAxs3qZaQie3IZMOdZsfubPfaz4HRnkjSKGF6Y6MLvXwFYj2zxBpmiXep4R1OZisnsJevgJ2Us4ZxPG2M5zFjKhgTyHLBqRGYLmLmtnSNjo0NsJwLgOfRwdSh4vCA/nRddHuOR30EYh23iLVcKV5lIqs7Hd06YhMjmG3MZ0PJlUCnie02ALNEzHw/U39Hm9VyyoB3kIVjNWGidy+Mn/xbmgbNIN4D8Rb3izXYNDCcLa6ceisVDC+5D4xjdlc/AVwvYuYX2fTT/g/lbrRRw8m+/e2+kLf0C8U65olVzOA5vEp8NIz3Ec2X8h1jIUtLbgVKdgHfEzHz8Vz6aRtZLWc0sv6pzsIQRgYIjIXTuUWs5XKxihpWKrnQL3Pulhkli2vFhTMyprhsT6pZ9RaVsFDSDIP2QsVnUPEplCeg32HVqlJ5DLgaO7fFX/nHZTkjgNkeiNL4QbfDULEbhn4G5R/D0C1BX3ScC6xB1pXImtY7wQ2ErzRmeCk7AMOSULETyhvh5E+K8eotod5Yji3eyfYAQ1TOKwF2ADr5UhBJvaWX74SKjUG7pRfCX7HFWdk2LgWq0EYNDt0OQ/luGNZySy/fkmaJsuiZSr1xEbZYlk3jUnSgilrKDkBFEip2wdAPi/WWXgiLgazNWu2tFs0RjGYY9BUM2yVv6UMTYBb91pNCmUK9MQZbbMjUsBSo9EFQNOl2GMr3tIyaob+lF8IcZFnUtJSi31i5R5+Dcq5Z8Zl8Sj/lo6jd0vPFJkuz6qwqhWDuh6rtMGoznBK5+aZbjKfe6I0t9qZrpF+t5kvlLpi2AU7bog1aOCXIVak/pWtUCuylWMtUquDkL+CS1TB8u2olYWMkWZh1OzrQOjOlTTAzAees0mk+vGFopgalyGTA2qzpGLAXrl4Bgz5XrSTM9M/UoASZEVDTGaM/he89oY3qPRmnoqXItwfN6MeEY6n6EOas0L8Zf8hYOrWERN12ZJ1VTSrf+EAbNWC0XoqfKVURNCbtgEte1kYNGPJyJOpeAl5QKyUgWLvgihe1Uf0nY7h46iWZD3SaYCASmPth7rPaqGrIGDXRdlkSdduQW1tCE9mbE12a4NpXoJdqIZrOOHoMSdS9AiwAiiaLl2vM3CTf7WsCy7E3vETdL4F5QCiS0mfF4D1w7uuqVWgy0PHsLFH3G2AakPBRixoMAZe+ruep6slYx77zS5SoW4WsdL0IGewSTqoaofz/VKvQwHGZGqQfTxJ1h0jULQFOA+4BPnVHV0AoaYYZr6pWocmS7G5+ibqPSdQtRu4qmAX8J5BVMq1AM2kHnHBAtQpNlhRSaLgHEEPun5lFMS763PY0DNQBKgFhPbYYl65BYSXcW7Gcnsh9NFcgDZxx/qGc4Um46Y+qVWjaSGCLkekauGPWVGQlwouRxj2foGZdmvsmTFivWoWmje3YojxdA/fNmorl9AUuQU4VZgBdvTtZDpQ2wY9/q7dFBwvFZk3FckzgUuSIex4qN4eM2gnXPafs9JoOCZBZU7Gc/shcsHOAs/F7Sf6yt2FK0ZaJDCsBNWsqljMI+CbSuFPwo/DGD5bpOIDg8RG2ODldA/VmTcVyBiNNOwevcnB1Oww/fVS/Xg0ee7BF33QNgmXWVCynAjm/vQIY71q/Q3fDgqdc607jGkVs1lQspxJp2jnA6QX1NWkHXPWiG6o07hISs6Yiq8rMQZo37SJyh8xMwPkr3ValKZwQmjUVyzmDNuMOz+qY2W/DN/RKQAD5ClukzR1Q3GZNxXImIU37TaDzJZBvvQkT9ZurQGKLtCtB4XkmTtT9jUTdbUAFcgnsF8jCHkfTIzobIMJGeEbWjrCcEmAqcsS9DBjAdQ0yl6omaBzGFmlfx4fbrKlYThdgGt9f9mtO/WSIajmaYwj5A1Y+1Bv1wEWqZWiOoRFbDE7XIDxzVk2xk3EjXBTNqgMDg8m2TA2iaNZgBoNr3svUIIpm1QSTjG9qtFk1QeHNTA20WTVBIIEtGjM1iqJZg7EPTJNKVmFwUTRrxtz1Gt95JptGUTSrJlh8CPw5m4barBrVPIYtmrNpqM2qUUkzsDTbxlE0q/e7ZzXZ8iS22JZt4yiatY9qARoAmoA7czkgimbVBINHscXfczlAm1Wjgi+AO3I9SJtVo4LF2OLYLUcZ0GbV+E0D8HA+B0bRrMerFhBhPgPmZruu2p4omjWK/+cg0ARck03ASmfoC6fxiwXY4vlCOtBm1fjBndgir3lqKtqsGq+5C1v8yI2OSt3opMjQIYL+0ATcgi0ecqvDKJpVB197z2fAt7DFcjc7jeI0oEm1gJDzInCm20aFaI6se4Ey1SJCyPvArdjiaa9OEMWRdZ9qASFjIzAfGOmlUSGaI+sOYJBqEUXOZuS+qSewxWq/ThpFs34ATFItosjYC7yMnI+uwBZKcoZG0ax/R+Zq1aRnPfBCy7+/YotDivVE0qwZM39ElCSwAmnO5dgiY1Y/v4miWRuAr9HrrU3AGqQ548BqbBHoZb3oJRMGqDdeRhY7jhof03ZrX4Etkor15EQUR1aAR4mGWQ8BrwHLkQZdh128o1NUR9aeQCPQT7UUD9hG2+j5MrbYq1aOe0TTrAD1xg+Bu1TLcIF9yPQ7LwFxbLFRrRzviLJZ+wDvAmnLhgeUjciHoheABmxxQLEeX4iuWQHqjdnAH1TLyII9yJFzOXJZaZtaOWqItlkB6o2lwA2qZbRDAOtom3u+hi0OK1UUAKK6GpDKAqASmKZYx07kyBlHPhh9rFhP4NAjK0C90Qt4Hjjbx7M2Aatpm3u+le8W5aigzdpKvdEdmXzh2x6epZGjl5V2e3iu0KHN2h750PUQ7oQRHkAuykuD2kLXji8AbdaOqDd6Azcig4qH53j0Ztret/8ZW+hgb5fQZk1HvWEANcBMYDIwEjgR6I2M8UwCHwF/Q84/V2KLLWrEhp//B2bC2kpi7cMLAAAAAElFTkSuQmCC" type="image/png"><link rel="apple-touch-icon" data-autoprog-touch-icon href="data:image/png;base64,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">';
 // Lista de novidades DA PRÓPRIA versão instalada (não confundir com a lista
 // de novidades da versão NOVA, buscada do GitHub em _checkForUpdate - essa
@@ -3313,6 +3419,35 @@ const _AUTOPROG_FAVICON_TAG = '<link rel="icon" data-autoprog-favicon href="data
 // pelo botão de novidades sempre visível na Tela 1, pra quem quiser
 // reconsultar o que mudou sem esperar um aviso de atualização.
 const _NOVIDADES_ATUAL = [
+  "V2026.27.01.133 - RECURSOS: cadastro de recursos na Gestão de Usuários, com inclusão, exclusão e restauração; catálogo compartilhado com o módulo Recursos e o dropdown em Ação, preservando pedidos, permissões e histórico",
+  "NOTIFICAÇÕES: correção dos retornos de Materiais e Recursos, exclusivos do solicitante logado; avisos limpos não reaparecem ao trocar JSON ou guia no mesmo navegador, mantendo leitura e limpeza sincronizadas entre guias",
+  "AJUSTES DA TELA 8: controles de ordens encerradas e em execução sempre visíveis, esmaecidos e desabilitados quando não houver registros elegíveis; preferências independentes por usuário",
+  "RECURSOS EM AÇÃO: dropdown adapta a abertura ao espaço disponível na janela, sem cortar a lista; rolagem própria e navegação por teclado preservadas",
+  "OBS RÁPIDA: recursos selecionados aparecem em resumo de até 35 caracteres, com nomes completos na dica; observações originais e seleção de recursos preservadas",
+  "VISUALIZAR: opção em Ajustes para mostrar ou ocultar a coluna Observação na visualização, PDF, impressão e Excel da programação, redistribuindo o espaço entre as demais colunas; OBS rápida da tela 8 e observações detalhadas mantidas",
+  "CONTROLE: divulgação sempre inclui a coluna e o conteúdo completo das observações, mesmo quando ocultos na visualização local; semana, sequenciamento, predecessoras e cálculos preservados",
+  "ADEQUAR HH: ordens com SAUD, SEGU, OMVE ou ATCR não sofrem redistribuição automática de duração; o saldo é distribuído somente entre as demais operações elegíveis",
+  "CONFIABILIDADE: consultas com novas tentativas limitadas e espera progressiva, proteção complementar contra excesso de requisições e recuperação de índices de Recursos e Controle após falhas parciais, preservando APIs e clientes existentes",
+  "DIAGNÓSTICO E BACKUP: identificação de requisições sem conteúdo sensível, verificação administrativa de prontidão e ferramenta manual de backup criptografado; não inclui ativação automática de monitoramento ou agendamento de backups na nuvem",
+  "TUTORIAL: orientações atualizadas para os controles de status e a coluna Observação, com dados fictícios e sem envios reais",
+  "V2026.27.01.132 - AJUSTES: mostrar ou ocultar ordens encerradas e em execução por opções independentes na tela 8, disponíveis quando houver esses casos; preferências por usuário e histórico preservados, sem o antigo botão Encerradas",
+  "ACOMPANHAR RECURSOS: novo botão no card Recursos da tela 10 apresenta status e justificativa separados por recurso, ordem e operação da semana selecionada, sem acrescentar colunas na tela 8",
+  "NOTIFICAÇÕES: retornos de recursos no mesmo sino de Materiais, com filtros por categoria e leitura individual; avisos de recursos são exclusivos do solicitante autenticado, inclusive quando ele é administrador ou gestor",
+  "BRUCUTU: card Recursos, solicitações integradas, acompanhamento e avisos disponíveis somente para usuários da planta BRUCUTU; nas outras plantas, seleção em Ação e exportações por planilhas continuam funcionando",
+  "RECURSOS BETA 6: escolha dos apoios organizada em categorias, busca e disponibilidade, com formulário em janela e rascunho preservado; contexto de semana e planta em texto simples",
+  "RETORNOS: linhas compactas, justificativa ampliada ao editar, ações na própria linha e retorno concluído como texto; lista sem limite de altura interno, mantendo paginação, filtros e histórico",
+  "AGENDA: cards com recurso, ordem/operação, atividade, supervisão, horário, quantidade e status separados; totais por dia e semana, dias vazios discretos e layout adaptado para celular e tablet",
+  "MATERIAIS: retirado das novas solicitações do módulo Recursos, pois segue em módulo próprio; registros anteriores, permissões de consulta e exportações existentes preservados",
+  "DESEMPENHO: sino e acompanhamento compartilham consultas por usuário, planta e semana; verificação de revisão evita baixar novamente os pedidos sem alterações",
+  "TUTORIAL: capítulos atualizados para Ajustes, Recursos, acompanhamento, Controle, AutoAprov e acessos aos módulos; instruções de AMC/AMS, foco e relevância em lote revisadas, com dados fictícios e envios bloqueados",
+  "V2026.27.01.131 - RECURSOS (BETA): módulo de solicitação e gestão de apoios com o login do AutoProg, visual padronizado, consulta por planta e gestão conforme os recursos atribuídos ao usuário",
+  "PROGRAMAÇÃO: botão Ação permite selecionar um ou mais recursos do cadastro do módulo; seleção disponível também em massa e preservada ao salvar e reabrir a sessão",
+  "SOLICITAR RECURSOS: novo botão na tela 10 abre resumo por ordem, operação, dia e recurso da semana trabalhada; envio somente após confirmação, com supervisão e identificação do usuário autenticado",
+  "PROTEÇÃO DE ENVIO: conferência de campos, prazos e bloqueios antes de solicitar; pedidos idênticos já existentes não são reenviados e tentativas após falha de conexão não duplicam o mesmo envio",
+  "PLANILHAS: cards avulsos mantidos; Munck, Plataforma e Veículos PK também entram em Veículos pelas marcações, assim como Andaimes, Materiais, Limpeza e Parada em seus relatórios, preservando os modelos e regras anteriores",
+  "RECURSOS: formulário avulso em janela com fundo esmaecido; Retornos reúne atendimento, recusa com justificativa e demais ações na própria linha; solicitações com espaçamento e sombra suave, sem guia Moderação duplicada",
+  "ACOMPANHAMENTO: módulo Recursos oferece filtros, agenda, indicadores, histórico e exportações; permissões por planta e atribuição de gestão preservadas, sem alterar o fluxo independente de Materiais Brucutu",
+  "V2026.27.01.130 - TURNOS: sincronização entre Efetivo, Ação e observação rápida; turno visível em indicador e horários recalculados conforme a jornada",
   "V2026.27.01.130 - ORDENS: ícone compacto para copiar o número nas telas 7 e 8; observações exibem um único prefixo OBS, sem alterar identificadores internos",
   "V2026.27.01.130 - VISUALIZAÇÃO: oportunidades aderentes e vencidas agora incluem condicionais YCM, seguindo os mesmos critérios de prazo, aderência, ordens não programadas e filtros das sistemáticas",
   "V2026.27.01.130 - SESSÃO: bloqueio entre guias para arquivos JSON com o mesmo nome; a segunda guia avisa e não carrega nem grava uma sessão já em uso",
@@ -4037,6 +4172,7 @@ let programacao = {};
 // Separado de programacao: favoritar uma ordem não a programa nem altera H/H.
 let atividadesRelevantes = {};
 let _uidRelevantePendente = null;
+let _uidsRelevantesPendentes = [];
 
 // Backlog screen (tela 7): keep CT filter but show ALL user statuses (no STATUS_EX)
 function dadosBacklogCT() {
@@ -4318,14 +4454,23 @@ function rplToggleAtividadeRelevante(event, uid) {
   if (!programacao[uid]) return;
   const d = _buildDadosLookupMap().get(uid);
   if (!d || d._isOBS || d._tipo === 'OBS') return;
+  const lookup = _buildDadosLookupMap();
+  const selected = [...document.querySelectorAll('.rpl-chk-desprog:checked')].map(chk => chk.dataset.uid).filter((id, index, all) => id && all.indexOf(id) === index && programacao[id]);
+  const targets = selected.length > 1 && selected.includes(uid) ? selected.filter(id => {
+    const item = lookup.get(id);
+    return item && !item._isOBS && item._tipo !== 'OBS';
+  }) : [uid];
   if (atividadesRelevantes[uid]) {
-    delete atividadesRelevantes[uid];
+    targets.forEach(id => { delete atividadesRelevantes[id]; });
     saveProgState();
     renderRPLWizard();
     return;
   }
   _uidRelevantePendente = uid;
-  document.getElementById('modal-relevante-ordem').textContent = `Ordem ${d._ordem || uid} · ${textoProgramacaoDaOrdem(d) || ''}`;
+  _uidsRelevantesPendentes = targets;
+  document.getElementById('modal-relevante-ordem').textContent = targets.length > 1
+    ? `${targets.length} ordens selecionadas receberão a mesma justificativa.`
+    : `Ordem ${d._ordem || uid} · ${textoProgramacaoDaOrdem(d) || ''}`;
   document.getElementById('modal-relevante-motivo').value = '';
   document.getElementById('modal-relevante-erro').style.display = 'none';
   document.getElementById('modal-relevante-overlay').style.display = 'flex';
@@ -4334,6 +4479,7 @@ function rplToggleAtividadeRelevante(event, uid) {
 
 function fecharModalRelevante() {
   _uidRelevantePendente = null;
+  _uidsRelevantesPendentes = [];
   document.getElementById('modal-relevante-overlay').style.display = 'none';
 }
 
@@ -4344,16 +4490,24 @@ function confirmarAtividadeRelevante() {
     document.getElementById('modal-relevante-motivo').focus();
     return;
   }
-  const uid = _uidRelevantePendente;
-  const d = uid && _buildDadosLookupMap().get(uid);
-  if (!d || !programacao[uid] || d._isOBS || d._tipo === 'OBS') { fecharModalRelevante(); return; }
-  atividadesRelevantes[uid] = {
-    motivo,
-    usuario: _nomeUsuarioAtualRelevante(),
-    texto: textoProgramacaoDaOrdem(d) || '',
-    local: d['Loc.instalação'] || '',
-    ordem: d._ordem || uid.split('|')[0]
-  };
+  const targets = _uidsRelevantesPendentes.length ? _uidsRelevantesPendentes : [_uidRelevantePendente];
+  const lookup = _buildDadosLookupMap();
+  const usuario = _nomeUsuarioAtualRelevante();
+  const validTargets = targets.filter(uid => {
+    const d = uid && lookup.get(uid);
+    return d && programacao[uid] && !d._isOBS && d._tipo !== 'OBS';
+  });
+  if (!validTargets.length) { fecharModalRelevante(); return; }
+  validTargets.forEach(uid => {
+    const d = lookup.get(uid);
+    atividadesRelevantes[uid] = {
+      motivo,
+      usuario,
+      texto: textoProgramacaoDaOrdem(d) || '',
+      local: d['Loc.instalação'] || '',
+      ordem: d._ordem || uid.split('|')[0]
+    };
+  });
   fecharModalRelevante();
   saveProgState();
   renderRPLWizard();
@@ -5466,6 +5620,7 @@ function abrirModal(ordem, bulk) {
   }
   _mTurno.value = _mTurnoSalvo;
   document.getElementById('m-recurso').value = prog?.recurso || 'Não';
+  if (window.AutoprogRecursos) AutoprogRecursos.preparar(prog);
   // Build autoTags from status + keyword detection in Ordenação and Texto Breve
   (function() {
     const su   = (d['Status usuário']||'').toUpperCase();
@@ -5722,11 +5877,18 @@ function _executarConfirmacaoProgramacao() {
   const executorSorted = executor
     ? executor.split(/[,;]+/).map(n => _matchEfetivo(n.trim())).filter(Boolean).sort((a,b) => a.localeCompare(b,'pt-BR')).join(', ')
     : executor;
+  const turnoModalExplicito = normalizarTurno(document.getElementById('m-turno').value);
+  const turnosEfetivoSelecionados = executorSorted
+    .split(/[,;]+/).map(n => efetivo.find(e => _nomeEfetivoNormalizado(e.nome) === _nomeEfetivoNormalizado(n)))
+    .filter(Boolean).map(e => normalizarTurno(e.turno) || 'Administrativo');
+  const turnosEfetivoUnicos = [...new Set(turnosEfetivoSelecionados)];
+  const turnoModal = turnoModalExplicito || (turnosEfetivoUnicos.length === 1 ? turnosEfetivoUnicos[0] : '');
   const prog = {
     data,
     executor: executorSorted,
-    turno: document.getElementById('m-turno').value,
+    turno: turnoModal,
     recurso: document.getElementById('m-recurso').value,
+    ...(window.AutoprogRecursos ? { recursos: AutoprogRecursos.lerSelecao() } : {}),
     _manualObs: document.getElementById('m-obs').value.trim(),
     _obsDetalhada: document.getElementById('m-obs-detalhada').value.trim(),
     obs: (function() {
@@ -5763,6 +5925,15 @@ function _executarConfirmacaoProgramacao() {
             (operationData._centrab || '') === (firstData._centrab || '')) programacao[o].executor = firstExec;
       });
     }
+  }
+
+  // Uma escolha explícita em Ação também atualiza o turno cadastrado para
+  // cada executante e suas demais operações programadas.
+  if (turnoModalExplicito) {
+    executorSorted.split(/[,;]+/).map(n => n.trim()).filter(Boolean)
+      .forEach(nome => sincronizarTurnoExecutante(nome, turnoModalExplicito));
+    if (typeof efRenderTable === 'function') efRenderTable();
+    if (_capWin && !_capWin.closed) renderCapacidadeWindow();
   }
 
   saveProgState();
@@ -6874,6 +7045,43 @@ function turnoDaProgramacao(prog, ef) {
     normalizarTurno((prog?.obs || '') + ' ' + (prog?._manualObs || '')) ||
     normalizarTurno(ef?.turno) || 'Administrativo';
 }
+function turnoIndicadorObsRapida(prog) {
+  if (!prog) return '';
+  const executantes = _executantesDaProgramacao(prog);
+  const ef = efetivo.find(item => executantes.includes(_nomeEfetivoNormalizado(item.nome)));
+  const turno = turnoDaProgramacao(prog, ef);
+  // Administrativo é o padrão e não precisa ocupar espaço na observação rápida.
+  return turno === 'Administrativo' ? '' : turno;
+}
+function _nomeEfetivoNormalizado(nome) {
+  return String(nome || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+function _executantesDaProgramacao(prog) {
+  return String(prog?.executor || '').split(/[,;]+/).map(nome => _nomeEfetivoNormalizado(nome)).filter(Boolean);
+}
+// O turno do colaborador é a referência compartilhada entre Efetivo, Ação,
+// observação rápida e horários calculados. Atualiza todas as OMs desse
+// executante e descarta os horários derivados para que sejam recalculados.
+function sincronizarTurnoExecutante(nome, turno) {
+  const turnoNormalizado = normalizarTurno(turno);
+  const nomeNormalizado = _nomeEfetivoNormalizado(nome);
+  if (!turnoNormalizado || !nomeNormalizado) return false;
+  let encontrou = false;
+  efetivo.forEach(ef => {
+    if (_nomeEfetivoNormalizado(ef.nome) === nomeNormalizado) {
+      ef.turno = turnoNormalizado;
+      encontrou = true;
+    }
+  });
+  if (!encontrou) return false;
+  Object.values(programacao).forEach(prog => {
+    if (!_executantesDaProgramacao(prog).includes(nomeNormalizado)) return;
+    if (normalizarTurno(prog.turno) === turnoNormalizado) return;
+    prog.turno = turnoNormalizado;
+    ['_inicio','_fim','_pred','_perc'].forEach(key => delete prog[key]);
+  });
+  return true;
+}
 function capacidadeEfetivo(ef, st) {
   if (!(st in EF_HH) || EF_HH[st] === 0) return 0;
   const turno = TURNOS_HORARIOS[normalizarTurno(ef?.turno) || 'Administrativo'];
@@ -6931,9 +7139,10 @@ function _syncTodosOsCentrosUI() {
 
 function efSetTurno(index, value) {
   if (!efetivo[index] || !Object.prototype.hasOwnProperty.call(TURNOS_HORARIOS,value)) return;
-  efetivo[index].turno = value;
+  sincronizarTurnoExecutante(efetivo[index].nome, value);
   saveProgState();
   efRenderTable();
+  if (_capWin && !_capWin.closed) renderCapacidadeWindow();
 }
 
 function efRenderTable() {
@@ -7688,10 +7897,6 @@ let rplColFiltersW = {};
 let rplAderFilterW = 'todos';
 let rplFilterDropdownW = null;
 let rplCriticidadeAtiva = false;
-// Controla se as ordens ENCERRADAS SAP (sumiram do backlog, preservadas para
-// consulta/auditoria) aparecem na RPL. Ficam ocultas por padrão para não
-// tumultuar a tela; o botão "Encerradas" mostra/esconde.
-let rplEncerradasAtiva = false;
 
 function rplSortByW(col) {
   if (rplSortStW.col===col) {
@@ -7737,17 +7942,6 @@ function rplClearFiltersW() {
     btnCrit.title = 'Mostrar IMOS e os campos de criticidade; ordenar por Índice de Criticidade';
   }
   if (typeof _rplToggleCritCols === 'function') _rplToggleCritCols(false);
-
-  // Reset do botão Encerradas (nova sessão/importação começa com elas ocultas)
-  rplEncerradasAtiva = false;
-  const btnEnc = document.getElementById('btn-encerradas');
-  if (btnEnc) {
-    btnEnc.style.background = '';
-    btnEnc.style.color = '';
-    btnEnc.style.borderColor = '';
-    btnEnc.innerHTML = '<i class=icon-folder-clock></i> Encerradas';
-    btnEnc.title = 'Mostrar ordens encerradas no SAP (não vieram mais no backlog, mantidas para consulta)';
-  }
 
   // Reset aderencia buttons visual
   ['todos','sem','sim','nao','venc'].forEach(v => {
@@ -8578,8 +8772,28 @@ function rplToggleAllW(chk) { document.querySelectorAll('.rpl-chk-os-w').forEach
 // selecionadas"), open the bulk modal for all of them - same behavior as
 // the footer button, just triggered from the row action button too.
 function rplVisualPrefs() {
-  try { return {prazos:true,observacoes:true,programadas:false,compactas:false,...JSON.parse(localStorage.getItem(rplModoKey()+':visual')||'{}')}; }
-  catch (_) { return {prazos:true,observacoes:true,programadas:false,compactas:false}; }
+  try { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:true,...JSON.parse(localStorage.getItem(rplModoKey()+':visual')||'{}')}; }
+  catch (_) { return {prazos:true,observacoes:true,colunaObsVisualizacao:true,programadas:false,compactas:false,encerradas:false,emExecucao:true}; }
+}
+// Preferências somente de exibição: não desprogramam nem alteram o histórico SAP.
+function rplOrdemVisivelPorStatus(d, prefs=rplVisualPrefs()) {
+  if (d._preservadaProg) return prefs.encerradas === true;
+  return !_isExecComHistorico(d) || prefs.emExecucao !== false;
+}
+function rplAtualizarOpcoesStatus(linhas=dadosRPLComExecutadas()) {
+  const prefs=rplVisualPrefs();
+  const disponiveis={encerradas:linhas.some(d=>d._preservadaProg),emExecucao:linhas.some(d=>!d._preservadaProg && _isExecComHistorico(d))};
+  for (const [key,available] of Object.entries(disponiveis)) {
+    const input=document.querySelector('#ap-settings-popup [data-setting="'+key+'"]');
+    if (!input) continue;
+    input.checked=!!prefs[key];
+    input.disabled=!available;
+    const label=input.closest('.ap-setting-switch');
+    label.hidden=false;
+    label.classList.toggle('is-disabled',!available);
+    label.setAttribute('aria-disabled',String(!available));
+    label.title=available?'Ative ou desative a visualização destas ordens.':key==='encerradas'?'Não há ordens encerradas preservadas neste backlog.':'Não há ordens em execução com programação preservada neste backlog.';
+  }
 }
 function rplSalvarVisualPref(key, value) {
   const prefs = rplVisualPrefs();
@@ -8590,6 +8804,7 @@ function rplSalvarVisualPref(key, value) {
   }
   try { localStorage.setItem(rplModoKey()+':visual', JSON.stringify(prefs)); } catch (_) {}
   renderRPLWizard();
+  if (key === 'colunaObsVisualizacao' && typeof refreshVisualizacaoIfOpen === 'function') refreshVisualizacaoIfOpen();
 }
 function rplRestaurarPreferencias() {
   try { [rplModoKey(),rplModoKey()+':visual',rplModoKey()+':data-amc'].forEach(key=>localStorage.removeItem(key)); } catch (_) {}
@@ -8597,6 +8812,7 @@ function rplRestaurarPreferencias() {
   rplCriticidadeAtiva = false;
   renderRPLWizard();
   rplOrganizarAjustes();
+  if (typeof refreshVisualizacaoIfOpen === 'function') refreshVisualizacaoIfOpen();
 }
 function rplOrganizarAjustes() {
   const popup = document.getElementById('ap-settings-popup');
@@ -8609,7 +8825,7 @@ function rplOrganizarAjustes() {
     const dates=popup.querySelector('[name="data-amc-visual"]').closest('fieldset');
     const visual=document.createElement('div');
     visual.innerHTML=`<label class="ap-setting-switch"><span>Mostrar colunas de detalhes</span><input type="checkbox" role="switch" data-setting="colunas" onchange="rplSalvarVisualPref('colunas',this.checked)"></label>`+
-      [['prazos','Destacar prazos'],['observacoes','Observações automáticas'],['programadas','Somente programadas'],['compactas','Linhas compactas']].map(([key,label])=>`<label class="ap-setting-switch"><span>${label}</span><input type="checkbox" role="switch" data-setting="${key}" onchange="rplSalvarVisualPref('${key}',this.checked)"></label>`).join('');
+      [['prazos','Destacar prazos'],['observacoes','Observações automáticas'],['colunaObsVisualizacao','Coluna Observação em Visualizar'],['programadas','Somente programadas'],['compactas','Linhas compactas'],['encerradas','Mostrar ordens encerradas'],['emExecucao','Mostrar ordens em execução']].map(([key,label])=>`<label class="ap-setting-switch"><span>${label}</span><input type="checkbox" role="switch" data-setting="${key}" onchange="rplSalvarVisualPref('${key}',this.checked)"></label>`).join('');
     const grid=document.createElement('div');grid.className='ap-settings-grid';
     const group=(title,...children)=>{const box=document.createElement('section');box.className='ap-settings-group';box.append(section(title),...children);grid.append(box);};
     group('Programação',mode,text);
@@ -8629,6 +8845,7 @@ function rplOrganizarAjustes() {
   const prefs=rplVisualPrefs();
   if(typeof _workflowUpdateUndo==='function')_workflowUpdateUndo();
   popup.querySelectorAll('[data-setting]').forEach(input=>{input.checked=input.dataset.setting==='colunas'?rplCriticidadeAtiva:!!prefs[input.dataset.setting];});
+  rplAtualizarOpcoesStatus();
   popup.querySelectorAll('input[name="modo-programacao"]').forEach(input=>input.checked=input.value===(rplModoDireto()?'direta':'acao'));
   popup.querySelectorAll('input[name="data-amc-visual"]').forEach(input=>input.checked=input.value===(rplDataAMCOriginalAtiva()?'original':'efetiva'));
   popup.querySelectorAll('input[name="texto-programacao"]').forEach(input=>input.checked=input.value===textoProgramacao);
@@ -8865,6 +9082,18 @@ function _rplSaveAllOpenObs() {
       p._obsDetalhada = [entry.excedenteAntigo, p._obsDetalhada].filter(Boolean).join('\n');
     }
     p._manualObs = val;
+    const turnoNaObs = normalizarTurno(val);
+    if (turnoNaObs) {
+      p.turno = turnoNaObs;
+      ['_inicio','_fim','_pred','_perc'].forEach(key => delete p[key]);
+      const nomesExecutantes = String(p.executor || '').split(/[,;]+/).map(nome => nome.trim()).filter(Boolean);
+      let turnoCompartilhado = false;
+      nomesExecutantes.forEach(nome => {
+        if (sincronizarTurnoExecutante(nome, turnoNaObs)) turnoCompartilhado = true;
+      });
+      // OBS sem colaborador cadastrado continua sendo um turno específico da OM.
+      if (!turnoCompartilhado) p.turno = turnoNaObs;
+    }
     // Rebuild combined obs = autoTags + manual
     const d2 = dados.find(x => x._uid===entry.uid||x._ordem===entry.uid);
     const su2 = (d2 ? (d2['Status usuário']||'') : '').toUpperCase();
@@ -8882,6 +9111,8 @@ function _rplSaveAllOpenObs() {
     count++;
   });
   saveProgState();
+  if (typeof efRenderTable === 'function') efRenderTable();
+  if (_capWin && !_capWin.closed) renderCapacidadeWindow();
   renderRPLWizard();
   _showAutoSaveToast(count > 1 ? ('<i class=icon-check></i> ' + count + ' observações salvas.') : '<i class=icon-check></i> Observação salva.');
 }
@@ -8964,20 +9195,6 @@ function _novaAlteradaBadge(d) {
   if (d._novo) return ' <span style="display:inline-block;background:#1DBF73;color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;vertical-align:middle;" title="Ordem nova desde o último reimport do backlog">NOVA</span>';
   if (d._alterado) return ' <span style="display:inline-block;background:#EE6F16;color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:8px;vertical-align:middle;" title="Ordem alterada desde o último reimport do backlog (Texto breve, Horas de trabalho ou Status sistema)">ALT</span>';
   return '';
-}
-
-// Mostra/esconde as ordens encerradas no SAP na RPL (botão "Encerradas").
-function toggleEncerradas() {
-  rplEncerradasAtiva = !rplEncerradasAtiva;
-  const btn = document.getElementById('btn-encerradas');
-  if (btn) {
-    btn.style.background = rplEncerradasAtiva ? '#555555' : '';
-    btn.style.color       = rplEncerradasAtiva ? '#fff'    : '';
-    btn.style.borderColor = rplEncerradasAtiva ? '#555555' : '';
-    btn.innerHTML = rplEncerradasAtiva ? '<i class=icon-folder-clock></i> Encerradas <i class=icon-check></i>' : '<i class=icon-folder-clock></i> Encerradas';
-    btn.title = rplEncerradasAtiva ? 'Ocultar ordens encerradas no SAP' : 'Mostrar ordens encerradas no SAP (não vieram mais no backlog, mantidas para consulta)';
-  }
-  renderRPLWizard();
 }
 
 function toggleCriticidade() {
@@ -9178,14 +9395,6 @@ function renderRPLWizard() {
   const semNum = semanaWizard.num;
   const semAno = semanaWizard.ano;
 
-  // Botão "Encerradas" só aparece quando existe pelo menos uma ordem
-  // encerrada no SAP (sumiu do backlog, preservada para consulta/auditoria).
-  const btnEnc = document.getElementById('btn-encerradas');
-  if (btnEnc) {
-    const temEncerradas = dados.some(d => d._preservadaProg);
-    btnEnc.style.display = temEncerradas ? '' : 'none';
-  }
-
   // Ader filter visibility
   const aderDiv = document.getElementById('rpl-ader-filter-w');
   if (aderDiv) aderDiv.style.display = semNum ? 'flex' : 'none';
@@ -9201,10 +9410,11 @@ function renderRPLWizard() {
   const _btnBadges = document.getElementById('btn-limpar-badges');
   if (_btnBadges) _btnBadges.style.display = _hasBadges ? '' : 'none';
 
-  let filtered = dadosRPLComExecutadas().filter(d => {
+  const linhasRPL=dadosRPLComExecutadas();
+  rplAtualizarOpcoesStatus(linhasRPL);
+  let filtered = linhasRPL.filter(d => {
     if (visualPrefs.programadas && !programacao[d._uid]?.data) return false;
-    // Ordens ENCERRADAS SAP só aparecem quando o botão "Encerradas" está ativo
-    if (d._preservadaProg && !rplEncerradasAtiva) return false;
+    if (!rplOrdemVisivelPorStatus(d,visualPrefs)) return false;
     for (const [col,vals] of Object.entries(rplColFiltersW)) {
       if (!vals||vals.size===0) continue;
       if (!vals.has(rplGetValW(d,col))) return false;
@@ -9389,6 +9599,8 @@ function renderRPLWizard() {
           const hasMat = _temMaterial(d);
           const _progData = programacao[d._uid]||{};
           const progObs = _progData._manualObs !== undefined ? _progData._manualObs : (_progData.obs||'');
+          const obsRecursos = window.AutoprogRecursos?.observacaoRapida(_progData);
+          const turnoObs = isProg ? turnoIndicadorObsRapida(_progData) : '';
           const statusObs = (()=>{
             const su=(d['Status usuário']||'').toUpperCase(), t=[];
             if(su.includes('OMVE'))t.push('OM VERMELHA');
@@ -9403,11 +9615,12 @@ function renderRPLWizard() {
           const parts = [];
           // Cor do texto OBS/Material acompanha a linha suavizada.
           const _obsTxtCor = _rowTxtCor;
+          if (turnoObs) parts.push('<span title="Turno usado para capacidade e sequenciamento" style="display:inline-block;background:#e5f4f2;color:#006b67;border:1px solid #b9dfda;border-radius:9px;padding:1px 6px;margin:1px 3px 1px 0;font-size:9px;font-weight:700;white-space:nowrap;">'+escHtml(turnoObs)+'</span>');
           if(hasMat && visualPrefs.observacoes) parts.push('<span style="background:#FFA500;color:#fff;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;">MATERIAL</span>');
           if(statusObs && visualPrefs.observacoes) parts.push('<span style="font-size:10px;color:'+_obsTxtCor+';">'+statusObs+'</span>');
           // Show manual obs directly (it's already separated from autoTags)
-          if (progObs) {
-            parts.push('<span style="font-size:10px;color:'+_obsTxtCor+';">'+progObs.replace(/</g,'&lt;')+'</span>');
+          if (obsRecursos?.texto || progObs) {
+            parts.push('<span class="rpl-obs-recursos" title="'+escHtml(obsRecursos?.detalhe || progObs)+'" style="font-size:10px;color:'+_obsTxtCor+';">'+escHtml(obsRecursos?.texto || progObs)+'</span>');
           }
           // Quick obs edit button (only when programmed)
           if(isProg) parts.push('<button onclick="rplQuickObs(event,\''+d._uid+'\',this)" title="Editar observação rápida" style="background:none;border:none;cursor:pointer;padding:1px 3px;font-size:11px;color:'+_obsTxtCor+';vertical-align:middle;" ><i class=icon-edit></i></button>');
@@ -9862,6 +10075,15 @@ function renderExportScreen() {
     const isBrucutu = String(sessaoPlanta || '').trim().toUpperCase() === 'BRUCUTU';
     cardBrucutu.style.display = isBrucutu ? 'flex' : 'none';
   }
+  const isBrucutu = String(sessaoPlanta || '').trim().toUpperCase() === 'BRUCUTU';
+  const autoAprovCard = document.getElementById('card-autoaprov');
+  if (autoAprovCard) {
+    let permitted = false;
+    try { const auth = JSON.parse(sessionStorage.getItem('_facilita_auth_autoprog') || 'null'); permitted = auth?.usuario?.perfil === 'ADMIN' || (auth?.usuario?.modulos || []).includes('AUTOAPROV'); } catch (_) {}
+    autoAprovCard.style.display = permitted ? 'flex' : 'none';
+  }
+  const divulgarControle = document.getElementById('btn-divulgar-controle');
+  if (divulgarControle) divulgarControle.hidden = !isBrucutu;
   atualizarPaginaExportacao();
 }
 
@@ -9873,7 +10095,8 @@ function atualizarPaginaExportacao() {
   const isBrucutu = String(sessaoPlanta || '').trim().toUpperCase() === 'BRUCUTU';
   const controleCard = document.getElementById('card-controle-brucutu');
   if (controleCard) controleCard.style.display = isBrucutu ? 'flex' : 'none';
-  const ativos = cards.filter(card => !['card-materiais-brucutu','card-controle-brucutu'].includes(card.id) || isBrucutu);
+  const recursosBrucutu = typeof window !== 'undefined' && window.AutoprogRecursos ? window.AutoprogRecursos.disponivel() : isBrucutu;
+  const ativos = cards.filter(card => !['card-materiais-brucutu','card-controle-brucutu'].includes(card.id) || isBrucutu).filter(card => card.id !== 'card-recursos' || recursosBrucutu).filter(card => card.id !== 'card-autoaprov' || card.style.display === 'flex');
   const paginas = Math.max(1, Math.ceil(ativos.length / 15));
   paginaExportacao = Math.max(0, Math.min(paginaExportacao, paginas - 1));
   const visiveis = new Set(ativos.slice(paginaExportacao * 15, (paginaExportacao + 1) * 15));
@@ -9981,7 +10204,7 @@ async function exportarParadaEquipamentos() {
       prog.obs, d['OBS'], d['Observação'], d['TxtDesc.Oper.'],
       d['Status usuário'], d['Texto breve']
     ].filter(Boolean).join(' ').toUpperCase();
-    if (!obsText.includes('PARADO')) return;
+    if (!obsText.includes('PARADO') && !AutoprogRecursos.paraExportacao(prog, 'parada')) return;
     const local = (d['Loc.instalação'] || '').trim();
     if (local) paradoPorDia[prog.data].add(local);
   });
@@ -9989,9 +10212,9 @@ async function exportarParadaEquipamentos() {
   const allLocais = [...new Set(Object.values(paradoPorDia).flatMap(s => [...s]))].sort();
 
   if (!allLocais.length) {
-    alert('Nenhuma OM com "PARADO" encontrada.\n\n' +
+    alert('Nenhuma OM com recurso Parada de Equipamento ou "PARADO" encontrada.\n\n' +
       Object.keys(programacao).length + ' operações verificadas.\n\n' +
-      'A palavra PARADO deve estar no campo Observação da programação.');
+      'Selecione o recurso no botão Ação ou informe PARADO na observação da programação.');
     return;
   }
 
@@ -10740,7 +10963,7 @@ async function exportarMateriais() {
     if (_exportCTFilter && !_exportCTFilter.has(d._centrab)) return; // CT filter
     if (d._tipo === 'OBS' || d._isOBS || (d._ordem||'').startsWith('OBS_')) return;
 
-    const hasMat = _temMaterial(d);
+    const hasMat = _temMaterial(d) || AutoprogRecursos.paraExportacao(prog, 'materiais');
 
     if (!hasMat) return;
     const _ordChave = d._ordem || uid;
@@ -10758,7 +10981,7 @@ async function exportarMateriais() {
   });
 
   if (!rows.length) {
-    alert('Nenhuma OM com badge MATERIAL encontrada.\n\nA badge MATERIAL vem da coluna "Status sistema" (MOME, MatC ou ERRD). Verifique se há ordens programadas nessa condição.');
+    alert('Nenhuma OM com recurso Materiais selecionado ou badge MATERIAL encontrada na semana. A badge vem do Status sistema (MOME, MatC ou ERRD).');
     return;
   }
 
@@ -10879,7 +11102,7 @@ async function exportarVeiculos() {
     const matNorm  = normalize(d['Observações'] || d['Observacoes'] || d['Material'] || '');
     const descNorm = normalize(d['Texto breve'] || '');
 
-    if (!obsNorm.includes('veiculo') && !matNorm.includes('veiculo') && !descNorm.includes('veiculo')) return;
+    if (!obsNorm.includes('veiculo') && !matNorm.includes('veiculo') && !descNorm.includes('veiculo') && !AutoprogRecursos.paraExportacao(prog, 'veiculos')) return;
 
     seen.add(uid);
     rows.push({
@@ -11364,7 +11587,7 @@ async function exportarAndaimes() {
 
     // Filter: obs/material contains ANDAIME
     const obsNorm = normalize(prog.obs || '') + ' ' + normalize(prog._manualObs || '');
-    if (!obsNorm.includes('andaime')) return;
+    if (!obsNorm.includes('andaime') && !AutoprogRecursos.paraExportacao(prog, 'andaimes')) return;
 
     seen.add(uid);
     rows.push({
@@ -11381,7 +11604,7 @@ async function exportarAndaimes() {
   });
 
   if (!rows.length) {
-    alert('Nenhuma OM programada com "ANDAIME" no campo de observações encontrada.');
+    alert('Nenhuma OM programada com recurso de andaime selecionado ou "ANDAIME" nas observações encontrada nesta semana.');
     return;
   }
 
@@ -11449,7 +11672,7 @@ async function exportarLimpeza() {
     // Also check manual obs stored in programacao
     const progObs = (prog.obs || '').toLowerCase();
 
-    if (!obsText.includes('limpeza') && !progObs.includes('limpeza')) return;
+    if (!obsText.includes('limpeza') && !progObs.includes('limpeza') && !AutoprogRecursos.paraExportacao(prog, 'limpeza')) return;
 
     // Deduplicate by ordem
     if (seen.has(d._ordem)) return;
@@ -11467,7 +11690,7 @@ async function exportarLimpeza() {
   });
 
   if (!limpezaOMs.length) {
-    alert('Nenhuma OM com "limpeza" encontrada na coluna OBS/MATERIAL da programação atual.\n\nPara que a OM apareça aqui, ela precisa:\n• Estar programada\n• Conter a palavra "LIMPEZA" no campo OBS da programação');
+    alert('Nenhuma OM com recurso Limpeza selecionado ou "LIMPEZA" em OBS/MATERIAL foi encontrada na semana. Selecione o recurso no botão Ação ou mantenha a indicação nas observações.');
     return;
   }
 
@@ -12733,6 +12956,11 @@ function _ordensVisualizacaoDia(day, ctFilter, lookupMap) {
 function buildVisualizacaoHTML(opcoes = {}) {
   const authNome = escHtml(sessaoElaborador);
   const authPcm = escHtml(sessaoPcm);
+  const mostrarColunaObs = opcoes.colunaObservacao !== undefined ? opcoes.colunaObservacao !== false : (typeof rplVisualPrefs === 'function' ? rplVisualPrefs().colunaObsVisualizacao !== false : true);
+  // A proteção é da ordem inteira, mesmo quando o status veio em uma só operação.
+  const statusHHProtegidos = ['SAUD', 'SEGU', 'OMVE', 'ATCR'];
+  const temStatusHHProtegido = d => statusHHProtegidos.some(status => String(d['Status usuário'] || '').toUpperCase().includes(status));
+  const ordensHHProtegidas = new Set(dados.filter(temStatusHHProtegido).map(d => String(d._ordem || '')).filter(Boolean));
 
   function _rowAttrs(d, p, day, days) {
     const hhReal = d._hh || 0;
@@ -12748,7 +12976,8 @@ function buildVisualizacaoHTML(opcoes = {}) {
     const turnoExplicito = normalizarTurno(p.turno) || normalizarTurno((p.obs||'') + ' ' + (p._manualObs||''));
     const turno = turnoDaProgramacao(p, ef);
     const turnoFlag = turno !== 'Administrativo' ? '1' : '0';
-    return 'data-intervalo="'+(p._intervaloViz?'1':'0')+'" data-hh-manual="'+(p._hhVizManual?'1':'0')+'" data-hh="' + escHtml(hh) + '" data-hh-orig="' + escHtml(hhReal) + '" data-exec="' + escHtml(exec) + '" data-tb="' + escHtml(tb) + '" data-op="' + escHtml(op) + '" data-he="' + he + '" data-tipo="' + escHtml(tipo) + '" data-turno="' + turnoFlag + '" data-shift="' + escHtml(turnoExplicito) + '"';
+    const hhProtegido = temStatusHHProtegido(d) || ordensHHProtegidas.has(String(d._ordem || ''));
+    return 'data-intervalo="'+(p._intervaloViz?'1':'0')+'" data-hh-protegido="'+(hhProtegido?'1':'0')+'" data-hh-manual="'+(p._hhVizManual?'1':'0')+'" data-hh="' + escHtml(hh) + '" data-hh-orig="' + escHtml(hhReal) + '" data-exec="' + escHtml(exec) + '" data-tb="' + escHtml(tb) + '" data-op="' + escHtml(op) + '" data-he="' + he + '" data-tipo="' + escHtml(tipo) + '" data-turno="' + turnoFlag + '" data-shift="' + escHtml(turnoExplicito) + '"';
   }
   const _DRAG_SCRIPT = '<scr'+'ipt>'
   +'var _dU=null,_dD=null;'
@@ -12937,6 +13166,7 @@ function buildVisualizacaoHTML(opcoes = {}) {
   +'  rows.forEach(function(r){r.style.display="";var detail=r.nextElementSibling;if(detail&&detail.dataset.detailFor===r.dataset.uid)detail.style.display="";});'
   +'}'
   +'function _updateDailyTotals(){document.querySelectorAll("[data-hh-day]").forEach(function(span){var total=0;document.querySelectorAll("tr[data-uid][data-day]").forEach(function(r){if(r.dataset.day===span.dataset.hhDay){var cell=r.querySelector("[data-field=nexec]");var n=cell?parseFloat(cell.textContent)||1:1;total+=n*(parseFloat(r.dataset.hh)||0);}});span.textContent=total.toFixed(1);});}'
+  +'function _hhFixo(r){return r.dataset.hhManual==="1"||r.dataset.hhProtegido==="1";}'
   +'function _adequarHH(){'
   +'  _intervalosVisiveis=true;'
   +'  var rows=[].slice.call(document.querySelectorAll("tr[data-uid][data-day]"));'
@@ -12971,14 +13201,14 @@ function buildVisualizacaoHTML(opcoes = {}) {
   +'      if(_isTR)return true;'
   +'      return !_isBloqR(e.row)&&!_isDesbloqR(e.row);'
   +'    });'
-  +'    flexEntries=flexEntries.filter(function(e){return (orig0[e.row.dataset.uid]||0)>0||e.row.dataset.hhManual==="1";});'
+  +'    flexEntries=flexEntries.filter(function(e){return (orig0[e.row.dataset.uid]||0)>0||_hhFixo(e.row);});'
   +'    if(!flexEntries.length)return;'
   +'    var sumFlex=flexEntries.reduce(function(s,e){return s+(orig0[e.row.dataset.uid]||0);},0);'
-  +'    var fixed=flexEntries.filter(function(e){return e.row.dataset.hhManual==="1";});'
-  +'    var manualHH=fixed.reduce(function(s,e){return s+Math.round(parseFloat(e.row.dataset.hh||0)*60)/60;},0);'
-  +'    if(manualHH>target+0.00001){alert("Tempos manuais excedem a jornada de "+g.exec+" em "+g.rows[0].row.dataset.day+". Revise as durações; elas foram preservadas.");return;}'
-  +'    target=Math.max(0,target-manualHH);'
-  +'    flexEntries=flexEntries.filter(function(e){return e.row.dataset.hhManual!=="1";});'
+  +'    var fixed=flexEntries.filter(function(e){return _hhFixo(e.row);});'
+  +'    var fixedHH=fixed.reduce(function(s,e){return s+Math.round(parseFloat(e.row.dataset.hh||0)*60)/60;},0);'
+  +'    if(fixedHH>target+0.00001){var protegidas=fixed.some(function(e){return e.row.dataset.hhProtegido==="1";});alert((protegidas?"Tempos protegidos por saúde, segurança, OM vermelha ou ativo crítico e tempos manuais":"Tempos manuais")+" excedem a jornada de "+g.exec+" em "+g.rows[0].row.dataset.day+". Revise a programação; as durações foram preservadas.");return;}'
+  +'    target=Math.max(0,target-fixedHH);'
+  +'    flexEntries=flexEntries.filter(function(e){return !_hhFixo(e.row);});'
   +'    sumFlex=flexEntries.reduce(function(s,e){return s+(orig0[e.row.dataset.uid]||0);},0);'
   +'    if(sumFlex<=0)return;'
   +'    var ratio=target/sumFlex;'
@@ -13019,6 +13249,8 @@ function buildVisualizacaoHTML(opcoes = {}) {
   +'  _updateDailyTotals();'
   +'  _renderIntervalos(document,_turnos,_turnosEf);'
   +'  var _msg=changed?"HH adequados em "+changed+" operaçoes.":"Nada a adequar.";'
+  +'  var _preservadas=rows.filter(function(r){return r.dataset.hhProtegido==="1";}).length;'
+  +'  if(_preservadas)_msg+=" "+_preservadas+" operação(ões) protegida(s) por status mantiveram a duração.";'
   +'  try{window.opener._showAutoSaveToast(_msg);}catch(ex){alert(_msg);}'
   +'  try{window.opener._applyVizHHAdequado();}catch(ex){try{localStorage.setItem("_vizHHAdequado","1");}catch(e2){}}'
   +'}'
@@ -13047,8 +13279,11 @@ function buildVisualizacaoHTML(opcoes = {}) {
     {l:'%',w:'2%',h:TH,d:TDC},{l:'PRED.',w:'3%',h:TH,d:TDC},{l:'INÍCIO',w:'6%',h:TH,d:TDC},
     {l:'TÉRMINO',w:'6%',h:TH,d:TDC},{l:'TURMA',w:'5%',h:TH,d:TDC},
     {l:'DATA MIN',w:'6%',h:TH,d:TDC},{l:'VENCIMENTO',w:'6%',h:TH,d:TDC},{l:'OBSERVAÇÕES',w:'12%',h:THL,d:TD}
-  ];
-  const colgroup = COLS.map((col,i)=>`<col class="c${i}" style="width:${col.w}">`).join('');
+  ].filter(col=>mostrarColunaObs || col.l!=='OBSERVAÇÕES');
+  const totalColunas = COLS.length;
+  const somaLarguras = COLS.reduce((sum,col)=>sum+parseFloat(col.w),0);
+  const larguraColuna = col => mostrarColunaObs ? col.w : (parseFloat(col.w)*100/somaLarguras).toFixed(4)+'%';
+  const colgroup = COLS.map((col,i)=>`<col class="c${i}" style="width:${larguraColuna(col)}">`).join('');
   const thead    = COLS.map(col=>`<th style="${col.h}">${col.l}</th>`).join('');
 
   function esc(s){return escHtml(s);}
@@ -13080,13 +13315,13 @@ function buildVisualizacaoHTML(opcoes = {}) {
     const BDR='0.3px solid rgba(0,100,120,0.2)';
     const groupField=Object.prototype.hasOwnProperty.call(VIZ_GROUP_LABELS,vizGroupByDay[day])?vizGroupByDay[day]:'';
     const groupOptions='<option value="">AUTOMÁTICA</option>'+Object.entries(VIZ_GROUP_LABELS).map(function([field,label]){return `<option value="${field}"${groupField===field?' selected':''}>${esc(label)}</option>`;}).join('');
-    const dayRow=`<tr style="background:#005f5b;${PX}"><td colspan="17" style="padding:4px 6px;font-size:8px;font-weight:700;color:#fff;border:${BDR};${PX}">PROGRAMAÇÃO DO DIA ${ds}&nbsp;&nbsp;|&nbsp;&nbsp;${ordens.length} operação(ões)&nbsp;&nbsp;|&nbsp;&nbsp;<span data-hh-day="${esc(day)}">${totalHH.toFixed(1)}</span> H/H&nbsp;&nbsp;|&nbsp;&nbsp;${DIAS_FULL[idx]}<label class="no-print" style="float:right;display:inline-flex;align-items:center;gap:5px;font-size:8px;color:#fff;">Agrupar este dia: <select data-day="${esc(day)}" onchange="_vGroupDay(this)" aria-label="Agrupar operações do dia ${ds}" style="font-size:9px;padding:2px 5px;border:1px solid #95c7c3;border-radius:4px;color:#164e4c;background:#fff;">${groupOptions}</select></label></td></tr>`;
-    const filRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="16" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">SUPERVISÃO: ${esc(supervisao||'-')}</td></tr>`;
-    const dssRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="6" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">DSS - DESLOCAMENTO</td><td style="${TDC}background:#eef2f3;${PX}">0,5 h</td><td style="${TD}background:#eef2f3;${PX}">EQUIPE</td><td style="${TDC}background:#eef2f3;${PX}">0%</td><td style="${TDC}background:#eef2f3;${PX}"></td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:00</td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:30</td><td colspan="4" style="border:${BDR};background:#eef2f3;${PX}"></td></tr>`;
+    const dayRow=`<tr style="background:#005f5b;${PX}"><td colspan="${totalColunas}" style="padding:4px 6px;font-size:8px;font-weight:700;color:#fff;border:${BDR};${PX}">PROGRAMAÇÃO DO DIA ${ds}&nbsp;&nbsp;|&nbsp;&nbsp;${ordens.length} operação(ões)&nbsp;&nbsp;|&nbsp;&nbsp;<span data-hh-day="${esc(day)}">${totalHH.toFixed(1)}</span> H/H&nbsp;&nbsp;|&nbsp;&nbsp;${DIAS_FULL[idx]}<label class="no-print" style="float:right;display:inline-flex;align-items:center;gap:5px;font-size:8px;color:#fff;">Agrupar este dia: <select data-day="${esc(day)}" onchange="_vGroupDay(this)" aria-label="Agrupar operações do dia ${ds}" style="font-size:9px;padding:2px 5px;border:1px solid #95c7c3;border-radius:4px;color:#164e4c;background:#fff;">${groupOptions}</select></label></td></tr>`;
+    const filRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="${totalColunas-1}" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">SUPERVISÃO: ${esc(supervisao||'-')}</td></tr>`;
+    const dssRow=`<tr style="background:#eef2f3;${PX}"><td style="${TDC}background:#eef2f3;${PX}">${globalId++}</td><td colspan="6" style="padding:2px 4px;font-size:7px;font-style:italic;color:#526268;border:${BDR};background:#eef2f3;${PX}">DSS - DESLOCAMENTO</td><td style="${TDC}background:#eef2f3;${PX}">0,5 h</td><td style="${TD}background:#eef2f3;${PX}">EQUIPE</td><td style="${TDC}background:#eef2f3;${PX}">0%</td><td style="${TDC}background:#eef2f3;${PX}"></td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:00</td><td style="${TDC}background:#eef2f3;${PX}">${ds} 08:30</td><td colspan="${totalColunas-13}" style="border:${BDR};background:#eef2f3;${PX}"></td></tr>`;
 
     var rows='';
     if(ordens.length===0){
-      rows=`<tr><td colspan="17" style="padding:10px;text-align:center;color:#999;font-style:italic;font-size:8px;border:${BDR};">Nenhuma operação programada</td></tr>`;
+      rows=`<tr><td colspan="${totalColunas}" style="padding:10px;text-align:center;color:#999;font-style:italic;font-size:8px;border:${BDR};">Nenhuma operação programada</td></tr>`;
     } else {
       ordens.forEach(function(item,ri){
         const d=item.d,p=item.p;
@@ -13137,21 +13372,21 @@ function buildVisualizacaoHTML(opcoes = {}) {
           <td style="${TDC}background:${bg};color:${fg};${PX}">${ct}</td>
           <td style="${TDC}background:${bg};color:${fg};${PX}">${fmtD(d._dtMin)||'-'}</td>
           <td style="${TDC}background:${bg};color:${dtMaxColor};font-weight:700;${PX}">${fmtD(d._dtMax)||'-'}</td>
-          <td style="${TD}background:${bg};color:${fg};${PX}">${obs}</td>
+          ${mostrarColunaObs ? `<td style="${TD}background:${bg};color:${fg};${PX}">${obs}</td>` : ''}
         </tr>`;
         if(obsDetalhada){
           // Linha subordinada: não recebe data-uid, H/H ou número de sequência.
           // Assim só a ordem principal participa dos cálculos e do arraste.
           rows+=`<tr class="viz-detail-row" data-detail-for="${esc(item.uid)}" data-day="${day}" style="background:${bg};color:${fg};${PX}" ondragover="_vDO(event)" ondragleave="_vDL(event)" ondrop="_vDP(event)">
             <td style="${TDC}${detalheTom}color:${fg};border-left:3px solid ${edge};border-top:0;${PX}"><span aria-hidden="true" style="font-size:11px;font-weight:700;">↳</span></td>
-            <td colspan="16" style="padding:2px 5px;font-size:7px;line-height:1.35;${detalheTom}color:${fg};border:${BDR};white-space:pre-wrap;overflow-wrap:anywhere;${PX}"><strong>OBS. DETALHADA:</strong> ${esc(obsDetalhada)}</td>
+            <td colspan="${totalColunas-1}" style="padding:2px 5px;font-size:7px;line-height:1.35;${detalheTom}color:${fg};border:${BDR};white-space:pre-wrap;overflow-wrap:anywhere;${PX}"><strong>OBS. DETALHADA:</strong> ${esc(obsDetalhada)}</td>
           </tr>`;
         }
       });
     }
 
     sections+=`<div class="viz-day-section" style="margin-bottom:10px;">
-      <table class="ap-viz-grid" style="width:100%;border-collapse:collapse;table-layout:fixed;white-space:nowrap;">
+      <table class="ap-viz-grid" data-viz-columns="${totalColunas}" style="width:100%;border-collapse:collapse;table-layout:fixed;white-space:nowrap;">
         <colgroup>${colgroup}</colgroup>
         <thead>${dayRow}<tr>${thead}</tr></thead>
         <tbody>${filRow}${dssRow}${rows}</tbody>
@@ -13249,18 +13484,18 @@ function buildVisualizacaoHTML(opcoes = {}) {
         <td style="${TDC}color:${corTxt};${PX}">${ct}</td>
         <td style="${TDC}color:${corTxt};${PX}">${fmtD(d._dtMin)||'-'}</td>
         <td style="${TDC}color:${corTxt};font-weight:700;${PX}">${fmtD(d._dtMax)||'-'}</td>
-        <td style="${TD}color:${corTxt};${PX}">${obs}</td>
+        ${mostrarColunaObs ? `<td style="${TD}color:${corTxt};${PX}">${obs}</td>` : ''}
       </tr>`;
     }
 
     function _caixaOp(titulo, lista, bgHeader, bgBox, corTxt, corColunas, corBorda){
       if (!lista.length) return '';
       const linhas = lista.map(function(d,ri){ return _linhaOp(d, ri, corTxt, bgBox, corBorda); }).join('');
-      const headerRow = `<tr style="background:${bgHeader};${PX}"><td colspan="17" style="padding:4px 6px;font-size:8px;font-weight:700;color:${corTxt};border:0.3px solid rgba(0,100,120,0.2);${PX}">${titulo}&nbsp;&nbsp;|&nbsp;&nbsp;${lista.length} ordem(ns)</td></tr>`;
+      const headerRow = `<tr style="background:${bgHeader};${PX}"><td colspan="${totalColunas}" style="padding:4px 6px;font-size:8px;font-weight:700;color:${corTxt};border:0.3px solid rgba(0,100,120,0.2);${PX}">${titulo}&nbsp;&nbsp;|&nbsp;&nbsp;${lista.length} ordem(ns)</td></tr>`;
       // Cabeçalho de colunas em tons claros para acompanhar as linhas.
       const theadOp = thead.split('background:#e6f4f2').join('background:'+corColunas);
       return `<div class="viz-opportunities" style="margin-bottom:10px;background:${bgBox};padding:2px;border-radius:3px;">
-        <table class="ap-viz-grid" style="width:100%;border-collapse:collapse;table-layout:fixed;white-space:nowrap;">
+        <table class="ap-viz-grid" data-viz-columns="${totalColunas}" style="width:100%;border-collapse:collapse;table-layout:fixed;white-space:nowrap;">
           <colgroup>${colgroup}</colgroup>
           <thead>${headerRow}<tr>${theadOp}</tr></thead>
           <tbody>${linhas}</tbody>
@@ -13340,9 +13575,7 @@ function buildVisualizacaoHTML(opcoes = {}) {
     +'.ap-viz-grid tr{break-inside:avoid;page-break-inside:avoid;}'
     +'.viz-page-header{break-after:avoid;page-break-after:avoid;}'
     +'.ap-viz-grid tr:has(+.viz-detail-row){break-after:avoid;page-break-after:avoid;}'
-    +'col.c0{width:2%}col.c1{width:13%}col.c2{width:12%}col.c3{width:6%}col.c4{width:2%}col.c5{width:3%}col.c6{width:2%}'
-    +'col.c7{width:4%}col.c8{width:10%}col.c9{width:2%}col.c10{width:3%}col.c11{width:6%}col.c12{width:6%}'
-    +'col.c13{width:5%}col.c14{width:6%}col.c15{width:6%}col.c16{width:12%}'
+    +COLS.map((col,i)=>'col.c'+i+'{width:'+larguraColuna(col)+'}').join('')
     +'td,th{font-size:5.5px!important;padding:1px 2px!important;}'
     +'}'
     +'</style></head><body><div id=\"viz-fixed-footer\" style=\"position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.3px solid #ccc;padding:2px 10px;font-size:7px;color:#444;display:flex;justify-content:space-between;z-index:9999;\"><span id=\"viz-footer-fixed-elab\">Elaborado por: -</span><span id=\"viz-footer-fixed-pcm\">PCM: -</span></div><style>body{padding-bottom:18px;}</style><div id=\"viz-zoom-wrapper\"><div class="wrap">'
@@ -13385,7 +13618,7 @@ function buildVisualizacaoHTML(opcoes = {}) {
     // ── Buttons ──
     +'<div class="no-print viz-action-dock" role="toolbar" aria-label="Ações da programação">'
     +'<button class="viz-action-print" onclick="document.getElementById(\'viz-imp-overlay\').style.display=\'flex\';"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4V9h16v9h-2M6 14h12v7H6z"/><path d="M17 12h.01"/></svg>Imprimir / PDF</button>'
-    +'<button class="viz-action-hh" onclick="_adequarHH()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Adequar HH</button>'
+    +'<button class="viz-action-hh" onclick="_adequarHH()" title="Preserva as durações de saúde, segurança, OM vermelha, ativo crítico e os tempos manuais; adequa somente as demais atividades."><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Adequar HH</button>'
     +'<button class="viz-action-executor" onclick="_abrirImpressaoExecutor()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>Por Executor</button>'
     +'<button class="viz-action-close" onclick="window.close()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>Fechar</button>'
     +'</div>'
@@ -16046,11 +16279,14 @@ async function exportarVisualizacaoExcel() {
   }
   // A visualização é a fonte única de linhas, textos, filtros e sequenciamento.
   const doc = new DOMParser().parseFromString(buildVisualizacaoHTML(), 'text/html');
+  const colunasVisualizacao = Number(doc.querySelector('table.ap-viz-grid')?.dataset?.vizColumns) || 17;
+  const totalColunasExcel = colunasVisualizacao + 1; // ABC permanece em coluna própria.
+  const letraColuna = n => String.fromCharCode(64+n);
   renderIntervalosProgramacao(doc, TURNOS_HORARIOS, Object.fromEntries(efetivo.map(ef=>[ef.nome,normalizarTurno(ef.turno)||'Administrativo'])));
   doc.querySelectorAll('.no-print,script,button,select').forEach(el => el.remove());
   // Excel: ABC em célula própria; nunca concatenar o indicador à descrição.
   for (const tr of doc.querySelectorAll('table.ap-viz-grid tr')) {
-    if (tr.cells.length === 17) {
+    if (tr.cells.length === colunasVisualizacao) {
       const desc = tr.cells[1];
       const badge = desc.querySelector('span');
       const abc = badge && /^[ABC]$/.test(badge.textContent.trim()) ? badge.textContent.trim() : '';
@@ -16074,7 +16310,11 @@ async function exportarVisualizacaoExcel() {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'AUTOPROG';
   const ws = wb.addWorksheet(`Sem${semNum||'?'}_${semAno||''}`);
-  const widths = [2,2,13,12,6,2,3,2,4,10,2,3,6,6,5,6,6,12];
+  let widths = [2,2,13,12,6,2,3,2,4,10,2,3,6,6,5,6,6,12];
+  if (colunasVisualizacao === 16) {
+    const retirada = widths.pop(), total = widths.reduce((sum,w)=>sum+w,0);
+    widths = widths.map(w=>w*(total+retirada)/total);
+  }
   ws.columns = widths.map(width => ({width:width*2.2}));
   const argb = (color, fallback='005F5B') => {
     if (!color) return 'FF'+fallback;
@@ -16088,24 +16328,25 @@ async function exportarVisualizacaoExcel() {
   // Cabeçalho branco, VALE à esquerda e logomarca original completa à direita.
   ws.addRow([]).height=22;
   ws.addRow([]).height=22;
-  ws.mergeCells('A1:C2'); ws.mergeCells('D1:O1');
-  ws.mergeCells('D2:L2'); ws.mergeCells('M2:O2'); ws.mergeCells('P1:R2');
+  const inicioLogo = totalColunasExcel-2, fimTitulo = inicioLogo-1, inicioMeta = fimTitulo-2;
+  ws.mergeCells('A1:C2'); ws.mergeCells('D1:'+letraColuna(fimTitulo)+'1');
+  ws.mergeCells('D2:'+letraColuna(inicioMeta-1)+'2'); ws.mergeCells(letraColuna(inicioMeta)+'2:'+letraColuna(fimTitulo)+'2'); ws.mergeCells(letraColuna(inicioLogo)+'1:'+letraColuna(totalColunasExcel)+'2');
   const title = doc.querySelector('.viz-page-header');
   const lines = title ? Array.from(title.querySelectorAll('td:nth-child(2) > div > div')).map(el=>el.textContent.trim()) : [];
   ws.getCell('D1').value=lines[0]||('SUPERVISÃO: '+(supervisao||'-'));
   ws.getCell('D2').value=lines[1]||`PROGRAMAÇÃO SEMANAL - Semana ${semNum}/${semAno}`;
-  ws.getCell('M2').value=lines[2]||'';
+  ws.getCell(letraColuna(inicioMeta)+'2').value=lines[2]||'';
   [1,2].forEach(r=>ws.getRow(r).eachCell({includeEmpty:true},cell=>{
     cell.font={name:'Arial',size:9,bold:true,color:{argb:'FF005F5B'}};
     cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
     cell.border={top:border,bottom:border,left:border,right:border};
   }));
-  ws.getCell('M2').font={name:'Arial',size:6,color:{argb:'FF555555'}};
+  ws.getCell(letraColuna(inicioMeta)+'2').font={name:'Arial',size:6,color:{argb:'FF555555'}};
   const vale=wb.addImage({base64:LOGO,extension:LOGO.includes('/9j/')?'jpeg':'png'});
   const autoprog=wb.addImage({base64:LOGO_AUTOPROG,extension:'png'});
   ws.addImage(vale,{tl:{col:0.25,row:0.45},ext:{width:60,height:30}});
-  ws.addImage(autoprog,{tl:{col:15.15,row:0.35},ext:{width:145,height:38}});
-  ws.addRow([]).height=12; ws.mergeCells('A3:R3');
+  ws.addImage(autoprog,{tl:{col:inicioLogo-1+0.15,row:0.35},ext:{width:145,height:38}});
+  ws.addRow([]).height=12; ws.mergeCells('A3:'+letraColuna(totalColunasExcel)+'3');
   ws.getCell('A3').fill=fill('FF005F5B');
   ws.views=[{state:'frozen',ySplit:3,showGridLines:false}];
 
@@ -16114,7 +16355,7 @@ async function exportarVisualizacaoExcel() {
       const row=ws.addRow([]);
       let column=1, lineCount=1;
       for (const td of tr.cells) {
-        const span=Math.min(Number(td.colSpan)||1,19-column);
+        const span=Math.min(Number(td.colSpan)||1,totalColunasExcel+1-column);
         if (span<1) break;
         const cell=row.getCell(column);
         const text=td.textContent.replace(/\u00a0/g,' ').trim();
@@ -16142,7 +16383,7 @@ async function exportarVisualizacaoExcel() {
     ws.addRow([]).height=7;
   }
   ws.pageSetup={paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,
-    printTitlesRow:'1:3',printArea:`A1:R${ws.rowCount}`,
+    printTitlesRow:'1:3',printArea:`A1:${letraColuna(totalColunasExcel)}${ws.rowCount}`,
     margins:{left:0.16,right:0.16,top:0.2,bottom:0.4,header:0,footer:0.15}};
   const footerText = value => String(value||'-').replace(/&/g,'&&');
   ws.headerFooter={oddFooter:`&L&"Arial"&7Elaborado por: ${footerText(sessaoElaborador)}&RPCM: ${footerText(sessaoPcm)}`};
@@ -16645,6 +16886,7 @@ function _processarSessaoJSON(text) {
       _sessaoIniciada = true; // sessão carregada = fluxo já concluído, libera navegação livre
       renderStepIndicator();
       if (dados.length > 0) goStep(8);
+      window.dispatchEvent(new CustomEvent('autoprog-session-loaded'));
 
       alert('Sessão carregada!\n' +
         'Supervisão: ' + (supervisao||'-') + ' | Semana: ' + (semanaWizard.num||'-') + '/' + (semanaWizard.ano||'-') + '\n' +
@@ -17379,7 +17621,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       }
       if((d._dtMin&&p.data<d._dtMin)||(d._dtMax&&p.data>d._dtMax))add(6,uid,d,p,'Data programada fora da janela mínima/máxima.');
       const resource=[p.recurso,p.obs,p._obsDetalhada,d['Status usuário']].filter(Boolean).join(' ');
-      if(/MATERIAL|ANDAIME|GUINCHO|MUNCK|EMPILHADEIRA|PLATAFORMA|VE[IÍ]CULO/i.test(resource))add(4,uid,d,p,'Recurso sinalizado: disponibilidade exige confirmação humana.');
+      if((Array.isArray(p.recursos)&&p.recursos.length)||/MATERIAL|ANDAIME|GUINCHO|MUNCK|EMPILHADEIRA|PLATAFORMA|VE[IÍ]CULO/i.test(resource))add(4,uid,d,p,'Recurso sinalizado: disponibilidade exige confirmação humana.');
     }
     for(const l of loads.values())if(l.hh>l.cap+0.001)for(const o of l.ops)add(3,o.uid,o.d,o.p,l.name+': '+l.hh.toFixed(1)+' h programadas / '+l.cap.toFixed(1)+' h disponíveis.');
     return groups;
@@ -17432,6 +17674,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   'use strict';
 
   const cap = (title, body, selector) => ({ title, body, selector });
+  const bru = (title, body, selector) => ({ ...cap(title, body, selector), planta:'BRUCUTU' });
   const CHAPTERS = [
     { name: 'Boas-vindas', steps: [
       cap('Bem-vindo ao AutoProg', 'A programação é construída em etapas. O guia pode ser aberto novamente pelo capelo sempre que você retornar a esta tela.', '#tela1-tutorial-btn'),
@@ -17444,10 +17687,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Perfil de atendimento', 'Quando disponível, confira elaborador, planta e PCM vinculados ao usuário logado.', '#box-perfil-planta-pcm'),
       cap('Supervisão', 'Informe a supervisão responsável; é obrigatória para processar esta programação.', '#campo-supervisao'),
       cap('Backlog IW49IN', 'Selecione a planilha principal de operações e ordens exportada do SAP.', '#fi-1'),
-      cap('Datas AMC', 'O passo AMC permanece bloqueado até carregar o backlog com sucesso. Depois, selecione a segunda planilha para complementar as datas.', '#fi-2'),
-      cap('Datas AMS', 'O passo AMS é liberado após carregar AMC com sucesso. São três planilhas no total; arquivos inválidos precisam ser corrigidos antes de continuar.', '#fi-3'),
+      cap('Datas AMC e cadeado', 'Depois do backlog, carregue AMC para as condicionais. Se sua supervisão não utiliza essa base, clique no cadeado para dispensar a obrigatoriedade. Clique novamente para voltar a exigir a planilha.', '#fi-2'),
+      cap('Datas AMS e cadeado', 'AMS é liberada após carregar ou dispensar AMC. Seu cadeado também permite dispensar a planilha individualmente. O backlog continua obrigatório.', '#fi-3'),
       cap('Indicadores da importação', 'Depois do carregamento, estes cards resumem operações, programadas, horas e restrições de data.', '#stats-grid'),
-      cap('Processar e prosseguir', 'O botão aparece ao concluir 100% do carregamento das três planilhas. Informe também a supervisão obrigatória para cruzar os dados e preparar a base.', '#btn-processar'),
+      cap('Processar e prosseguir', 'Avance após carregar as bases obrigatórias e informar a supervisão. As dispensas de AMC e AMS ficam guardadas na sessão.', '#btn-processar'),
       cap('Abrir uma sessão salva', 'O ícone de pasta no cabeçalho reabre uma sessão existente para continuar a programação.', '#lbl-carregar-sessao')
     ] },
     { name: 'Semana', steps: [
@@ -17500,7 +17743,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Filtros e ordenação das colunas', 'As setas filtram valores; os cabeçalhos ordenam a listagem.', '#screen-s8 thead'),
       cap('Selecionar operações', 'As caixas permitem ações em lote, como programar ou remover programação.', '#rpl-chk-all-w'),
       cap('Situação e datas', 'Cores e avisos ajudam a identificar aderência, vencimento, data mínima e data máxima.', '#screen-s8 tbody'),
-      cap('Estrela de relevância', 'Somente ordens programadas podem receber estrela. Ao marcar, informe o motivo; desmarcar remove o motivo.', '#screen-s8 .rpl-relevante-estrela'),
+      cap('Estrela de relevância em lote', 'Somente atividades programadas recebem estrela. Com várias caixas marcadas, a estrela aplica a relevância às selecionadas em conjunto; informe o motivo antes de confirmar.', '#screen-s8 .rpl-relevante-estrela'),
       cap('Ação por operação', 'O botão de ação programa ou edita a operação, incluindo data, executor, turno, recurso e observações.', '#screen-s8 button[onclick*="rplAcaoProgramar"]'),
       cap('Observação rápida e detalhada', 'A observação rápida é curta; a detalhada acompanha a ordem na visualização da programação.', '#fiw-obs_mat'),
       cap('Programar selecionadas', 'Aplica programação em lote às operações marcadas.', '#rpl-btn-bulk-w'),
@@ -17511,10 +17754,11 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Adicionar operação', 'Inclui uma operação manual quando necessário.', '#screen-s8 .rpl-action-operation'),
       cap('Adicionar observação', 'Cria uma observação manual para a programação.', '#screen-s8 .rpl-action-observation'),
       cap('Atualizar backlog', 'Importa um novo backlog SAP preservando a programação conforme as regras de atualização.', '#screen-s8 .rpl-action-backlog'),
-      cap('Reorganizar executantes', 'Reaplica a organização de executantes e duplas estáveis.', '#screen-s8 .rpl-action-reorganize'),
-      cap('Ajustes da programação', 'No ícone de engrenagem, escolha Texto breve ou Texto operação para a programação, visualização e exportação.', '#btn-ajustes-programacao'),
+      cap('Modo foco', 'O ícone ao lado de Backlog amplia a área da programação e solicita tela cheia. Use-o novamente ou pressione Esc para voltar.', '#rpl-focus-toggle'),
+      cap('Ajustes da programação', 'A engrenagem reúne visualização, programação direta, datas AMC, Desfazer, Substituir executante, Agenda e Reorganizar.', '#btn-ajustes-programacao'),
       cap('Salvar sessão', 'O ícone de disquete grava a programação no arquivo de sessão autorizado.', '#btn-salvar-sessao'),
-      cap('Ordens encerradas e badges', 'Controles condicionais permitem consultar ordens encerradas e limpar sinalizações NOVA/ALTERADA.', '#btn-encerradas')
+      cap('Ordens encerradas e em execução', 'Em Ajustes, ative ou desative a exibição de cada situação. As opções aparecem quando existem casos, são independentes e não apagam programação nem histórico.', '#btn-ajustes-programacao'),
+      cap('Copiar número da ordem', 'O pequeno ícone junto ao número copia a ordem para colar em outro destino. Está disponível nas telas 7 e 8.', '#screen-s8 tbody')
     ] },
     { name: 'Projeção', steps: [
       cap('Projeção e aderência', 'Esta tela apresenta os indicadores da semana com base na programação e nos dados importados.', '#screen-s9 .proj-toolbar'),
@@ -17545,7 +17789,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Energia Zero', 'Exporta a matriz de ordens de bloqueio e parada.', '#screen-s10 button[onclick*="exportarEnergiaZero"]'),
       cap('Ciclos duplicados', 'Identifica sistemáticas com o mesmo plano de manutenção em ordens distintas.', '#screen-s10 button[onclick*="exportarCiclosDuplicados"]'),
       cap('Impressão SAP em lote', 'Prepara a lista ZOVRM004 por dia e a macro Excel.', '#screen-s10 button[onclick="abrirImpressaoSAP()"]'),
-      cap('Materiais Brucutu', 'Quando liberado para o perfil, permite solicitar materiais e consultar entregas.', '#card-materiais-brucutu')
+      bru('Materiais Brucutu', 'Na planta BRUCUTU, este card mantém o fluxo específico de materiais e consulta de entregas, separado dos apoios do módulo Recursos.', '#card-materiais-brucutu'),
+      cap('Navegar entre os cards', 'As setas laterais mostram os demais cards, em páginas de até 15 opções. A seta desaparece quando não existem mais opções naquela direção.', '#s10-next'),
+      bru('Recursos e retornos', 'O card oferece Abrir Recursos, Solicitar recursos e Acompanhar solicitações. Os retornos são individuais por recurso e por solicitante.', '#card-recursos'),
+      bru('Controle de Programação', 'Divulgue a semana para o compilado de consulta por dia e supervisão. Uma programação por supervisão e semana, sem edição pelo módulo Controle.', '#card-controle-brucutu')
     ] }
   ];
 
@@ -17561,14 +17808,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     cap('Operações e ordens distintas', 'Os totais acompanham a lista visível. Ordens são contadas sem duplicar seus números.', '#rpl-pill-showing-w'),
     cap('Horas da lista', 'Os indicadores de H/H acompanham as operações apresentadas e suas quantidades de mão de obra.', '#rpl-pill-hh-w'),
     cap('Limpar NOVA e ALTERADA', 'O botão Badges remove as sinalizações de atualização quando houver registros sinalizados.', '#btn-limpar-badges'),
-    cap('Ordens em execução ou encerradas', 'Registros preservados mantêm a programação histórica e identificam sua condição de execução ou encerramento.', '#btn-encerradas')
+    cap('Turnos sincronizados', 'Efetivo, Ação e observação rápida comunicam as indicações de turno e horários. As palavras TURNO e TURNO 1 a 4 são reconhecidas; Administrativo é padrão e não precisa aparecer na observação.', '#fiw-obs_mat'),
+    bru('Retornos no mesmo sino', 'O sino reúne Materiais e Recursos. O retorno de recursos só aparece ao solicitante logado, com status e justificativa, sem novas colunas na grade.', '#ap-notification-bell')
   );
   CHAPTERS[9].steps.push(
     cap('Marcar exportação como feita', 'A marcação de cada card ajuda a acompanhar quais saídas já foram realizadas.', '#screen-s10 .export-check-toggle'),
     cap('Abrir Cockpit', 'O segundo botão do card Cockpit abre o endereço SAP utilizado pelo sistema.', '#screen-s10 button[onclick*="flpnwc"]'),
     cap('Gerar macro Excel', 'O segundo botão do card de impressão gera a macro de apoio.', '#screen-s10 button[onclick="gerarMacroExcel()"]'),
-    cap('Solicitar materiais Brucutu', 'Envia a solicitação após a confirmação e as verificações existentes.', '#screen-s10 button[onclick="solicitarMaterialBrucutu()"]'),
-    cap('Consultar entregas', 'Abre a consulta de status e evidências dos materiais.', '#screen-s10 button[onclick="abrirConsultaEntregas()"]')
+    bru('Solicitar materiais Brucutu', 'Envia a solicitação após a confirmação e as verificações existentes.', '#screen-s10 button[onclick="solicitarMaterialBrucutu()"]'),
+    bru('Consultar entregas', 'Abre a consulta de status e evidências dos materiais.', '#screen-s10 button[onclick="abrirConsultaEntregas()"]')
   );
   const demo = (name, screen, fields) => ({ name, screen, fields, steps: fields.map(([id, title, body]) => cap(title, body, `#${id}`)) });
   CHAPTERS.push(
@@ -17577,7 +17825,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Data programada', 'Escolha o dia da atividade. O sistema verifica as condições de programação.', '#m-data'),
       cap('Executantes', 'As sugestões consideram o centro de trabalho da operação e o efetivo disponível. Operações da mesma ordem com centros diferentes precisam de executantes compatíveis com cada centro.', '#m-executor'),
       cap('Turno da atividade', 'Pode seguir o executante ou usar um turno específico, inclusive os horários noturnos que passam da meia-noite.', '#m-turno'),
-      cap('Recursos necessários', 'Indique andaime, guincho, empilhadeira, munck, plataforma ou outro recurso.', '#m-recurso'),
+      cap('Recursos necessários', 'Selecione um ou mais apoios do cadastro do módulo Recursos. A lista abre conforme o espaço disponível, com rolagem própria. As marcações aparecem resumidas na OBS rápida, até 35 caracteres; o conteúdo completo fica no tooltip. Confira e confirme o envio na tela Exportar.', '#m-recursos-dropdown'),
       cap('Observação automática', 'Quando houver indicação automática, ela aparece acima da observação rápida.', '#m-obs-auto'),
       cap('Observação rápida', 'Aceita até 35 caracteres e aparece na coluna OBS. RÁPIDA.', '#m-obs'),
       cap('Observação detalhada', 'Registre os detalhes técnicos. Na visualização, ficam abaixo da ordem e acompanham sua movimentação.', '#m-obs-detalhada'),
@@ -17603,14 +17851,14 @@ document.addEventListener('DOMContentLoaded',()=>{
       ['tour-view-seq','Sequência, início e término','As colunas de sequência e horários mostram a execução após a adequação das horas. Turnos noturnos podem terminar no dia seguinte.','text'],
       ['tour-view-detail','Observação detalhada vinculada','A observação aparece abaixo da atividade. A seta fica na coluna do número; o fundo mantém a cor da condição da operação, levemente mais escura. Ao mover a atividade, o detalhe acompanha a linha.','text'],
       ['tour-view-wrap','Textos longos sem sobreposição','Descrição, EQTOS, nomes dos recursos e observações quebram dentro de suas colunas. A altura aumenta conforme o texto, sem invadir a coluna vizinha.','text'],
-      ['tour-view-opportunities','Oportunidades aderentes e vencidas','Os blocos verde e rosa apresentam sistemáticas não programadas na semana. O título aparece acima dos nomes das colunas, também na impressão e no PDF.','text'],
+      ['tour-view-opportunities','Oportunidades aderentes e vencidas','Os blocos verde e rosa apresentam sistemáticas e condicionais YCM não programadas na semana, respeitando datas, aderência e filtros. Também aparecem na impressão e no PDF.','text'],
       ['tour-view-dock','Menu flutuante','O menu permanece no rodapé ao rolar. O efeito glass fica suave em repouso e ganha contraste ao passar o mouse ou focar seus botões. Ele não é impresso.','text'],
       ['tour-view-print','Imprimir / PDF','Abre a confirmação dos dados de elaboração e PCM para impressão ou PDF.','button'],
       ['tour-view-executor','Por executor','Selecione o profissional para imprimir a programação dele, com os dados de elaboração e PCM.','select',['Selecione o executante']],
       ['tour-view-close','Fechar visualização','Fecha a janela de visualização e retorna ao AutoProg.','button']
     ]),
     demo('Capacidade dos executantes', 8, [
-      ['tour-cap-summary','Cards da capacidade','Mostram colaboradores, H/H disponível, H/H programado e percentual de ocupação no filtro atual.','text'],
+      ['tour-cap-summary','Resumo da capacidade','A faixa de resumo apresenta colaboradores, H/H disponível, H/H programado e ocupação. A grade mostra horas livres por profissional e dia.','text'],
       ['tour-cap-ct','Centro de trabalho','A capacidade acompanha o centro de trabalho considerado e os filtros aplicáveis da programação.','select',['Todos os centros']],
       ['tour-cap-person','Capacidade por colaborador e dia','Leia horas programadas, capacidade diária e horas livres para cada pessoa.','text'],
       ['tour-cap-status','Presença e ausências','Ausências e demais situações do efetivo alteram a disponibilidade diária.','text'],
@@ -17734,6 +17982,57 @@ document.addEventListener('DOMContentLoaded',()=>{
       cap('Voltar à programação', 'Cancelar ou fechar abandona esta seleção sem alterar a programação.', '#viz-exec-overlay .viz-output-close')
     ] }
   );
+  CHAPTERS.find(chapter=>chapter.name==='Materiais Brucutu e entregas').planta='BRUCUTU';
+  CHAPTERS.push(
+    {name:'Ajustes da programação',screen:8,steps:[
+        cap('Preferências por usuário','As opções da engrenagem ficam salvas por usuário. Alterar a visualização não apaga ordens, programação nem histórico.','#ap-settings-popup'),
+        cap('Coluna Observação em Visualizar','Mostra ou oculta a coluna na visualização, PDF, impressão e Excel da programação, redistribuindo o espaço. Não altera a OBS rápida da tela 8 nem as observações enviadas ao Controle.','#ap-settings-popup [data-setting="colunaObsVisualizacao"]'),
+      cap('Ordens encerradas','Ative para consultar encerradas preservadas do backlog. Desative para ocultar. A opção fica sempre visível, mas esmaecida e desabilitada quando não existem esses registros.','#ap-settings-popup [data-setting="encerradas"]'),
+      cap('Ordens em execução','Controle separadamente a exibição das ordens identificadas como Em execução. A opção fica sempre visível e só é habilitada quando existem casos elegíveis. Operações apenas apropriadas não são confundidas com esse grupo.','#ap-settings-popup [data-setting="emExecucao"]'),
+      cap('Desfazer última ação','Desfaz a última alteração compatível, inclusive ajustes em massa. Confira a descrição e a disponibilidade da ação antes de usar.','#workflow-undo'),
+      cap('Substituir executante','Troca uma pessoa em várias operações, preservando os outros executantes e recalculando a capacidade.','#ap-settings-popup button[onclick*="abrirSubstituicaoExecutante"]'),
+      cap('Agenda do executante','A opção Agenda permite escolher uma pessoa e conferir as atividades e horas disponíveis na semana.','#ap-settings-popup .ap-settings-actions'),
+      cap('Reorganizar e restaurar padrão','Reorganizar reaplica duplas estáveis. Restaurar padrão redefine as preferências visuais do usuário, sem limpar sua programação.','#ap-settings-popup .ap-settings-footer')
+    ]},
+    {name:'Recursos: solicitar apoios',screen:10,planta:'BRUCUTU',steps:[
+      cap('Conferir semana e ordens','O resumo reúne apenas as operações programadas na semana selecionada que tenham recursos marcados no botão Ação.','#ap-recursos-contexto'),
+      cap('Um ou mais recursos por operação','Confira cada recurso vinculado à ordem e operação, com data, descrição e local trazidos da programação. Munck, Plataforma e Veículos PK também permanecem nas planilhas de veículos.','#ap-recursos-lista'),
+      cap('Confirmar sem duplicar','O sistema valida campos e bloqueios, identifica pedidos já existentes e só envia depois da confirmação. No tutorial, o envio permanece bloqueado.','#ap-recursos-confirmar'),
+      cap('Materiais em módulo próprio','Materiais não recebe novas solicitações em Recursos. Seu fluxo específico e os cards de exportação existentes continuam separados.','#ap-recursos-dialog footer')
+    ]},
+    {name:'Recursos: acompanhar retornos',screen:10,planta:'BRUCUTU',steps:[
+      cap('Acompanhar solicitações','A consulta mostra exclusivamente os pedidos do solicitante logado na semana selecionada, mesmo que ele seja administrador ou gestor.','#ap-retornos-contexto'),
+      cap('Filtrar o acompanhamento','Busque por ordem, operação ou recurso e filtre Pendente, Atendido ou Recusado. Consultar não altera nem reenvia pedidos.','#ap-recursos-retornos .ap-retornos-filtros'),
+      cap('Status e justificativa por recurso','Uma mesma operação pode ter apoios atendidos e recusados. Leia o motivo, o responsável e a data em cada retorno.','#ap-retornos-lista'),
+      cap('Retornos no sino','Os avisos usam o mesmo sino de Materiais, com categorias separadas. Marcar como lida ou limpar a notificação não exclui a solicitação.','#ap-recursos-retornos footer')
+    ]},
+    {name:'Recursos: módulo e gestão',screen:10,planta:'BRUCUTU',steps:[
+      cap('Abrir o módulo Recursos','Use Abrir Recursos no card ou o endereço /recursos. O acesso utiliza a conta do AutoProg e respeita planta e permissões. O guia não abre a base real.','#card-recursos'),
+      cap('Solicitar apoios avulsos','No módulo, escolha uma categoria e recurso, use a busca ou Somente disponíveis e abra o formulário em popup. O rascunho é preservado ao fechar sem enviar.','#card-recursos'),
+      cap('Retornos e decisões na linha','O gestor atribuído ao recurso pode atender, recusar com justificativa, salvar motivo ou reabrir conforme as regras. Usuários sem atribuição não recebem essas ações.','#card-recursos'),
+      cap('Agenda e indicadores','A Agenda separa os pedidos por semana e dia. Cards mostram ordem, operação, atividade, supervisão, horário, quantidade e status; indicadores e exportações seguem os filtros.','#card-recursos'),
+      cap('Recursos sob sua gestão','Na Gestão de Usuários, o administrador define quais recursos cada pessoa pode gerenciar. Essa atribuição não concede administração de todos os recursos.','#card-recursos')
+    ]},
+    {name:'Controle: divulgar e consultar',screen:10,planta:'BRUCUTU',steps:[
+      cap('Divulgar Programação','O card beta disponibiliza a semana no compilado do Controle, usando as atividades, sequência e horários definidos pelo programador. O guia não divulga dados.','#btn-divulgar-controle'),
+      cap('Uma programação por supervisão e semana','Uma nova divulgação atualiza a programação vigente daquela supervisão e semana, mantendo o histórico conforme o módulo. Não é necessário reunir arquivos Project manualmente.','#card-controle-brucutu'),
+      cap('Consulta por semana, dia e supervisão','O Controle abre na maior semana publicada. O filtro superior escolhe semanas; o menu diário continua separado, junto de Histórico, Excel e PDF.','#card-controle-brucutu'),
+      cap('Acesso BRUCUTU e somente leitura','Todos os perfis da planta BRUCUTU podem consultar conforme as regras de acesso. O Controle não edita a programação dos programadores.','#card-controle-brucutu')
+    ]},
+    {name:'AutoAprov: carteira e fornecedores',screen:10,modulo:'AUTOAPROV',steps:[
+      cap('Abrir AutoAprov','O card dá acesso ao módulo /autoaprov quando a conta possui permissão. Ele organiza a carteira de aprovisionamento de materiais.','#card-autoaprov'),
+      cap('Importar e atualizar a carteira','Utilize as planilhas IW38, IW29 e ZOV025 nos campos correspondentes. Atualize a carteira por nova importação e confira as informações preservadas.','#card-autoaprov'),
+      cap('Fornecedores e acompanhamento','O módulo reúne cadastro de fornecedores, responsáveis, prazos e acompanhamento da carteira. As ações disponíveis respeitam o perfil autenticado.','#card-autoaprov'),
+      cap('Sessão e autosave','Salve a sessão do AutoAprov e confira os avisos de autosave. O arquivo desse módulo é independente da programação no AutoProg.','#card-autoaprov')
+    ]},
+    {name:'Módulos e acessos',screen:1,steps:[
+      cap('Mesma conta, permissões específicas','Os módulos usam o cadastro central de usuários, mas cada acesso depende de perfil, planta e módulos permitidos. O tutorial não concede acesso.','#autoprog-usuario-sessao'),
+      cap('AutoMat e AutoMat Mobile','/automat atende à preparação e gestão dos materiais; /automatmobile apoia entregas e ocorrências. Eles são diferentes do módulo de apoios Recursos.','.repaginado-topbar-brand'),
+      cap('Recursos e Controle','/recursos organiza solicitações e gestão dos apoios; /controle reúne as programações divulgadas. Os cards integrados do piloto no AutoProg são exclusivos da BRUCUTU.','.repaginado-topbar-brand'),
+      cap('AutoAprov','/autoaprov organiza a carteira de aprovisionamento e fornecedores. O card aparece somente quando a conta tem permissão.','.repaginado-topbar-brand'),
+      cap('Gestão de Usuários','/usuarios é destinado à administração autorizada de contas, perfis, módulos e recursos gerenciados por cada usuário.','.repaginado-topbar-brand')
+    ]}
+  );
   window.AutoProgTourCatalog = CHAPTERS;
 })();
 
@@ -17742,22 +18041,44 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* Usa a aplicação real em uma instância descartável: não altera a sessão aberta. */
 (() => {
   'use strict';
-  const chapters = window.AutoProgTourCatalog;
+  const catalog = window.AutoProgTourCatalog;
+  function chaptersForUser(user={}) {
+    const allowed=item=>(!item.planta||String(user.planta||'').trim().toUpperCase()===item.planta)&&(!item.modulo||user.perfil==='ADMIN'||(user.modulos||[]).includes(item.modulo));
+    return catalog.filter(allowed).map(item=>({...item,steps:item.steps.filter(allowed)})).filter(item=>item.steps.length);
+  }
+  let chapters = catalog;
   let host, frame, panel, focus, active = false, chapter = 0, index = 0, steps = [], priorFocus, priorInert, generation = 0;
   const norm = value => String(value || '').replace(/\s+/g,' ').trim();
-  function boot() {
+  function boot(profile) {
+    const plant=profile.planta||'DEMONSTRAÇÃO';
     const storage = () => { const map = new Map(); return {getItem:k=>map.get(String(k))??null,setItem:(k,v)=>map.set(String(k),String(v)),removeItem:k=>map.delete(String(k)),clear:()=>map.clear(),key:i=>[...map.keys()][i]??null,get length(){return map.size;}}; };
     Object.defineProperty(window,'localStorage',{value:storage()});
     Object.defineProperty(window,'sessionStorage',{value:storage()});
-    window.fetch = async () => new Response(JSON.stringify({ok:true,registros:[],itens:[],usuarios:[]}),{status:200,headers:{'Content-Type':'application/json'}});
+    window.fetch = async (_url,options={}) => new Response(JSON.stringify(options.method&&options.method!=='GET'?{ok:false,error:'Envios bloqueados na demonstração.'}:{ok:true,registros:[],itens:[],usuarios:[]}),{status:options.method&&options.method!=='GET'?403:200,headers:{'Content-Type':'application/json'}});
     window.XMLHttpRequest = class {open(){throw new Error('Rede bloqueada na demonstração');}};
     navigator.sendBeacon=()=>false;
     window.showOpenFilePicker=window.showSaveFilePicker=async()=>{throw new DOMException('Demonstração','AbortError');};
     window.alert=()=>{}; window.confirm=()=>false; window.print=()=>{};
-    window._obterAuth=()=>({usuario:{nome:'Ana Exemplo',planta:'Brucutu',pcm:'PCM DEMONSTRAÇÃO'}});
+    window._obterAuth=()=>({usuario:{uid:'tutorial-user',nome:'Ana Exemplo',planta:plant,pcm:'PCM DEMONSTRAÇÃO',perfil:profile.perfil,modulos:profile.modulos||[]}});
     window._memAuth=window._obterAuth();
+    sessionStorage.setItem('_facilita_auth_autoprog',JSON.stringify(window._memAuth));
     const materials = {'41-2026':{demo:{supervisao:'INSTRUMENTAÇÃO USINA',planta:'Brucutu',pcm:'PCM DEMONSTRAÇÃO',solicitante:'Ana Exemplo',enviadoEm:'2026-10-03T12:00:00Z',itens:['SOLICITADO','EM PREPARAÇÃO','DESPACHADO','ENTREGUE'].map((status,i)=>({ordem:String(990000000001+i),descricao:'Sensor de pressão PT'+(101+i),local:'USINA-ÁREA-01',dataExecucao:'2026-10-05',status,observacaoMaterial:'2 unidades · exemplo'}))}}};
-    window._sessaoAutoprog={registrarAtividade(){},observarJanela(){},iniciar(){return false;},buscar:async()=>new Response(JSON.stringify(materials),{status:200}),renovar:async()=>({})};
+    const resourceCatalog=[{id:'munck',nome:'Caminhão Munck',icone:'truck'},{id:'plataforma',nome:'Plataforma',icone:'platform'},{id:'guindaste',nome:'Guindaste',icone:'crane'}];
+    const resourceRequests=['atendido','recusado','pendente'].map((status,i)=>({id:'tutorial-'+i,semanaChave:'2026-W41',data:'2026-10-05',ordem:'990000000001',operacao:'0010',descricao:'CALIBRAR TRANSMISSOR DE PRESSÃO PT101',local:'USINA-ÁREA-01-EQ1',supervisao:'INSTRUMENTAÇÃO USINA',recurso:resourceCatalog[i].id,status,motivo:i===0?'Munck reservado para o dia.':i===1?'Plataforma indisponível nesta data.':'',moderador:i<2?'Gestor Exemplo':'',moderadoEm:i<2?Date.now():null,criadoEm:Date.now()}));
+    window._sessaoAutoprog={registrarAtividade(){},observarJanela(){},iniciar(){return false;},buscar:async(url,options={})=>{
+      const query=new URL(url,document.baseURI).searchParams;
+      let data=materials,status=200;
+      if(String(url).includes('/api/recursos')){
+        if(options.method==='POST'){
+          const command=JSON.parse(options.body||'{}');
+          if(command.acao==='PREVALIDAR')data={ok:true,linhas:command.linhas.map((pedido,i)=>({situacao:'valida',pedido:{...pedido,impressao:'demo-'+i}}))};
+          else {data={ok:false,error:'Envios bloqueados na demonstração.'};status=403;}
+        }else if(query.get('modo')==='catalogo')data={ok:true,recursos:resourceCatalog};
+        else if(query.get('modo')==='retornosAutoprog')data={ok:true,tipo:'retornosAutoprog',solicitanteUid:'tutorial-user',semana:'2026-W41',versao:1,pedidos:resourceRequests,notificacoes:[]};
+        else data={ok:true};
+      }
+      return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
+    },renovar:async()=>({})};
     window.open=()=>{
       document.querySelector('#tour-real-window')?.remove();
       const popup=document.createElement('iframe'); popup.id='tour-real-window'; popup.title='Janela real - demonstração';
@@ -17775,12 +18096,13 @@ document.addEventListener('DOMContentLoaded',()=>{
       window.__tourPopup=win; return win;
     };
     document.addEventListener('click',event=>{if(event.target.closest('a[download],a[href^="blob:"],a[href^="http"]'))event.preventDefault();},true);
+    document.addEventListener('click',event=>{if(event.target.closest('#ap-recursos-confirmar,#btn-divulgar-controle,button[onclick="solicitarMaterialBrucutu()"]')){event.preventDefault();event.stopImmediatePropagation();}},true);
     window.__tourErrors=[]; window.addEventListener('error',event=>window.__tourErrors.push(event.message));
     document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
       try {
         const days=getWeekDaysByNum(41,2026);
         semanaWizard={num:41,ano:2026,start:days[0],end:days[6]}; supervisao='INSTRUMENTAÇÃO USINA';
-        sessaoElaborador='Ana Exemplo'; sessaoPlanta='Brucutu'; sessaoPcm='PCM DEMONSTRAÇÃO';
+        sessaoElaborador='Ana Exemplo'; sessaoPlanta=plant; sessaoPcm='PCM DEMONSTRAÇÃO';
         const names=['ANA EXEMPLO','BRUNO EXEMPLO','CARLA EXEMPLO','DIEGO EXEMPLO','ELISA EXEMPLO','FÁBIO EXEMPLO','GABRIELA EXEMPLO','HUGO EXEMPLO'];
         const statuses=['P','A','T','F','O','PAR','TUT','FER'];
         efetivo=names.map((nome,i)=>({nome,centrab:'MPLAN01',turno:i<4?'Administrativo':'TURNO '+(i-3),hh:7.5,status:[statuses[i],'P','P','P','P','SAB','DOM'],horasFora:[i===2?2:0,0,0,0,0,0,0]}));
@@ -17793,6 +18115,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         });
         rawBacklog=dados.map(row=>({...row})); programacao={};
         dados.slice(0,9).forEach((row,i)=>{programacao[row._uid]={data:days[i%5],executor:names[i%8],obs:i===3?'MATERIAL / MOTOR':'ROTINA',_obsDetalhada:i===0?'Bloquear equipamento, conferir conexões e validar calibração após o serviço.':'',turno:efetivo[i%8].turno};});
+        programacao[dados[0]._uid].recursos=['munck','plataforma'];programacao[dados[0]._uid].recurso='Caminhão Munck; Plataforma';
+        dados[7]['Status usuário']='EXEC';dados[8]._preservadaProg=true;
         naoProgramadas={}; atividadesRelevantes={};
         ataParticipantes=[{nome:'Ana Exemplo',funcao:'Planejamento',presenca:'P',obs:'Responsável pela reunião'},{nome:'Bruno Exemplo',funcao:'Execução',presenca:'P',obs:''}];
         ataParticipantes._desc='Alinhada a manutenção dos instrumentos e a disponibilidade dos executantes.';
@@ -17811,9 +18135,14 @@ document.addEventListener('DOMContentLoaded',()=>{
         updateImportStats();
         window.__tourNavigate=(screen,name)=>{
           document.querySelector('#tour-real-window')?.remove(); window.__tourPopup=null;
+          document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close());fecharAjustesProgramacao();
           document.querySelectorAll('[id$="-overlay"]').forEach(el=>{if(!/login/.test(el.id))el.style.display='none';});
           goStep(screen); const first=dados[0]._uid;
-          if(/Programar ou editar/.test(name))abrirModal(first);
+          if(screen===10&&/Recursos:|Controle:|AutoAprov:|Exportar|Materiais Brucutu/.test(name)){paginaExportacao=99;atualizarPaginaExportacao();}
+          if(name==='Ajustes da programação')toggleAjustesProgramacao();
+          else if(name==='Recursos: solicitar apoios')void AutoprogRecursos.abrir();
+          else if(name==='Recursos: acompanhar retornos')void AutoprogRecursos.acompanhar();
+          else if(/Programar ou editar/.test(name))abrirModal(first);
           else if(/Atualizar backlog/.test(name))atualizarBacklogRPL();
           else if(/Atividades relevantes/.test(name))rplToggleAtividadeRelevante({stopPropagation(){}},first);
           else if(/Imprimir \/ PDF da visualização/.test(name)){abrirVisualizacaoProgramacao();window.__tourPopup.document.getElementById('viz-imp-overlay').style.display='flex';}
@@ -17832,7 +18161,9 @@ document.addEventListener('DOMContentLoaded',()=>{
             set(prefix+'-desc','CALIBRAR TRANSMISSOR PT101');set(prefix+'-loc','USINA-ÁREA-01-PT101');set(prefix+'-ordem','990000000013');set(prefix+'-operacao','0010');set(prefix+'-num','1');set(prefix+'-hh','2');set(prefix+'-totalhh','2');set(prefix+'-rev','REV-DEMO-01');set(prefix+'-gp','004');set(prefix+'-dtmin',days[0]);set(prefix+'-dtmax',days[4]);set(prefix+'-data',days[0]);set(prefix+'-obs','DSS / DESLOCAMENTO');set(prefix+'-exec','ANA EXEMPLO');
           }
         };
-        window.__tourStep=(title)=>{
+        window.__tourStep=(title,selector)=>{
+          const card=selector&&document.querySelector(selector)?.closest('#s10-export-grid > div');
+          if(card){for(let page=0;page<Math.ceil(document.getElementById('s10-export-grid').children.length/15);page++){paginaExportacao=page;atualizarPaginaExportacao();if(!card.hidden)break;}}
           if(/Usuário, senha e entrar/.test(title)){
             document.getElementById('login-screen').style.display='flex';set('login-usuario','ana.exemplo');set('login-input','exemplo');
           }else document.getElementById('login-screen').style.display='none';
@@ -17894,7 +18225,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   function render(){
     frame.style.height='100%';
-    const step=steps[index];frame.contentWindow.__tourStep(step.title);panel.querySelector('h2').textContent=step.title;panel.querySelector('.ap-tour-description').textContent=step.body;
+    const step=steps[index];frame.contentWindow.__tourStep(step.title,step.selector);panel.querySelector('h2').textContent=step.title;panel.querySelector('.ap-tour-description').textContent=step.body;
     panel.querySelector('.ap-tour-progress').textContent=`${chapter+1}/${chapters.length} capítulos · ${index+1}/${steps.length} passos`;
     panel.querySelector('select').value=String(chapter);panel.querySelector('.ap-tour-back').disabled=chapter===0&&index===0;
     panel.querySelector('.ap-tour-next').disabled=false;
@@ -17908,7 +18239,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     try{
       frame.contentWindow.__tourNavigate(chapters[chapter].screen,chapters[chapter].name);
       await new Promise(resolve=>setTimeout(resolve,150));if(!active||!frame||request!==generation)return;steps=[...chapters[chapter].steps];
-      const document=doc(),root=frame.contentWindow.__tourPopup?document.body:[...document.querySelectorAll('[id$="-overlay"]')].filter(visible).at(-1)||document.querySelector('.screen.active')||document.body;
+      const document=doc(),root=frame.contentWindow.__tourPopup?document.body:document.querySelector('dialog[open]')||[...document.querySelectorAll('[id$="-overlay"]')].filter(visible).at(-1)||document.querySelector('.screen.active')||document.body;
       const known=new Set(steps.map(target).filter(Boolean)),labels=new Set();
       for(const el of root.querySelectorAll('button,input,select,textarea,th')){
         if(!visible(el)||known.has(el))continue;
@@ -17923,6 +18254,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   function key(event){if(event.key==='Escape'){event.preventDefault();close();}if(event.key==='Tab'){const controls=[...panel.querySelectorAll('button:not(:disabled),select')];if(event.shiftKey&&document.activeElement===controls[0]){event.preventDefault();controls.at(-1).focus();}else if(!event.shiftKey&&document.activeElement===controls.at(-1)){event.preventDefault();controls[0].focus();}}}
   async function open(){
     if(active)return;
+    const user=window._obterAuth?.()?.usuario||window._memAuth?.usuario||{};
+    chapters=chaptersForUser(user);
     active=true;
     host=document.createElement('div');host.id='ap-tour-host';host.className='ap-tour-loading';
     host.style.background='rgba(13,35,40,.28)';document.body.appendChild(host);
@@ -17930,9 +18263,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!active)return;
     const source=new DOMParser().parseFromString(document.documentElement.outerHTML,'text/html');
     source.querySelector('#ap-tour-host')?.remove();
+    source.querySelectorAll('#ap-notifications,#ap-recursos-dialog,#ap-recursos-retornos').forEach(element=>element.remove());
     for(const script of source.querySelectorAll('script'))if(/facilita-session|autoprog-tour/.test(script.src)||/window\._logoutAutoprog|AutoProgTourCatalog|window\.AutoProgTour=/.test(script.textContent))script.remove();
     source.querySelector('base')?.remove();const base=source.createElement('base');base.href=document.baseURI;source.head.prepend(base);
-    const init=source.createElement('script');init.textContent='('+boot.toString()+')();';source.head.prepend(init);
+    const profile={planta:user.planta||'',perfil:user.perfil||'',modulos:Array.isArray(user.modulos)?user.modulos:[]};
+    const init=source.createElement('script');init.textContent='('+boot.toString()+')('+JSON.stringify(profile).replace(/</g,'\\u003c')+');';source.head.prepend(init);
     active=true;priorFocus=document.activeElement;const app=document.querySelector('.app');priorInert=app?.inert;if(app)app.inert=true;
     host.style.background='';frame=document.createElement('iframe');frame.id='ap-tour-real-app';frame.title='AutoProg real com dados fictícios';frame.setAttribute('sandbox','allow-scripts allow-same-origin');
     panel=document.createElement('section');panel.id='ap-tour-sidebar';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Tutorial assistido');
@@ -17957,7 +18292,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     }if(active)panel.querySelector('.ap-tour-description').textContent='A interface não terminou de carregar. Feche o guia e tente novamente.';
   }
   function close(){if(!active)return;active=false;document.removeEventListener('keydown',key,true);window.removeEventListener('resize',place);host?.remove();host=frame=panel=focus=null;const app=document.querySelector('.app');if(app)app.inert=priorInert||false;priorFocus?.focus?.();}
-  window.AutoProgTour={open,close,chapters};
+  window.AutoProgTour={open,close,chapters:catalog,chaptersForUser};
 })();
 
 </script>
@@ -17981,74 +18316,613 @@ document.addEventListener('DOMContentLoaded',()=>{
 .ap-notification-actions button{padding:0}
 #ap-notification-clear{border:0;background:transparent;color:#c0305e;font:inherit;font-size:11px;cursor:pointer}
 @media print{#ap-notifications{display:none!important}}
+.ap-notification-tabs{display:flex;gap:6px;padding:0 12px 10px}.ap-notification-tabs button{border:1px solid #d2e2e1;background:#fff;border-radius:6px;padding:5px 9px;font:inherit;font-size:11px;color:#47656a;cursor:pointer}.ap-notification-tabs button[aria-pressed=true]{background:#e5f5f2;color:#007e7a;border-color:#a9d8d2}.ap-notification-tabs [hidden]{display:none!important}.ap-notification-item>span:not(.ap-notification-icon):not(.ap-notification-dot){min-width:0;overflow-wrap:anywhere}
 
 </style>
+<style>
+.ap-recursos-picker{position:relative;font-size:12px;min-width:0}
+.ap-recursos-picker summary{list-style:none;cursor:pointer;background:var(--surface,#fff);border:1px solid var(--border,#c8dde0);border-radius:6px;padding:9px 30px 9px 10px;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-recursos-picker summary::-webkit-details-marker{display:none}
+.ap-recursos-picker summary::after{content:'⌄';position:absolute;right:11px;top:7px;color:var(--accent,#008580)}
+.ap-recursos-picker summary:focus-visible{outline:2px solid var(--accent,#008580);outline-offset:2px}
+.ap-recursos-opcoes{box-sizing:border-box;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:10;padding:10px;background:var(--surface,#fff);border:1px solid var(--border,#c8dde0);border-radius:8px;box-shadow:0 8px 24px #17323822;max-height:290px;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.ap-recursos-picker[data-acima="true"] .ap-recursos-opcoes{top:auto;bottom:calc(100% + 4px)}
+.ap-recursos-opcoes label>span{min-width:0;overflow-wrap:anywhere}
+.ap-recursos-opcoes label{display:flex!important;align-items:center;gap:9px;padding:7px!important;margin:0!important;font-weight:400!important;cursor:pointer;border-radius:5px;color:var(--text,#173238)!important}
+.ap-recursos-opcoes label:hover{background:var(--accent-light,#e5f5f2)}
+.ap-recursos-opcoes input[type=checkbox]{width:15px!important;height:15px!important;min-height:15px!important;min-width:15px!important;padding:0!important;margin:0!important;flex:0 0 15px;accent-color:var(--accent,#008580)}
+.ap-recursos-ajuda{font-size:11px;line-height:1.5;color:var(--text2,#54727d);margin:0 0 12px}
+#ap-recursos-dialog{box-sizing:border-box;margin:auto;width:min(980px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:0;border:1px solid var(--border,#c8dde0);border-radius:14px;background:var(--surface,#fff);color:var(--text,#173238);box-shadow:0 20px 60px #17323833;font-family:inherit}
+#ap-recursos-dialog[open]{display:flex;flex-direction:column}
+#ap-recursos-dialog::backdrop{background:rgba(0,0,0,.4)}
+#ap-recursos-dialog header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 24px;border-bottom:1px solid var(--border,#d5e4e6)}
+.ap-recursos-eyebrow{font-size:10px;letter-spacing:1.3px;font-weight:700;color:var(--accent,#008580)}
+#ap-recursos-dialog h2{font-size:22px;line-height:1.3;margin:5px 0 0}
+.ap-recursos-corpo{padding:18px 24px;overflow:auto;min-height:0}
+#ap-recursos-contexto{font-size:12px;margin:0 0 10px;font-weight:600}
+#ap-recursos-resumo-envio{font-size:12px;color:var(--accent,#008580);margin:14px 0}
+.ap-recursos-ordem{border:1px solid var(--border,#d5e4e6);border-radius:9px;overflow:hidden;margin:0 0 12px;box-shadow:0 3px 6px -3px #17323820}
+#ap-recursos-dialog h3{font-size:12px;padding:10px 14px;background:var(--bg,#f1f7f7);margin:0;color:var(--accent,#008580)}
+.ap-recursos-linha{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,.4fr);gap:18px;padding:12px 14px;border-top:1px solid var(--border,#d5e4e6);font-size:12px;overflow-wrap:anywhere}
+.ap-recursos-linha strong{font-weight:600}
+.ap-recursos-linha small{display:block;color:var(--text2,#54727d);font-size:11px;line-height:1.5;margin-top:4px}
+.ap-recursos-status{display:block;font-size:11px;margin-top:6px;color:var(--accent,#008580)}
+#ap-recursos-dialog footer{border-top:1px solid var(--border,#d5e4e6);padding:14px 24px;background:var(--bg,#f1f7f7)}
+#ap-recursos-dialog footer>div{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+#ap-recursos-mensagem{font-size:12px;line-height:1.5;margin:0 0 12px}
+#ap-recursos-dialog .ap-recursos-erro{color:#b42342}
+#ap-recursos-dialog button:disabled{cursor:default;opacity:.55}
+#ap-recursos-dialog [hidden]{display:none!important}
+@media(max-width:600px){#ap-recursos-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}#ap-recursos-dialog header,.ap-recursos-corpo,#ap-recursos-dialog footer{padding:14px}.ap-recursos-linha{grid-template-columns:1fr;gap:8px}#ap-recursos-dialog h2{font-size:19px}}
+#ap-recursos-retornos{box-sizing:border-box;margin:auto;width:min(940px,calc(100vw - 24px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--border,#c8dde0);border-radius:14px;background:var(--surface,#fff);color:var(--text,#173238);font-family:inherit;box-shadow:0 20px 60px #17323833}
+#ap-recursos-retornos[open]{display:flex;flex-direction:column}#ap-recursos-retornos::backdrop{background:rgba(0,0,0,.4)}
+#ap-recursos-retornos header,#ap-recursos-retornos footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--border,#d5e4e6)}
+#ap-recursos-retornos h2{font-size:21px;margin:5px 0 0}#ap-recursos-retornos footer{border-top:1px solid var(--border,#d5e4e6);border-bottom:0;background:var(--bg,#f1f7f7);font-size:11px;color:var(--text2,#54727d)}
+#ap-retornos-contexto,#ap-retornos-mensagem{font-size:12px;margin:0 0 12px;line-height:1.5}.ap-retornos-filtros{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.ap-retornos-filtros label{display:flex;flex-direction:column;gap:6px;flex:1;font-size:11px}.ap-retornos-filtros input,.ap-retornos-filtros select{box-sizing:border-box;min-height:34px;padding:7px 10px;border:1px solid var(--border,#c8dde0);border-radius:6px;background:var(--surface,#fff);color:inherit;font:inherit;font-size:12px;width:100%}
+.ap-retorno-item{border:1px solid var(--border,#d5e4e6);border-radius:9px;padding:14px;margin:0 0 10px;box-shadow:0 3px 5px -3px #17323822;font-size:12px;overflow-wrap:anywhere}.ap-retorno-cabecalho{display:flex;justify-content:space-between;gap:8px;align-items:start;flex-wrap:wrap}.ap-retorno-status{padding:4px 8px;border-radius:5px;font-size:11px;background:#fff3d6;color:#805600}.ap-retorno-status.atendido{background:#e3f5ed;color:#16714e}.ap-retorno-status.recusado{background:#fff0f4;color:#ab254d}
+.ap-retorno-item h3{font-size:14px;color:var(--accent,#008580);margin:10px 0 6px}.ap-retorno-item p{margin:6px 0;line-height:1.5}.ap-retorno-item small{color:var(--text2,#54727d);font-size:11px}.ap-retorno-motivo{border-top:1px solid var(--border,#d5e4e6);padding-top:10px;white-space:pre-wrap}.ap-retorno-destaque{border-color:var(--accent,#008580)}
+#s10-export-grid>#card-recursos{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:40px minmax(28px,1fr) minmax(34px,1fr)!important;gap:5px!important}#s10-export-grid>#card-recursos>p{display:none}#s10-export-grid>#card-recursos .s10-card-title{grid-column:1/-1;margin-left:48px}#s10-export-grid>#card-recursos>button[onclick="abrirRecursos()"]{grid-column:1/-1;grid-row:2}#s10-export-grid>#card-recursos>button[onclick="AutoprogRecursos.abrir()"]{grid-column:1;grid-row:3}#s10-export-grid>#card-recursos>button[onclick="AutoprogRecursos.acompanhar()"]{grid-column:2;grid-row:3}
+@media(max-width:600px){#ap-recursos-retornos header,#ap-recursos-retornos footer,#ap-recursos-retornos .ap-recursos-corpo{padding:14px}.ap-retornos-filtros label{min-width:130px}}
+@media(max-height:760px){#s10-export-grid>#card-recursos{grid-template-rows:34px minmax(26px,1fr) minmax(32px,1fr)!important}#s10-export-grid>#card-recursos button:not(.export-check-toggle){font-size:10px!important;line-height:1.2;min-height:26px;padding:4px!important}}
+
+</style>
+<script>
+/* Apoios da programação. Não altera os exportadores avulsos da tela 10. */
+(function (global) {
+  'use strict';
+  const normal = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function identificar(value, catalogo) {
+    const name = normal(value);
+    const alias = { 'plataforma aerea': 'plataforma' };
+    return catalogo.find(r => r.id === value || normal(r.nome) === name || r.id === alias[name])?.id || String(value).trim();
+  }
+  function selecionados(prog, catalogo = []) {
+    const values = Array.isArray(prog?.recursos) ? prog.recursos : String(prog?.recurso || '').split(';');
+    return [...new Set(values.filter(v => typeof v === 'string' && v.trim() && !['nao', 'nenhum'].includes(normal(v))).map(v => identificar(v, catalogo)))];
+  }
+  function paraExportacao(prog, categoria) {
+    const groups = {
+      veiculos: ['munck', 'plataforma', 'veiculos_pk', 'caminhao munck', 'plataforma aerea', 'veiculos pk', 'veiculo', 'carro'],
+      andaimes: ['andaime_el', 'andaime_me', 'andaime', 'andaime eletrica', 'andaime mecanica'],
+      materiais: ['materiais'], limpeza: ['limpeza'], parada: ['parada_eq', 'parada de equipamento']
+    };
+    return selecionados(prog).some(id => (groups[categoria] || []).includes(normal(id)));
+  }
+  function posicaoLista(anchor, bounds, wanted = 290) {
+    const below = Math.max(0, bounds.bottom - anchor.bottom - 4), above = Math.max(0, anchor.top - bounds.top - 4);
+    const up = below < wanted && above > below;
+    return { acima: up, altura: Math.max(0, Math.floor(Math.min(wanted, up ? above : below))) };
+  }
+  function observacaoRapida(prog, catalog = [], limit = 35) {
+    const manual = String(prog?._manualObs ?? prog?.obs ?? '').trim();
+    const names = {munck:'Munck',plataforma:'Plataforma',apoio_mec:'Apoio mec.',apoio_ele:'Apoio elét.',guindaste:'Guindaste',alpinismo:'Alpinismo',andaime_el:'And. elétrica',andaime_me:'And. mecânica',materiais:'Material',veiculos_pk:'Veículo',bloqueios:'Bloq. pneum.',parada_eq:'Parada',limpeza:'Limpeza'};
+    const legacy = String(prog?.recurso || '').split(';').map(s => s.trim());
+    const selected = selecionados(prog, catalog), labels = selected.map((id, i) => ({
+      short: names[id] || catalog.find(r => r.id === id)?.nome || (Array.isArray(prog?.recursos) && legacy[i] && legacy.length === selected.length && !['nao','nenhum'].includes(normal(legacy[i])) ? legacy[i] : id),
+      full: catalog.find(r => r.id === id)?.nome || names[id] || (Array.isArray(prog?.recursos) && legacy[i] && legacy.length === selected.length && !['nao','nenhum'].includes(normal(legacy[i])) ? legacy[i] : id)
+    }));
+    const fit = (value, max) => { if (value.length <= max) return value; let text = value.slice(0, Math.max(0, max - 1)); if (/[\uD800-\uDBFF]$/.test(text)) text = text.slice(0, -1); return max > 0 ? text.trimEnd() + '…' : ''; };
+    if (!labels.length) return { texto: fit(manual, limit), detalhe: manual };
+    const budget = manual ? Math.max(1, limit - 3 - Math.min(manual.length, 12)) : limit;
+    let resourceText = '';
+    for (let count = 1; count <= labels.length; count++) {
+      const suffix = count < labels.length ? ' +' + (labels.length - count) : '';
+      const candidate = labels.slice(0, count).map(r => r.short).join(', ');
+      if (candidate.length + suffix.length <= budget) resourceText = candidate + suffix;
+      else { if (!resourceText) resourceText = fit(labels[0].short, budget - suffix.length) + suffix; break; }
+    }
+    const remaining = limit - resourceText.length - 3;
+    return { texto: resourceText + (manual && remaining > 0 ? ' / ' + fit(manual, remaining) : ''), detalhe: 'Recursos: ' + labels.map(r => r.full).join('; ') + (manual ? '\nObservação: ' + manual : '') };
+  }
+  function horario(value, day) {
+    const text = String(value || '').trim();
+    if (/^([01]\d|2[0-3]):[0-5]\d$/.test(text)) return text;
+    const match = text.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4}) ([0-2]\d:[0-5]\d)$/);
+    return match && `${match[3].length === 2 ? '20' : ''}${match[3]}-${match[2]}-${match[1]}` === day && /^([01]\d|2[0-3]):[0-5]\d$/.test(match[4]) ? match[4] : '';
+  }
+  function montar({ dados, programacao, semana, dias, supervisao, catalogo, descricao }) {
+    if (!semana?.num || !semana?.ano || !String(supervisao || '').trim()) throw Error('Informe a supervisão e selecione a semana da programação.');
+    const semanaChave = `${semana.ano}-W${String(semana.num).padStart(2, '0')}`;
+    const validDays = new Set(dias), byUid = new Map(dados.map(d => [d._uid || d._ordem, d]));
+    const byOrder = new Map();
+    dados.forEach(d => { if (!byOrder.has(d._ordem)) byOrder.set(d._ordem, d); });
+    const linhas = [];
+    for (const [uid, prog] of Object.entries(programacao)) {
+      if (!prog || !validDays.has(prog.data)) continue;
+      const recursos = selecionados(prog, catalogo).filter(id => !['materiais', 'material'].includes(normal(id)));
+      if (!recursos.length) continue;
+      const d = byUid.get(uid) || byOrder.get(uid);
+      if (!d) throw Error(`A operação ${uid} não foi encontrada na carteira. Atualize a programação antes de solicitar.`);
+      if (d._isOBS || d._tipo === 'OBS') continue;
+      let inicio = horario(prog._inicio, prog.data), fim = horario(prog._fim, prog.data);
+      const observations = [prog.obs, prog._obsDetalhada, prog.executor && `Executantes: ${prog.executor}`, prog.turno && `Turno: ${prog.turno}`, d._centrab && `Centro de trabalho: ${d._centrab}`];
+      // O Recursos exige intervalos no mesmo dia. Mantém a referência noturna
+      // na observação, sem inventar um horário ou inverter início/fim.
+      if (!inicio || !fim || fim <= inicio) {
+        if (prog._inicio || prog._fim) observations.push(`Horário da programação: ${prog._inicio || 'não definido'} até ${prog._fim || 'não definido'}`);
+        inicio = ''; fim = '';
+      }
+      for (const recurso of recursos) linhas.push({
+        recurso, semanaInformada: String(semana.num), data: prog.data, supervisao: String(supervisao).trim(),
+        ordem: String(d._ordem || d['Ordem'] || ''), operacao: String(d['Operação'] || ''),
+        descricao: String(descricao ? descricao(d) : d['Texto breve'] || ''), local: String(d['Loc.instalação'] || ''),
+        quantidade: 1, inicio, fim, observacao: observations.filter(Boolean).join('\n'), origemOperacao: uid
+      });
+    }
+    return { semana: semanaChave, linhas };
+  }
+  // Funções puras também são utilizadas pelos testes de compatibilidade.
+  if (typeof module === 'object' && module.exports) { module.exports = { selecionados, montar, horario, paraExportacao, posicaoLista, observacaoRapida }; return; }
+
+  let catalogo = [], catalogPlant = '', catalogAt = 0, loadingCatalog = null;
+  let selection = new Set(), selectionVersion = 0, pickerError = '';
+  let dialog, view = null, generation = 0;
+  let returnsDialog, returnsGeneration = 0, returnsOwner = '';
+  let aplicarRetornos;
+  const returnsCache = new Map();
+  function disponivel() { return String(global._obterAuth?.()?.usuario?.planta || '').trim().toUpperCase() === 'BRUCUTU'; }
+  function contexto() {
+    const auth = global._obterAuth?.();
+    if (!auth?.usuario || !global._sessaoAutoprog) throw Error('Entre no AutoProg antes de solicitar recursos.');
+    return { auth, planta: String(auth.usuario.planta || (typeof sessaoPlanta !== 'undefined' ? sessaoPlanta : '') || '').trim().toUpperCase() };
+  }
+  async function api(query, body) {
+    if (query.modo !== 'catalogo' && !disponivel()) throw Error('Recursos online está disponível somente para a planta BRUCUTU. As exportações por planilha continuam disponíveis.');
+    const { planta } = contexto();
+    const search = new URLSearchParams({ planta, ...query });
+    const url = _FACILITA_MATERIAIS_API + '/api/recursos?' + search;
+    const session = global._sessaoAutoprog;
+    let response;
+    if (global.location.protocol !== 'file:') {
+      response = await session.buscar(url, { method: body ? 'POST' : 'GET', cache: 'no-store', signal: AbortSignal.timeout(45000),
+        headers: { 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    } else {
+      await session.renovar(false);
+      const send = auth => fetch(url, { method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(45000),
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify({ _facilitaTunnel: true,
+          method: body ? 'POST' : 'GET', path: '/recursos', module: 'AUTOPROG', token: auth.autenticacao.token,
+          sessionId: auth.autenticacao.sessaoId, body }) });
+      response = await send(global._obterAuth());
+      if (response.status === 401) {
+        const error = await response.clone().json().catch(() => ({}));
+        if (error.codigo === 'SESSAO_EXPIRADA') { session.expirar(); throw Error('Sua sessão expirou. Entre novamente.'); }
+        response = await send(await session.renovar(true));
+      }
+    }
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw Error(data.error || `Não foi possível consultar Recursos (HTTP ${response.status}).`);
+    return data;
+  }
+  async function carregarCatalogo(force = false) {
+    const plant = contexto().planta;
+    if (!force && catalogPlant === plant && Date.now() - catalogAt < 60000) return catalogo;
+    if (loadingCatalog?.planta === plant) return loadingCatalog.promise;
+    const promise = api({ modo: 'catalogo' }).then(result => {
+      if (!Array.isArray(result.recursos)) throw Error('O cadastro de recursos não está disponível.');
+      catalogo = result.recursos.filter(r => r.id !== 'materiais' && r.solicitavel !== false); catalogPlant = plant; catalogAt = Date.now();
+      return catalogo;
+    });
+    loadingCatalog = { planta: plant, promise };
+    try { return await promise; } finally { if (loadingCatalog?.promise === promise) loadingCatalog = null; }
+  }
+  function nome(id) { return catalogo.find(r => r.id === id)?.nome || id; }
+  function atualizarPicker() {
+    const target = document.getElementById('m-recursos-opcoes');
+    if (!target) return;
+    const focusValue = target.contains(document.activeElement) && document.activeElement.matches('input[type=checkbox]') ? document.activeElement.value : null;
+    const scrollTop = target.scrollTop;
+    const selected = [...selection];
+    const summary = document.getElementById('m-recursos-resumo');
+    summary.textContent = selected.length ? selected.map(nome).join(', ') : 'Selecionar recursos';
+    summary.title = summary.textContent;
+    document.getElementById('m-recurso').value = selected.length ? selected.map(nome).join('; ') : 'Não';
+    target.replaceChildren();
+    const help = document.createElement('p'); help.className = 'ap-recursos-ajuda';
+    help.textContent = pickerError || (catalogo.length ? (disponivel() ? 'Selecione recursos para as planilhas ou confirme o envio online na tela 10.' : 'Selecione um ou mais recursos para exportar pelas planilhas da tela 10.') : catalogAt ? 'Nenhum recurso disponível no cadastro. Consulte o administrador.' : 'Carregando o cadastro de Recursos...');
+    target.append(help);
+    const entries = [...catalogo, ...selected.filter(id => !catalogo.some(r => r.id === id)).map(id => ({ id, nome: `${id} (sessão anterior)` }))];
+    for (const resource of entries) {
+      const label = document.createElement('label'), checkbox = document.createElement('input'), text = document.createElement('span');
+      checkbox.type = 'checkbox'; checkbox.value = resource.id; checkbox.checked = selection.has(resource.id);
+      checkbox.addEventListener('change', () => { checkbox.checked ? selection.add(resource.id) : selection.delete(resource.id); atualizarPicker(); });
+      text.textContent = resource.nome; label.append(checkbox, text); target.append(label);
+    }
+    if (selected.some(id => !catalogo.some(r => r.id === id)) && catalogo.length) {
+      const warning = document.createElement('p'); warning.className = 'ap-recursos-ajuda';
+      warning.textContent = 'Recurso antigo sem correspondência: desmarque e escolha o recurso cadastrado antes de enviar.'; target.append(warning);
+    }
+    if (selected.length) {
+      const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'btn'; clear.textContent = 'Limpar seleção';
+      clear.addEventListener('click', () => { selection.clear(); atualizarPicker(); }); target.append(clear);
+    }
+    if (pickerError) {
+      const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'btn'; retry.textContent = 'Tentar carregar novamente';
+      retry.addEventListener('click', () => preparar({ recursos: [...selection] }, true)); target.append(retry);
+    }
+    if (focusValue !== null) [...target.querySelectorAll('input')].find(input => input.value === focusValue)?.focus({ preventScroll: true });
+    target.scrollTop = scrollTop;
+    agendarPosicaoPicker();
+  }
+  let pickerFrame = false;
+  function agendarPosicaoPicker() {
+    const picker = document.getElementById('m-recursos-dropdown');
+    if (!picker?.open || pickerFrame) return;
+    pickerFrame = true;
+    (global.requestAnimationFrame || (fn => setTimeout(fn, 0)))(() => { pickerFrame = false; posicionarPicker(); });
+  }
+  function posicionarPicker() {
+    const picker = document.getElementById('m-recursos-dropdown'), list = document.getElementById('m-recursos-opcoes');
+    if (!picker?.open || !list) return;
+    const anchor = picker.querySelector('summary').getBoundingClientRect(), viewport = global.visualViewport;
+    const bounds = { top: (viewport?.offsetTop || 0) + 8, bottom: (viewport?.offsetTop || 0) + (viewport?.height || global.innerHeight) - 8 };
+    // Respeita todos os ancestrais que recortam conteúdo, sem criar um menu
+    // solto fora do modal ou cobrir seus botões de confirmar/cancelar.
+    for (let parent = picker.parentElement; parent; parent = parent.parentElement) {
+      const style = getComputedStyle(parent);
+      if (/(auto|scroll|hidden|clip)/.test(style.overflowY)) {
+        const rect = parent.getBoundingClientRect();
+        bounds.top = Math.max(bounds.top, rect.top + parent.clientTop);
+        bounds.bottom = Math.min(bounds.bottom, rect.bottom - parent.clientTop);
+      }
+    }
+    const modal = picker.closest('.modal');
+    const header = modal?.querySelector('.modal-header')?.getBoundingClientRect(), footer = modal?.querySelector('.modal-footer')?.getBoundingClientRect();
+    if (header && header.bottom <= anchor.top) bounds.top = Math.max(bounds.top, header.bottom + 4);
+    if (footer && footer.top >= anchor.bottom) bounds.bottom = Math.min(bounds.bottom, footer.top - 4);
+    if (anchor.bottom <= bounds.top || anchor.top >= bounds.bottom) { picker.open = false; return; }
+    const placement = posicaoLista(anchor, bounds, Math.min(290, list.scrollHeight || 290));
+    picker.dataset.acima = String(placement.acima);
+    list.style.maxHeight = placement.altura + 'px';
+  }
+  async function preparar(prog, force = false) {
+    const version = ++selectionVersion;
+    selection = new Set(selecionados(prog, catalogo)); pickerError = '';
+    document.getElementById('m-recursos-dropdown').open = false;
+    atualizarPicker();
+    try {
+      await carregarCatalogo(true);
+      if (version !== selectionVersion) return;
+      selection = new Set([...selection].map(id => identificar(id, catalogo))); atualizarPicker();
+    } catch (error) { if (version === selectionVersion) { pickerError = error.message; atualizarPicker(); } }
+  }
+  function snapshot() {
+    const { auth, planta } = contexto();
+    const payload = montar({ dados, programacao, semana: semanaWizard, dias: getWeekDaysByNum(semanaWizard.num, semanaWizard.ano),
+      supervisao, catalogo, descricao: textoProgramacaoDaOrdem });
+    return { ...payload, uid: auth.usuario.uid || auth.usuario.usuario, planta, solicitante: auth.usuario.nome || auth.usuario.usuario };
+  }
+  function assinatura(data) { return JSON.stringify(data); }
+  function criarDialog() {
+    if (dialog) return;
+    dialog = document.createElement('dialog'); dialog.id = 'ap-recursos-dialog';
+    dialog.setAttribute('aria-labelledby', 'ap-recursos-titulo'); dialog.setAttribute('aria-describedby', 'ap-recursos-contexto');
+    dialog.innerHTML = `<header><div><span class="ap-recursos-eyebrow">PROGRAMAÇÃO SEMANAL</span><h2 id="ap-recursos-titulo">Solicitar recursos</h2></div><button type="button" class="btn" id="ap-recursos-fechar" aria-label="Fechar resumo">✕</button></header>
+      <div class="ap-recursos-corpo"><p id="ap-recursos-contexto"></p><p class="ap-recursos-ajuda">Uma solicitação por recurso, operação e dia programado, com quantidade inicial 1. Filtros da tabela não limitam o envio. Os cards avulsos continuam exportando planilhas normalmente.</p><div id="ap-recursos-resumo-envio"></div><div id="ap-recursos-lista"></div></div>
+      <footer><p id="ap-recursos-mensagem" role="status" aria-live="polite"></p><div><button type="button" class="btn" id="ap-recursos-revisar" hidden>Revisar novamente</button><button type="button" class="btn" id="ap-recursos-cancelar">Fechar</button><button type="button" class="btn primary" id="ap-recursos-confirmar" disabled>Confirmar solicitação</button></div></footer>`;
+    document.body.append(dialog);
+    const close = () => { if (!view?.busy) dialog.close(); };
+    dialog.querySelector('#ap-recursos-fechar').onclick = close;
+    dialog.querySelector('#ap-recursos-cancelar').onclick = close;
+    dialog.addEventListener('cancel', event => { if (view?.busy) event.preventDefault(); });
+    dialog.addEventListener('close', () => { if (!dialog.open) generation++; });
+    dialog.querySelector('#ap-recursos-confirmar').onclick = enviar;
+    dialog.querySelector('#ap-recursos-revisar').onclick = abrir;
+  }
+  function mensagem(text, error = false) {
+    const el = dialog.querySelector('#ap-recursos-mensagem'); el.textContent = text; el.classList.toggle('ap-recursos-erro', error);
+  }
+  function renderResumo() {
+    const groups = new Map();
+    view.rows.forEach(row => { const key = row.raw.ordem; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(row); });
+    dialog.querySelector('#ap-recursos-resumo-envio').textContent = `${groups.size} ordem(ns) • ${new Set(view.rows.map(r => r.raw.origemOperacao)).size} operação(ões) • ${view.rows.length} recurso(s) vinculado(s)`;
+    dialog.querySelector('#ap-recursos-lista').innerHTML = [...groups].map(([ordem, rows]) => `<section class="ap-recursos-ordem"><h3>Ordem ${esc(ordem)}</h3>${rows.map(row => {
+      const r = row.raw, status = row.sent ? 'Enviada' : row.situacao === 'duplicada' ? 'Já solicitada / repetida' : row.situacao === 'erro' ? 'Revisar' : row.situacao === 'valida' ? 'Pronta para enviar' : 'Verificando...';
+      return `<div class="ap-recursos-linha"><div><strong>${esc(r.descricao)}</strong><small>Operação ${esc(r.operacao || 'não informada')} • ${esc(r.data.split('-').reverse().join('/'))} • ${esc(r.local || 'Local não informado')}</small><small>${r.inicio ? esc(r.inicio + ' às ' + r.fim) : 'Horário não definido no mesmo dia'}</small></div><div><strong>${esc(nome(r.recurso))}</strong><span class="ap-recursos-status ${row.situacao === 'erro' ? 'ap-recursos-erro' : ''}">${esc(status)}</span>${row.erro ? `<small>${esc(row.erro)}</small>` : ''}</div></div>`;
+    }).join('')}</section>`).join('');
+  }
+  async function abrir() {
+    if (!disponivel()) { alert('Recursos online está disponível somente para a planta BRUCUTU. As exportações por planilha continuam disponíveis.'); return; }
+    criarDialog();
+    if (view?.busy) return;
+    const gen = ++generation;
+    view = { rows: [], busy: false, jobs: [], snapshot: null };
+    if (!dialog.open) dialog.showModal();
+    dialog.querySelector('#ap-recursos-confirmar').disabled = true;
+    dialog.querySelector('#ap-recursos-confirmar').textContent = 'Confirmar solicitação';
+    dialog.querySelector('#ap-recursos-revisar').hidden = true;
+    dialog.querySelector('#ap-recursos-lista').replaceChildren();
+    dialog.querySelector('#ap-recursos-resumo-envio').textContent = '';
+    dialog.querySelector('#ap-recursos-contexto').textContent = 'Consultando o cadastro...';
+    mensagem('Verificando dados e solicitações existentes. Nenhum pedido é enviado nesta etapa.');
+    try {
+      if (typeof _vizForceSave === 'function') _vizForceSave();
+      await carregarCatalogo(true);
+      if (gen !== generation || !dialog.open) return;
+      const data = snapshot(); view.snapshot = assinatura(data);
+      dialog.querySelector('#ap-recursos-contexto').textContent = `${data.solicitante} • ${supervisao} • Semana ${semanaWizard.num}/${semanaWizard.ano} • ${data.planta}`;
+      view.rows = data.linhas.map(raw => ({ raw })); renderResumo();
+      if (!data.linhas.length) { mensagem('Nenhuma ordem com recursos selecionados está programada nesta semana. Marque os recursos no botão Ação da tela 8.'); return; }
+      const seen = new Set();
+      for (let i = 0; i < view.rows.length; i += 300) {
+        const batch = view.rows.slice(i, i + 300);
+        const checked = await api({ semana: data.semana }, { acao: 'PREVALIDAR', semana: data.semana, linhas: batch.map(r => r.raw) });
+        if (gen !== generation || !dialog.open) return;
+        batch.forEach((row, j) => {
+          const check = checked.linhas[j];
+          row.situacao = check.situacao; row.erro = check.erro;
+          if (check.situacao === 'valida') {
+            if (seen.has(check.pedido.impressao)) { row.situacao = 'duplicada'; row.erro = 'Recurso já incluído neste resumo.'; }
+            seen.add(check.pedido.impressao);
+          }
+        });
+        renderResumo();
+      }
+      const errors = view.rows.filter(r => r.situacao === 'erro').length, valid = view.rows.filter(r => r.situacao === 'valida');
+      const duplicates = view.rows.filter(r => r.situacao === 'duplicada').length;
+      if (errors) { mensagem(`${errors} vínculo(s) precisam de revisão. Corrija os dados ou recursos indicados no botão Ação antes de enviar. Nenhuma solicitação foi enviada.`, true); dialog.querySelector('#ap-recursos-revisar').hidden = false; return; }
+      for (let i = 0; i < valid.length; i += 300) view.jobs.push({ rows: valid.slice(i, i + 300), command: { acao: 'IMPORTAR', semana: data.semana, operacaoId: crypto.randomUUID(), linhas: valid.slice(i, i + 300).map(r => r.raw) }, done: false });
+      mensagem(valid.length ? `${valid.length} solicitação(ões) pronta(s) para confirmar.${duplicates ? ` ${duplicates} já existente(s) ou repetida(s) não serão reenviadas.` : ''}` : 'Todos os recursos deste resumo já possuem solicitação. Nada será reenviado.');
+      dialog.querySelector('#ap-recursos-confirmar').disabled = !valid.length;
+    } catch (error) {
+      if (gen === generation && dialog.open) { mensagem(error.message, true); dialog.querySelector('#ap-recursos-revisar').hidden = false; }
+    }
+  }
+  async function enviar() {
+    if (!view || view.busy || !view.jobs.some(j => !j.done)) return;
+    const button = dialog.querySelector('#ap-recursos-confirmar');
+    try {
+      if (typeof _vizForceSave === 'function') _vizForceSave();
+      if (assinatura(snapshot()) !== view.snapshot) throw Error('A programação, semana ou usuário mudou. Clique em Revisar novamente antes de confirmar.');
+      view.busy = true; button.disabled = true;
+      ['fechar', 'cancelar', 'revisar'].forEach(id => { dialog.querySelector('#ap-recursos-' + id).disabled = true; });
+      for (const job of view.jobs.filter(j => !j.done)) {
+        button.textContent = 'Enviando...'; mensagem('Enviando os recursos confirmados. Aguarde a conclusão.');
+        // Preserva o comando e o ID na repetição após falha de rede.
+        await api({ semana: job.command.semana }, job.command);
+        job.done = true; job.rows.forEach(r => { r.sent = true; }); renderResumo();
+      }
+      returnsCache.clear(); global.dispatchEvent(new Event('autoprog-recursos-enviados'));
+      const total = view.jobs.reduce((n, j) => n + j.rows.length, 0);
+      mensagem(`${total} solicitação(ões) enviada(s). Acompanhe os retornos no módulo Recursos. O solicitante registrado é o usuário autenticado.`);
+      button.textContent = 'Solicitações enviadas';
+    } catch (error) {
+      const sent = view.jobs.filter(j => j.done).reduce((n, j) => n + j.rows.length, 0);
+      mensagem(`${sent ? `${sent} solicitação(ões) já confirmada(s). ` : ''}${error.message} Se houve falha de conexão, tente novamente para verificar o mesmo envio sem duplicar.`, true);
+      button.textContent = 'Tentar novamente'; button.disabled = false;
+      dialog.querySelector('#ap-recursos-revisar').hidden = false;
+    } finally {
+      view.busy = false;
+      ['fechar', 'cancelar', 'revisar'].forEach(id => { dialog.querySelector('#ap-recursos-' + id).disabled = false; });
+    }
+  }
+  function semanaRetornos() {
+    if (!semanaWizard.num || !semanaWizard.ano) throw Error('Selecione a semana da programação para acompanhar os recursos.');
+    return `${semanaWizard.ano}-W${String(semanaWizard.num).padStart(2, '0')}`;
+  }
+  async function consultarRetornos(force = false, semana = semanaRetornos()) {
+    if (!disponivel()) throw Error('Acompanhamento de recursos disponível somente para a planta BRUCUTU.');
+    const { auth, planta } = contexto(), uid = auth.usuario.uid;
+    const key = [uid, planta, semana].join('|');
+    let entry = returnsCache.get(key);
+    if (entry?.promise) return entry.promise;
+    if (!force && entry?.data && Date.now() - entry.at < 60000) return entry.data;
+    entry ||= {}; returnsCache.set(key, entry);
+    while (returnsCache.size > 8) returnsCache.delete(returnsCache.keys().next().value);
+    entry.promise = (async () => {
+      const result = await api({ modo: 'retornosAutoprog', semana, ...(entry.data ? { versao: String(entry.data.versao) } : {}) });
+      if (result.tipo !== 'retornosAutoprog' || result.solicitanteUid !== uid || result.semana !== semana) throw Error('O servidor ainda não disponibilizou os retornos individuais. Atualize após a publicação.');
+      if (global._obterAuth?.()?.usuario?.uid !== uid || !disponivel()) throw Error('O usuário mudou. Reabra o acompanhamento.');
+      if (!result.naoModificado) {
+        entry.data = result;
+        global.dispatchEvent(new CustomEvent('autoprog-retornos-atualizados', { detail: { uid, semana, data: result } }));
+      }
+      if (!entry.data) throw Error('Atualize novamente para carregar os retornos.');
+      entry.at = Date.now(); return entry.data;
+    })();
+    try { return await entry.promise; } finally { entry.promise = null; }
+  }
+  async function acompanhar(options = {}) {
+    if (!disponivel()) { alert('Acompanhamento de recursos disponível somente para a planta BRUCUTU.'); return; }
+    let week;
+    try { week = options.semanaChave || semanaRetornos(); } catch (error) { alert(error.message); return; }
+    const uid = contexto().auth.usuario.uid;
+    returnsOwner = uid;
+    if (!returnsDialog) {
+      returnsDialog = document.createElement('dialog'); returnsDialog.id = 'ap-recursos-retornos';
+      returnsDialog.setAttribute('aria-labelledby', 'ap-retornos-titulo');
+      returnsDialog.innerHTML = `<header><div><span class="ap-recursos-eyebrow">RECURSOS DA PROGRAMAÇÃO</span><h2 id="ap-retornos-titulo">Acompanhar solicitações</h2></div><button class="btn" type="button" data-fechar aria-label="Fechar acompanhamento">✕</button></header><div class="ap-recursos-corpo"><p id="ap-retornos-contexto"></p><div class="ap-retornos-filtros"><label>Buscar ordem, operação ou recurso<input type="search" id="ap-retornos-busca" placeholder="Buscar solicitações"></label><label>Status<select id="ap-retornos-status"><option value="">Todos</option><option value="pendente">Pendente</option><option value="atendido">Atendido</option><option value="recusado">Recusado</option></select></label><button type="button" class="btn" id="ap-retornos-atualizar">Atualizar</button></div><p id="ap-retornos-mensagem" role="status" aria-live="polite"></p><div id="ap-retornos-lista"></div></div><footer><span>Retornos individuais por recurso. Esta consulta não altera nem reenvia solicitações.</span><button class="btn" data-fechar type="button">Fechar</button></footer>`;
+      document.body.append(returnsDialog);
+      returnsDialog.querySelectorAll('[data-fechar]').forEach(button => button.onclick = () => returnsDialog.close());
+    }
+    const gen = ++returnsGeneration;
+    if (!returnsDialog.open) returnsDialog.showModal();
+    const msg = returnsDialog.querySelector('#ap-retornos-mensagem'), list = returnsDialog.querySelector('#ap-retornos-lista');
+    const search = returnsDialog.querySelector('#ap-retornos-busca'), status = returnsDialog.querySelector('#ap-retornos-status'), refresh = returnsDialog.querySelector('#ap-retornos-atualizar');
+    list.replaceChildren(); search.value = ''; status.value = ''; refresh.disabled = true;
+    returnsDialog.querySelector('#ap-retornos-contexto').textContent = `Suas solicitações • Semana ${week.slice(-2)}/${week.slice(0, 4)}`;
+    msg.textContent = 'Consultando retornos...';
+    const current = () => gen === returnsGeneration && returnsDialog.open && global._obterAuth?.()?.usuario?.uid === uid && disponivel();
+    const load = async (force = false) => {
+      refresh.disabled = true; msg.textContent = 'Verificando atualizações...';
+      try {
+        let data = await consultarRetornos(force, week);
+        if (!current()) return;
+        const render = () => {
+          if (!current()) { list.replaceChildren(); returnsDialog.close(); return; }
+          const term = normal(search.value);
+          const rows = data.pedidos.filter(r => (!status.value || r.status === status.value) && (!term || normal([r.ordem,r.operacao,r.descricao,nome(r.recurso),r.supervisao].join(' ')).includes(term)));
+          msg.textContent = `${rows.length} solicitação(ões) • ${data.pedidos.filter(r => r.status === 'atendido').length} atendida(s) • ${data.pedidos.filter(r => r.status === 'recusado').length} recusada(s) • ${data.pedidos.filter(r => r.status === 'pendente').length} pendente(s)`;
+          list.innerHTML = rows.map(r => `<section class="ap-retorno-item" data-pedido="${esc(r.id)}"><div class="ap-retorno-cabecalho"><strong>Ordem ${esc(r.ordem)} • Operação ${esc(r.operacao || 'não informada')}</strong><span class="ap-retorno-status ${esc(r.status)}">${esc(r.status === 'atendido' ? 'Atendido' : r.status === 'recusado' ? 'Recusado' : 'Pendente')}${r.arquivado ? ' • Arquivada' : ''}</span></div><h3>${esc(nome(r.recurso))}</h3><p>${esc(r.descricao)}</p><small>${esc(r.data?.split('-').reverse().join('/'))} • ${esc(r.supervisao)} • ${esc(r.local)}</small><p class="ap-retorno-motivo"><strong>Justificativa / retorno:</strong> ${esc(r.motivo || (r.status === 'pendente' ? 'Aguardando análise do gestor.' : 'Nenhuma observação adicional.'))}</p>${r.ultimoRetorno ? `<small>Responsável: ${esc(r.ultimoRetorno.autor || r.moderador || 'não informado')} • ${esc(new Date(r.ultimoRetorno.em).toLocaleString('pt-BR'))}</small>` : ''}</section>`).join('');
+          if (!rows.length) list.textContent = 'Nenhuma solicitação encontrada para esta consulta.';
+        };
+        aplicarRetornos = event => { if (current() && event.detail.uid === uid && event.detail.semana === week) { data = event.detail.data; render(); } };
+        search.oninput = render; status.onchange = render; render();
+        const target = [...list.querySelectorAll('[data-pedido]')].find(el => el.dataset.pedido === options.pedidoId);
+        if (target) { target.classList.add('ap-retorno-destaque'); target.scrollIntoView?.({ block: 'nearest' }); }
+      } catch (error) { if (current()) msg.textContent = 'Não foi possível atualizar. ' + error.message; }
+      finally { if (current()) refresh.disabled = false; }
+    };
+    refresh.onclick = () => load(true);
+    try { await carregarCatalogo(); if (current()) await load(); }
+    catch (error) { if (current()) { msg.textContent = error.message; refresh.disabled = false; refresh.onclick = () => acompanhar(options); } }
+  }
+  global.AutoprogRecursos = { preparar, lerSelecao: () => [...selection], abrir, paraExportacao, observacaoRapida: prog => observacaoRapida(prog, catalogo), disponivel, consultarRetornos, acompanhar };
+  const picker = document.getElementById('m-recursos-dropdown');
+  if (picker) {
+    picker.addEventListener('toggle', agendarPosicaoPicker);
+    picker.addEventListener('keydown', event => { if (event.key === 'Escape' && picker.open) { event.preventDefault(); event.stopPropagation(); picker.open = false; picker.querySelector('summary').focus(); } }, true);
+    document.addEventListener('pointerdown', event => { if (picker.open && !picker.contains(event.target)) picker.open = false; });
+    document.addEventListener('scroll', event => { if (event.target !== document.getElementById('m-recursos-opcoes')) agendarPosicaoPicker(); }, true);
+    global.addEventListener('resize', agendarPosicaoPicker);
+    global.visualViewport?.addEventListener('resize', agendarPosicaoPicker);
+    global.visualViewport?.addEventListener('scroll', agendarPosicaoPicker);
+    if (global.ResizeObserver) { const observer = new ResizeObserver(agendarPosicaoPicker); observer.observe(picker.querySelector('summary')); if (picker.closest('.modal')) observer.observe(picker.closest('.modal')); }
+  }
+  const anchor = document.getElementById('autoprog-usuario-sessao');
+  const protegerRetornos = () => {
+    if (anchor?.style.display === 'none' || !disponivel() || (returnsOwner && global._obterAuth?.()?.usuario?.uid !== returnsOwner)) {
+      returnsCache.clear(); returnsGeneration++;
+      if (returnsDialog?.open) { returnsDialog.querySelector('#ap-retornos-lista').replaceChildren(); returnsDialog.close(); }
+      if (dialog?.open) dialog.close();
+    }
+  };
+  if (anchor) new MutationObserver(protegerRetornos).observe(anchor, { attributes: true, attributeFilter: ['style'], childList: true, subtree: true });
+  global.addEventListener('autoprog-step-change', protegerRetornos);
+  global.addEventListener('autoprog-retornos-atualizados', event => aplicarRetornos?.(event));
+  global.dispatchEvent(new Event('autoprog-recursos-pronto'));
+})(typeof window === 'object' ? window : globalThis);
+
+</script>
 <script>
 (function () {
   'use strict';
   const anchor = document.getElementById('autoprog-usuario-sessao');
   if (!anchor) return;
   const root = document.createElement('div'); root.id = 'ap-notifications';
-  root.innerHTML = '<button id="ap-notification-bell" type="button" aria-label="Notificações de materiais" aria-expanded="false" aria-controls="ap-notification-panel"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="ap-notification-count" hidden></span></button><section id="ap-notification-panel" aria-label="Notificações" hidden><div class="ap-notification-head"><strong>Notificações</strong><button id="ap-notification-read" type="button">Marcar todas como lidas</button></div><div id="ap-notification-list"></div><div class="ap-notification-foot">Somente os materiais solicitados por você · últimas 100 atualizações</div></section>';
+  root.innerHTML = '<button id="ap-notification-bell" type="button" aria-label="Notificações" aria-expanded="false" aria-controls="ap-notification-panel"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="ap-notification-count" hidden></span></button><section id="ap-notification-panel" aria-label="Notificações" hidden><div class="ap-notification-head"><strong>Notificações</strong><span class="ap-notification-actions"><button id="ap-notification-read" type="button">Marcar como lidas</button> ou <button id="ap-notification-clear" type="button">Limpar</button></span></div><div class="ap-notification-tabs" aria-label="Categorias de notificações"><button type="button" data-source="todas" aria-pressed="true">Todas</button><button type="button" data-source="materiais" aria-pressed="false">Materiais</button><button type="button" data-source="recursos" aria-pressed="false" hidden>Recursos</button></div><div id="ap-notification-list"></div><div class="ap-notification-foot"></div></section>';
   anchor.before(root);
-  const clearButton = document.createElement('button');
-  clearButton.id = 'ap-notification-clear'; clearButton.type = 'button'; clearButton.textContent = 'Limpar';
-  const actions = document.createElement('span'); actions.className = 'ap-notification-actions';
-  const readButton = root.querySelector('#ap-notification-read');
-  readButton.before(actions); actions.append(readButton, document.createTextNode(' ou '), clearButton);
   const bell = root.querySelector('#ap-notification-bell'), panel = root.querySelector('#ap-notification-panel'), list = root.querySelector('#ap-notification-list'), count = root.querySelector('#ap-notification-count');
-  let owner = '', items = [], read = new Set(), dismissed = new Set(), busy = false, lastPoll = 0, failure = false;
+  let owner = '', scope = '', materials = [], resources = [], read = new Set(), dismissed = new Set(), busy = false, lastPoll = 0, forceAfter = false, filter = 'todas';
+  let materialFailure = false, resourceFailure = false, storageFailure = false;
   const key = () => '_autoprog_material_notificacoes_' + owner;
-  function save() { try { localStorage.setItem(key(), JSON.stringify([...read].slice(-500))); } catch (_) {} }
-  function saveDismissed() { try { localStorage.setItem(key() + '_limpas', JSON.stringify([...dismissed])); } catch (_) {} }
+  const markPrefix = () => '_autoprog_avisos_v2_' + encodeURIComponent(owner) + ':';
+  const brucutu = () => String(window._obterAuth?.()?.usuario?.planta || '').trim().toUpperCase() === 'BRUCUTU';
+  const items = () => [...materials, ...(brucutu() ? resources : [])].filter(n => !dismissed.has(n.id)).sort((a, b) => (b.atualizadoEm || 0) - (a.atualizadoEm || 0));
+  // Cada fonte traz até 100 avisos. Não cortar a lista unificada antes do filtro:
+  // os retornos mais recentes de Recursos não podem ocultar todos os Materiais.
+  const filtered = () => items().filter(n => filter === 'todas' || (n.fonte || 'materiais') === filter);
+  const sameOwner = () => !!owner && window._obterAuth?.()?.usuario?.uid === owner;
+  const validId = id => typeof id === 'string' && id.length > 0 && id.length <= 2048;
+  function storeMark(kind, id) {
+    try { localStorage.setItem(markPrefix() + kind + ':' + encodeURIComponent(id), '1'); }
+    catch (_) { storageFailure = true; }
+  }
+  function loadMarks() {
+    if (!sameOwner()) return;
+    try {
+      // Migração aditiva: nunca regravar os arrays antigos com o retrato de uma
+      // guia. Cada aviso tem sua própria chave imutável, sem perda concorrente.
+      for (const [suffix, kind, target] of [['', 'lida', read], ['_limpas', 'limpa', dismissed]]) {
+        let legacy;
+        try { legacy = JSON.parse(localStorage.getItem(key() + suffix) || '[]'); } catch (_) { legacy = []; }
+        if (Array.isArray(legacy)) for (const id of legacy.filter(validId)) {
+          if (!target.has(id)) { target.add(id); storeMark(kind, id); }
+        }
+      }
+      const prefix = markPrefix();
+      for (let i = 0; i < localStorage.length; i++) {
+        const name = localStorage.key(i);
+        if (!name?.startsWith(prefix)) continue;
+        const mark = name.slice(prefix.length), separator = mark.indexOf(':');
+        if (separator < 0) continue;
+        const kind = mark.slice(0, separator);
+        let id; try { id = decodeURIComponent(mark.slice(separator + 1)); } catch (_) { continue; }
+        if (validId(id)) { if (kind === 'lida') read.add(id); else if (kind === 'limpa') dismissed.add(id); }
+      }
+    } catch (_) { storageFailure = true; }
+  }
+  function markRows(kind, rows) {
+    if (!sameOwner()) { void sync(true); return; }
+    loadMarks();
+    for (const n of rows) if (validId(n.id)) {
+      (kind === 'limpa' ? dismissed : read).add(n.id); storeMark(kind, n.id);
+    }
+    render();
+  }
   function close() { panel.hidden = true; bell.setAttribute('aria-expanded', 'false'); }
   function render() {
-    const unread = items.filter(n => !read.has(n.id)).length;
+    if (!brucutu() && filter === 'recursos') filter = 'todas';
+    root.querySelector('[data-source="recursos"]').hidden = !brucutu();
+    root.querySelectorAll('[data-source]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.source === filter)));
+    const unread = items().filter(n => !read.has(n.id)).length;
     count.hidden = unread === 0; count.textContent = unread > 99 ? '99+' : String(unread);
-    bell.setAttribute('aria-label', 'Notificações de materiais: ' + unread + ' não lidas');
-    list.replaceChildren();
-    if (!items.length) { const empty = document.createElement('div'); empty.className = 'ap-notification-empty'; empty.textContent = failure ? 'Sem conexão para consultar materiais. Tente novamente ao abrir.' : 'Nenhuma atualização de materiais solicitados por você.'; list.append(empty); }
-    for (const n of items) {
+    bell.setAttribute('aria-label', 'Notificações: ' + unread + ' não lidas'); list.replaceChildren();
+    if (materialFailure || resourceFailure) { const warning = document.createElement('div'); warning.className = 'ap-notification-empty'; warning.setAttribute('role', 'status'); warning.textContent = 'Não foi possível atualizar ' + [materialFailure && 'Materiais', resourceFailure && brucutu() && 'Recursos'].filter(Boolean).join(' e ') + '. Os avisos já carregados foram mantidos.'; list.append(warning); }
+    if (storageFailure) { const warning = document.createElement('div'); warning.className = 'ap-notification-empty'; warning.setAttribute('role', 'status'); warning.textContent = 'O navegador não permitiu guardar as marcações. Elas serão mantidas nesta guia, mas podem não persistir ao reabrir. Libere o armazenamento para este site.'; list.append(warning); }
+    if (!filtered().length) { const empty = document.createElement('div'); empty.className = 'ap-notification-empty'; empty.textContent = 'Nenhuma atualização para esta consulta.'; list.append(empty); }
+    for (const n of filtered()) {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'ap-notification-item' + (read.has(n.id) ? ' read' : '');
-      const icon = document.createElement('span'); icon.className = 'ap-notification-icon'; icon.textContent = n.categoria === 'OCORRENCIA' ? '⚠' : '◇';
+      const icon = document.createElement('span'); icon.className = 'ap-notification-icon'; icon.textContent = n.fonte === 'recursos' ? (n.status === 'recusado' ? '!' : '✓') : n.categoria === 'OCORRENCIA' ? '⚠' : '◇';
       const body = document.createElement('span'), title = document.createElement('strong'), text = document.createElement('span'), time = document.createElement('small');
-      title.textContent = n.titulo; text.textContent = 'OM ' + n.ordem + ' · ' + n.descricao;
+      title.textContent = (n.fonte === 'recursos' ? 'Recursos • ' : 'Materiais • ') + n.titulo;
+      text.textContent = 'OM ' + n.ordem + (n.operacao ? ' • Operação ' + n.operacao : '') + ' · ' + n.descricao;
       time.textContent = (n.atualizadoEm ? new Date(n.atualizadoEm).toLocaleString('pt-BR') + ' · ' : '') + 'Semana ' + n.semana;
       body.append(title, text, time);
       if (n.observacao || n.previsao) { const details = document.createElement('small'); details.textContent = [n.observacao, n.previsao && 'Previsão: ' + n.previsao].filter(Boolean).join(' · '); body.append(details); }
       button.append(icon, body);
       if (!read.has(n.id)) { const dot = document.createElement('span'); dot.className = 'ap-notification-dot'; button.append(dot); }
-      button.addEventListener('click', () => { read.add(n.id); save(); render(); }); list.append(button);
+      button.addEventListener('click', () => { if (!sameOwner()) { void sync(true); return; } markRows('lida', [n]); if (n.fonte === 'recursos') { close(); void window.AutoprogRecursos?.acompanhar({ semanaChave: n.semanaChave, pedidoId: n.pedidoId }); } }); list.append(button);
     }
+    root.querySelector('.ap-notification-foot').textContent = brucutu() ? 'Somente suas solicitações • Recursos da semana selecionada • até 100 avisos por categoria' : 'Somente os materiais solicitados por você • últimas 100 atualizações';
   }
   async function sync(force = false) {
     const auth = window._obterAuth?.(), uid = auth?.usuario?.uid;
     const loggedIn = uid && anchor.style.display !== 'none';
     const allowedStep = typeof currentStep !== 'undefined' && [8, 9, 10].includes(currentStep);
-    const visible = loggedIn && allowedStep;
-    root.style.display = visible ? 'inline-flex' : 'none';
-    if (!visible) close();
-    if (!loggedIn) { owner = ''; items = []; read = new Set(); dismissed = new Set(); return; }
-    if (!allowedStep) return;
-    if (uid !== owner) { owner = uid; items = []; lastPoll = 0; close(); try { const saved = JSON.parse(localStorage.getItem(key()) || '[]'); read = new Set(Array.isArray(saved) ? saved.filter(x => typeof x === 'string') : []); } catch (_) { read = new Set(); } try { const saved = JSON.parse(localStorage.getItem(key() + '_limpas') || '[]'); dismissed = new Set(Array.isArray(saved) ? saved.filter(x => typeof x === 'string') : []); } catch (_) { dismissed = new Set(); } render(); }
-    if (busy || (!force && Date.now() - lastPoll < 60000) || document.hidden) return;
-    busy = true; lastPoll = Date.now(); const requestedOwner = owner;
+    root.style.display = loggedIn && allowedStep ? 'inline-flex' : 'none';
+    if (!loggedIn || !allowedStep) close();
+    const week = typeof semanaWizard !== 'undefined' && semanaWizard.num ? `${semanaWizard.ano}-W${String(semanaWizard.num).padStart(2, '0')}` : '';
+    const nextScope = loggedIn ? [uid, auth.usuario.planta, week].join('|') : '';
+    if (nextScope !== scope) {
+      const changedUser = owner !== (uid || '');
+      scope = nextScope; owner = uid || ''; materials = []; resources = []; lastPoll = 0; materialFailure = false; resourceFailure = false; filter = 'todas'; close();
+      if (changedUser) { read = new Set(); dismissed = new Set(); storageFailure = false; }
+      loadMarks();
+      render();
+    }
+    loadMarks();
+    if (!loggedIn || !allowedStep || document.hidden) return;
+    if (busy) { if (force) forceAfter = true; return; }
+    if (!force && Date.now() - lastPoll < 60000) return;
+    busy = true; lastPoll = Date.now(); const requestedScope = scope;
+    const valid = () => scope === requestedScope && window._obterAuth?.()?.usuario?.uid === uid;
     try {
-      const response = await _fetchFb('/materiais.json?notificacoes=1', { cache: 'no-store' });
-      if (!response.ok) throw new Error('Falha na consulta');
-      const data = await response.json();
-      if (owner !== requestedOwner || window._obterAuth?.()?.usuario?.uid !== requestedOwner) return;
-      items = Array.isArray(data.notificacoes) ? data.notificacoes.filter(n => !dismissed.has(n.id)) : []; failure = false; render();
-    } catch (_) { failure = true; if (owner === requestedOwner) render(); }
-    finally { busy = false; }
+      await Promise.all([
+        (async () => { try { const response = await _fetchFb('/materiais.json?notificacoes=1', { cache: 'no-store' }); if (!response.ok) throw Error('Falha'); const data = await response.json(); if (data.ok === false || !Array.isArray(data.notificacoes) || (data.solicitanteUid && data.solicitanteUid !== uid)) throw Error('Retorno inválido'); if (valid()) { materials = data.notificacoes.filter(n => n && validId(n.id)); materialFailure = false; } } catch (_) { if (valid()) materialFailure = true; } })(),
+        (async () => { if (!brucutu() || !week || !window.AutoprogRecursos) return; try { const data = await window.AutoprogRecursos.consultarRetornos(force); if (!Array.isArray(data.notificacoes) || (data.solicitanteUid && data.solicitanteUid !== uid)) throw Error('Retorno inválido'); if (valid() && brucutu()) { resources = data.notificacoes.filter(n => n && validId(n.id)); resourceFailure = false; } } catch (_) { if (valid()) resourceFailure = true; } })()
+      ]);
+      if (valid()) { loadMarks(); render(); }
+    } finally { busy = false; if (forceAfter || scope !== requestedScope) { forceAfter = false; void sync(true); } }
   }
   bell.addEventListener('click', () => { panel.hidden = !panel.hidden; bell.setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) void sync(true); });
-  root.querySelector('#ap-notification-read').addEventListener('click', () => { items.forEach(n => read.add(n.id)); save(); render(); });
-  clearButton.addEventListener('click', () => { items.forEach(n => dismissed.add(n.id)); saveDismissed(); items = []; render(); });
+  root.querySelectorAll('[data-source]').forEach(button => button.addEventListener('click', () => { if (!sameOwner()) { void sync(true); return; } filter = button.dataset.source; loadMarks(); render(); }));
+  root.querySelector('#ap-notification-read').addEventListener('click', () => markRows('lida', filtered()));
+  root.querySelector('#ap-notification-clear').addEventListener('click', () => markRows('limpa', filtered()));
   document.addEventListener('click', event => { if (!root.contains(event.target)) close(); });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) { close(); bell.focus(); } });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) void sync(); });
+  function refreshMarks() { if (sameOwner()) { loadMarks(); render(); } void sync(); }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshMarks(); });
+  window.addEventListener('focus', refreshMarks);
+  window.addEventListener('pageshow', refreshMarks);
+  window.addEventListener('storage', event => {
+    if (!sameOwner()) { void sync(); return; }
+    if (event.key === null || event.key === key() || event.key === key() + '_limpas' || event.key?.startsWith(markPrefix())) { loadMarks(); render(); }
+  });
+  window.addEventListener('autoprog-session-loaded', () => { filter = 'todas'; close(); void sync(true); });
   window.addEventListener('autoprog-step-change', () => { void sync(); });
+  for (const name of ['autoprog-recursos-pronto','autoprog-recursos-enviados']) window.addEventListener(name, () => { void sync(true); });
   new MutationObserver(() => { void sync(); }).observe(anchor, { attributes: true, attributeFilter: ['style'] });
   setInterval(() => { void sync(); }, 60000); void sync();
 })();
@@ -18189,7 +19063,7 @@ function montarDivulgacaoControle() {
   if (typeof _vizForceSave === 'function') _vizForceSave();
   if (String(sessaoPlanta || '').trim().toUpperCase() !== 'BRUCUTU') throw new Error('Controle disponível somente para a planta BRUCUTU.');
   if (!semanaWizard.num || !semanaWizard.ano || !String(supervisao || '').trim()) throw new Error('Informe a supervisão e selecione a semana da programação.');
-  const doc = new DOMParser().parseFromString(buildVisualizacaoHTML({ completa: true }), 'text/html');
+  const doc = new DOMParser().parseFromString(buildVisualizacaoHTML({ completa: true, colunaObservacao: true }), 'text/html');
   renderIntervalosProgramacao(doc, TURNOS_HORARIOS, Object.fromEntries(efetivo.map(ef => [ef.nome, normalizarTurno(ef.turno) || 'Administrativo'])));
   const linhas = [];
   for (const section of doc.querySelectorAll('.viz-day-section')) {
@@ -18242,12 +19116,19 @@ async function divulgarProgramacaoControle() {
     button.disabled = true; button.textContent = 'Divulgando...';
     const result = await ControleAPI(window._sessaoAutoprog, window._obterAuth, _FACILITA_MATERIAIS_API, 'AUTOPROG', {}, payload);
     divulgacaoControlePendente = null;
-    alert(result.divulgacao.vigente ? 'Programação divulgada e disponível no Controle.' : 'Esta divulgação já foi salva. Uma divulgação mais recente está vigente no Controle.');
+    alert(result.divulgacao.sincronizacaoPendente ? 'Programação salva. A atualização do índice será concluída automaticamente na próxima consulta ao Controle.' : result.divulgacao.vigente ? 'Programação divulgada e disponível no Controle.' : 'Esta divulgação já foi salva. Uma divulgação mais recente está vigente no Controle.');
   } catch (error) { alert('Não foi possível divulgar a programação.\n\n' + error.message); }
   finally { button.disabled = false; button.textContent = 'Divulgar Programação'; }
 }
 function abrirModuloControle() {
   window.open(_FACILITA_MATERIAIS_API + '/controle', '_blank', 'noopener');
+}
+function abrirAutoAprov() {
+  window.open(_FACILITA_MATERIAIS_API + '/autoaprov', '_blank', 'noopener');
+}
+function abrirRecursos() {
+  if (!window.AutoprogRecursos?.disponivel()) { alert('Recursos online está disponível somente para a planta BRUCUTU. As exportações por planilha continuam disponíveis.'); return; }
+  window.open(_FACILITA_MATERIAIS_API + '/recursos', '_blank', 'noopener');
 }
 
 </script>
