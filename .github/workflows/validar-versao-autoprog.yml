@@ -14,7 +14,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Conferir versão, manifesto e etiqueta de novidades
+      - name: Conferir páginas de transição e versões obrigatórias
         run: node scripts/verificar-versao-autoprog.js
-      - name: Testar restauração do perfil em sessões salvas
-        run: node scripts/testar-restauracao-perfil.js

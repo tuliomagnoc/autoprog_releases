@@ -1,27 +1,9 @@
 # Canais públicos de atualização
 
-Este repositório público concentra os arquivos de versionamento dos módulos operacionais:
+AutoProg (`AUTOPROG.html`) e AutoMat (`automat/AUTOMAT.html`) distribuem agora somente uma página com a logomarca, o aviso de encerramento local e o botão **ACESSAR SERVIDOR**. Os manifestos `versao.json` e `automat/versao.json` trazem versões maiores que as dos arquivos autônomos anteriores, acionando o aviso obrigatório quando eles consultam o GitHub.
 
-- `versao.json` e `AUTOPROG.html`: AutoProg.
-- `automat/versao.json` e `automat/AUTOMAT.html`: AutoMat.
-- `automatmobile/web-versao.json` e `automatmobile/automatmobile.html`: AutoMat Mobile web.
-- `automatmobile/versao.json` e o APK: aplicativo AutoMat Mobile Android.
+O navegador solicita ao usuário que escolha onde salvar. A cópia antiga só é substituída quando o novo arquivo é salvo no mesmo caminho. Arquivos guardados em outros caminhos e cópias abertas sem conexão não podem ser apagados remotamente.
 
-Cada módulo consulta seu manifesto no GitHub. Uma publicação deve atualizar, no mesmo commit, o arquivo do módulo e seu manifesto correspondente. O instalador Android só deve mudar quando houver uma publicação específica do aplicativo.
+Os módulos online continuam hospedados na Azure e usam seus próprios manifestos de versão. O AutoMat Mobile web e o APK Android mantêm seus canais atuais: o atualizador web das cópias locais apenas recarrega a página e não consegue substituir o HTML já baixado. O Controle disponibiliza a página de orientação para novos downloads; suas cópias antigas também não têm mecanismo de substituição.
 
-## Sequências independentes
-
-Cada módulo mantém sua própria sequência e incrementa o último número a cada ajuste publicado:
-
-- AutoProg: `V2026.27.01.136`.
-- AutoMat: `V2026.27.01.18`.
-- AutoMat Mobile web: `V2026.27.01.14`.
-- AutoMat Mobile Android: `V2026.27.01.09`, inalterado nesta publicação web.
-
-Uma publicação somente está concluída depois que a mesma versão estiver alinhada no código-fonte, no manifesto do GitHub e na cópia hospedada na Azure. O APK tem sequência e publicação próprias, independentes da versão web. O número de um módulo não deve ser copiado para outro módulo.
-
-No AutoProg, **cada ajuste publicado precisa constar na etiqueta de novidades**. Todas as notas da versão atual, até a primeira entrada de uma versão anterior, devem ser idênticas entre `versao.json` e `_NOVIDADES_ATUAL` no HTML. A validação automática do GitHub bloqueia divergências.
-
-Exceção expressamente solicitada para a publicação 136: nenhuma novidade acrescentada. O manifesto identifica `semNovidades: true`, mantendo as listas anteriores e a validação de alinhamento entre código, rodapé e manifesto.
-
-As APIs autenticadas e a base de dados não são hospedadas pelo GitHub; este repositório contém somente arquivos públicos de distribuição e controle de versão.
+O código antigo pode permanecer em cópias já distribuídas e no histórico do repositório. As APIs e os dados seguem protegidos pelas verificações do servidor.

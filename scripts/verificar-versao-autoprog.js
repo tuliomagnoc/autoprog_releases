@@ -1,52 +1,28 @@
+const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const raiz = path.resolve(__dirname, '..');
-const html = fs.readFileSync(path.join(raiz, 'AUTOPROG.html'), 'utf8');
-const manifesto = JSON.parse(fs.readFileSync(path.join(raiz, 'versao.json'), 'utf8'));
-
-const versaoHtml = html.match(/const _APP_VERSION = '([^']+)'/);
-const novidadesHtml = html.match(/const _NOVIDADES_ATUAL = (\[[\s\S]*?\]);/);
-
-function falhar(mensagem) {
-  console.error(`ERRO DE VERSIONAMENTO: ${mensagem}`);
-  process.exit(1);
-}
-
-if (!versaoHtml) falhar('não foi possível localizar _APP_VERSION no AUTOPROG.html.');
-if (!novidadesHtml) falhar('não foi possível localizar _NOVIDADES_ATUAL no AUTOPROG.html.');
-if (versaoHtml[1] !== manifesto.versao) {
-  falhar(`AUTOPROG.html está em ${versaoHtml[1]}, mas versao.json está em ${manifesto.versao}.`);
-}
-
-let novidadesInstaladas;
-try {
-  novidadesInstaladas = JSON.parse(novidadesHtml[1]);
-} catch (erro) {
-  falhar(`a lista _NOVIDADES_ATUAL não é válida: ${erro.message}`);
-}
-
-if (!Array.isArray(manifesto.novidades) || !manifesto.novidades.length) {
-  falhar('versao.json precisa conter ao menos uma novidade.');
-}
-if (!Array.isArray(novidadesInstaladas) || !novidadesInstaladas.length) {
-  falhar('a etiqueta vibratória precisa conter ao menos uma novidade.');
-}
-const semNovidades = manifesto.semNovidades === true;
-if (!semNovidades && !String(manifesto.novidades[0]).startsWith(manifesto.versao)) {
-  falhar(`a primeira novidade do manifesto deve começar com ${manifesto.versao}.`);
-}
-const notasDaVersao = lista => {
-  const proximaVersao = lista.findIndex((nota, indice) => indice > 0 && /^V\d{4}\./.test(String(nota)));
-  return lista.slice(0, proximaVersao < 0 ? lista.length : proximaVersao);
+const canal = [
+  { modulo: 'AutoProg', html: 'AUTOPROG.html', manifesto: 'versao.json', minimo: 'V2026.27.01.143', rota: '/autoprog' },
+  { modulo: 'AutoMat', html: 'automat/AUTOMAT.html', manifesto: 'automat/versao.json', minimo: 'V2026.27.01.18', rota: '/automat' }
+];
+const partes = valor => String(valor).replace(/^V/i, '').split('.').map(Number);
+const maisNova = (a, b) => {
+  const pa = partes(a), pb = partes(b);
+  return pa.some((parte, indice) => parte > (pb[indice] || 0) && pa.slice(0, indice).every((n, i) => n === pb[i]));
 };
-if (JSON.stringify(notasDaVersao(novidadesInstaladas)) !== JSON.stringify(notasDaVersao(manifesto.novidades))) {
-  falhar('todas as novidades da versão atual devem coincidir entre o manifesto e a etiqueta vibratória.');
-}
 
-const ocorrenciasVersao = html.split(manifesto.versao).length - 1;
-if (ocorrenciasVersao < (semNovidades ? 2 : 3)) {
-  falhar('a versão deve aparecer no código e nos rodapés do AutoProg.');
+for (const item of canal) {
+  const html = fs.readFileSync(path.join(raiz, item.html), 'utf8');
+  const dados = JSON.parse(fs.readFileSync(path.join(raiz, item.manifesto), 'utf8'));
+  assert.ok(maisNova(dados.versao, item.minimo), `${item.modulo}: versão precisa superar as cópias existentes.`);
+  assert.ok(Array.isArray(dados.novidades) && dados.novidades[0].startsWith(dados.versao));
+  assert.match(html, /ESTA VERSÃO LOCAL FOI ENCERRADA/);
+  assert.match(html, />ACESSAR SERVIDOR<\/a>/);
+  assert.ok(html.includes(`https://black-meadow-0dc500c10.5.azurestaticapps.net${item.rota}`));
+  assert.match(html, /src="data:image\/png;base64,[A-Za-z0-9+/=]+"/);
+  assert.doesNotMatch(html, /<script\b|on(?:click|load|error)\s*=/i);
+  assert.ok(Buffer.byteLength(html) < 40_000, `${item.modulo}: arquivo contém código além da página de orientação.`);
+  console.log(`${item.modulo} ${dados.versao}: atualização local encerrada validada.`);
 }
-
-console.log(`AutoProg ${manifesto.versao}: versão e etiqueta de novidades validadas.`);
